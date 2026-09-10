@@ -1,0 +1,44 @@
+# 本地依赖与缓存
+node_modules/
+.cache/
+coverage/
+
+# 本地凭据与环境配置
+.env
+.env.*
+.venv/
+venv/
+
+# 本地需求、配色与设计资料
+*需求*
+*配色*
+requirements/
+requirements.md
+REQUIREMENTS*
+DESIGN*
+design*
+
+# 本地测试文件
+tests/
+test/
+__tests__/
+tests.*
+*.test.*
+*.spec.*
+test_*
+
+# 本机共享规则入口，保留现有软链接
+/AGENTS.md
+
+# 日志
+*.log
+
+# 编辑器与系统文件
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
