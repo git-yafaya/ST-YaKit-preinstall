@@ -1,0 +1,167 @@
+(() => {
+  const preview = globalThis.YaKitPreview ??= {};
+  preview.mountWorkbench = function mountWorkbench(controller, root = document.getElementById('app')) {
+    root.innerHTML = preview.workbenchTemplate;
+    const $ = id => root.querySelector(`#${id}`);
+    const statusNames = { pending: '待反馈', satisfied: '达到预期', revise: '还需修改' };
+    let messageKey = '', versionKey = '', trialKey = '', feedbackKey = '', selection = '', localNotice = '';
+    let localError = false;
+
+    function showNotice(state) {
+      $('notice').textContent = localNotice || state.error || state.notice || '';
+      $('notice').hidden = !$('notice').textContent;
+      $('notice').classList.toggle('error', localError || (!localNotice && Boolean(state.error)));
+    }
+    async function run(action) {
+      localNotice = ''; localError = false;
+      try { await action(); }
+      catch (error) { localNotice = error.message || '本次操作没有完成，请重试。'; localError = true; }
+      render(controller.getState());
+    }
+    function notify(message, error = false) {
+      localNotice = message; localError = error; showNotice(controller.getState());
+    }
+    function setValue(id, value) {
+      // 只在值确实变化时赋值，逐字输入不会重建编辑器或跳动光标。
+      if ($(id).value !== (value ?? '')) $(id).value = value ?? '';
+    }
+    function setOptions(id, entries, selected, empty) {
+      const options = entries.map(([value, label]) => new Option(label, value));
+      if (!options.length) options.push(new Option(empty, ''));
+      $(id).replaceChildren(...options);
+      $(id).value = selected || '';
+    }
+    function currentTrial(state = controller.getState()) {
+      return state.trials.find(item => item.id === state.selectedTrialId);
+    }
+    function feedback() {
+      const status = root.querySelector('input[name="feedback-status"]:checked')?.value;
+      if (!status) throw new Error('先选择「达到预期」或「还需修改」，再提交反馈。');
+      return { status, note: $('feedback-note').value, excerpt: $('excerpt').value };
+    }
+    function render(state) {
+      setValue('goal', state.goal); setValue('draft', state.draft);
+      const activeVersion = state.versions.find(item => item.id === state.selectedVersionId);
+      const trial = currentTrial(state);
+      $('draft-count').textContent = `${Array.from(state.draft).length} 字`;
+      $('draft-state').textContent = activeVersion?.content === state.draft ? `已保存 · ${activeVersion.label}` : '当前草稿 · 尚未保存为版本';
+      $('version-count').textContent = state.versions.length;
+      $('trial-version').textContent = activeVersion ? (activeVersion.content === state.draft ? `使用版本 · ${activeVersion.label}` : '草稿已修改，请先保存新版本') : '先保存一个提示词版本';
+      $('context-label').textContent = state.contextLabel || 'NPC 认知边界 · 示例场景';
+      $('busy-bar').hidden = !state.busy;
+      $('busy-text').textContent = state.busy === 'trial' ? '正在展示试写示例…' : '正在准备提示词示例…';
+      $('design-button').disabled = Boolean(state.busy) || !state.goal.trim();
+      $('design-button').firstChild.textContent = state.busy === 'design' ? '准备示例中 ' : state.messages.length > 1 ? '修改示例提示词 ' : '生成示例提示词 ';
+      $('trial-button').disabled = Boolean(state.busy) || !state.canTrial || !activeVersion || activeVersion.content !== state.draft;
+      $('save-version').disabled = Boolean(state.busy) || !state.draft.trim();
+      $('copy').disabled = !state.draft.trim();
+      $('versions').disabled = Boolean(state.busy) || !state.versions.length;
+      $('trials').disabled = Boolean(state.busy) || !state.trials.length;
+      $('save-feedback').disabled = Boolean(state.busy) || !trial;
+      $('revise').disabled = Boolean(state.busy) || !trial;
+      showNotice(state);
+
+      const nextMessageKey = JSON.stringify(state.messages);
+      if (messageKey !== nextMessageKey) {
+        messageKey = nextMessageKey;
+        const messages = state.messages.length ? state.messages : [{ role: 'assistant', content: '先说说你想让故事发生什么变化。\n\n我们可以从「NPC 只知道有依据的信息」开始，再用一个具体场景试写，看看提示词是否真的有效。' }];
+        $('messages').replaceChildren(...messages.map(message => {
+          const item = document.createElement('div');
+          item.className = `message message-${message.role === 'user' ? 'user' : 'assistant'}`;
+          const role = document.createElement('span'); role.className = 'message-role'; role.textContent = message.role === 'user' ? '你' : '工作台 · 示例回复';
+          const content = document.createElement('span');
+          let readable = message.content;
+          if (message.role !== 'user') {
+            // 结构化答复只展示可读说明，完整提示词已经进入草稿区。
+            try { const reply = JSON.parse(readable); if (typeof reply.explanation === 'string') readable = reply.explanation; } catch { /* 普通文字按原样展示。 */ }
+          }
+          content.textContent = readable;
+          item.append(role, content); return item;
+        }));
+        $('messages').scrollTop = $('messages').scrollHeight;
+      }
+      const nextVersionKey = JSON.stringify([state.versions, state.selectedVersionId]);
+      if (versionKey !== nextVersionKey) {
+        versionKey = nextVersionKey;
+        setOptions('versions', state.versions.map(item => [item.id, item.label]), state.selectedVersionId, '尚未保存版本');
+      }
+      const nextTrialKey = JSON.stringify([state.trials.map(item => [item.id, item.feedback?.status]), state.selectedTrialId]);
+      if (trialKey !== nextTrialKey) {
+        trialKey = nextTrialKey;
+        setOptions('trials', state.trials.map((item, index) => [item.id, `第 ${index + 1} 次试写 · ${statusNames[item.feedback?.status] || '待反馈'}`]), state.selectedTrialId, '暂无试写');
+      }
+      $('trial-empty').hidden = Boolean(trial);
+      $('trial-output').hidden = !trial; $('feedback-section').hidden = !trial;
+      const trialVersion = state.versions.find(item => item.id === trial?.versionId);
+      $('trial-context').textContent = trial ? `对应「${trialVersion?.label || '已保存版本'}」 · ${trial.context?.explanation || '请根据本次正文提交人工反馈。'}` : '';
+      $('trial-context').hidden = !trial;
+      if ($('trial-output').textContent !== (trial?.content || '')) $('trial-output').textContent = trial?.content || '';
+      const nextFeedbackKey = JSON.stringify([trial?.id, trial?.feedback]);
+      if (feedbackKey !== nextFeedbackKey) {
+        feedbackKey = nextFeedbackKey; selection = '';
+        setValue('excerpt', trial?.feedback?.excerpt); setValue('feedback-note', trial?.feedback?.note);
+        root.querySelectorAll('input[name="feedback-status"]').forEach(input => { input.checked = input.value === trial?.feedback?.status; });
+      }
+      $('feedback-state').textContent = trial?.feedback?.status && trial.feedback.status !== 'pending' ? `已保存评价 · ${statusNames[trial.feedback.status]}` : '尚未提交评价';
+    }
+
+    ['goal', 'draft'].forEach(id => $(id).addEventListener('input', () => run(() => controller.update({ [id]: $(id).value }))));
+    $('design-form').addEventListener('submit', event => {
+      event.preventDefault();
+      run(async () => {
+        await controller.design($('instruction').value || $('goal').value);
+        if (!controller.getState().error) $('instruction').value = '';
+      });
+    });
+    $('save-version').addEventListener('click', () => run(async () => {
+      await controller.saveVersion($('version-label').value);
+      if (!controller.getState().error) $('version-label').value = '';
+    }));
+    $('versions').addEventListener('change', () => run(() => controller.selectVersion($('versions').value)));
+    $('trial-button').addEventListener('click', () => run(() => controller.trial($('trial-input').value)));
+    $('trials').addEventListener('change', () => run(() => controller.selectTrial($('trials').value)));
+    $('cancel').addEventListener('click', () => run(() => controller.cancel()));
+    $('save-feedback').addEventListener('click', () => run(() => controller.setFeedback(currentTrial().id, feedback())));
+    $('revise').addEventListener('click', () => run(async () => {
+      const trial = currentTrial();
+      await controller.setFeedback(trial.id, feedback());
+      if (controller.getState().error) return;
+      await controller.reviseFromFeedback(trial.id);
+    }));
+    // 只引用正文区域里的选区，点击按钮后仍保留最后一次选中的片段。
+    function rememberSelection() {
+      const selected = window.getSelection();
+      if (selected?.rangeCount && $('trial-output').contains(selected.anchorNode) && $('trial-output').contains(selected.focusNode)) selection = selected.toString();
+    }
+    $('trial-output').addEventListener('mouseup', rememberSelection);
+    $('trial-output').addEventListener('keyup', rememberSelection);
+    $('trial-output').addEventListener('touchend', rememberSelection);
+    $('quote-selection').addEventListener('click', () => {
+      rememberSelection();
+      if (!selection.trim()) { notify('先在试写正文中选中要反馈的句子；也可以直接填写问题片段。'); return; }
+      $('excerpt').value = selection; $('feedback-note').focus();
+    });
+    $('copy').addEventListener('click', () => run(async () => {
+      const content = controller.getState().draft;
+      try { await navigator.clipboard.writeText(content); }
+      catch {
+        // 本地文件可能不开放剪贴板接口，使用浏览器的原生复制后备能力。
+        const field = document.createElement('textarea'); field.value = content; field.style.cssText = 'position:fixed;left:-9999px';
+        document.body.append(field); field.select();
+        const copied = document.execCommand('copy'); field.remove();
+        if (!copied) throw new Error('浏览器未允许复制，请选中草稿后手动复制。');
+      }
+      notify('提示词已复制。');
+    }));
+    $('export').addEventListener('click', () => run(async () => {
+      const data = await controller.exportData();
+      const url = URL.createObjectURL(new Blob([data], { type: 'application/json;charset=utf-8' }));
+      const link = document.createElement('a'); link.href = url; link.download = `YaKit-提示词工作记录-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+      notify('工作记录已导出。');
+    }));
+    if (preview.examples?.scene) setValue('trial-input', preview.examples.scene);
+    render(controller.getState());
+    return controller.subscribe(render);
+  };
+})();
