@@ -1,7 +1,7 @@
 (() => {
 'use strict';
 const { rawText, required, text } = globalThis.YaKitWorkbench.state;
-const { INSTRUCTION } = globalThis.YaKitWorkbench.prompts;
+const { INSTRUCTION, LEGACY_INSTRUCTION } = globalThis.YaKitWorkbench.prompts;
 
 function configFields(fields) {
     if (!fields || typeof fields !== 'object' || Array.isArray(fields)) throw new Error('API 配置格式不正确。');
@@ -67,6 +67,8 @@ function restoreSettings(state, saved) {
         state.activeSecondaryApiId = config.id;
     }
     state.assistPrompts = Object.fromEntries(['builtin', 'custom'].map(kind => [kind, getPrompt(saved || {}, kind).text]));
+    // 仅迁移逐字相同的旧默认文案，保留用户编辑过的提示词。
+    if (state.assistPrompts.builtin === LEGACY_INSTRUCTION) state.assistPrompts.builtin = INSTRUCTION;
 }
 
 function createSettingsActions({ state, host, change }) {

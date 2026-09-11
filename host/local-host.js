@@ -49,17 +49,15 @@
             },
             async design(messages, { signal } = {}) {
                 await pause(signal);
-                // ponytail: 只识别当前草稿的示例标记；真实理解需求时再接入模型。
-                // 不读取旧讨论中的标记，避免清空草稿后仍被旧版本推进到第二版。
-                const content = messages[1]?.content.split('\n\n本次修改的提示词：\n').at(-1) || '';
-                const revised = content.includes('当有人问起未知事实时')
-                    || content.includes('把线索与结论分开');
+                // ponytail: 离线示例仅按反馈入口切换第二版，理解自由输入需要真实模型。
+                const revised = messages[1]?.content.includes('本次操作：revise。');
                 return JSON.stringify({
+                    action: revised ? 'revise' : 'create',
                     prompt: revised ? examples.revisedPrompt : examples.firstPrompt,
                     explanation: (revised
                         ? '已载入预置第二版示例。保存后试写，对比正文并留下反馈。'
                         : '已载入预置第一版示例。保存后试写，再由你决定是否修改。')
-                        + (messages[1]?.content.startsWith(`需求：\n${examples.goal}\n\n本次修改的提示词：\n`)
+                        + (revised || messages[2]?.content.startsWith(`本次需求背景：\n${examples.goal}\n\n`)
                             ? '' : '当前演示固定为 NPC 认知边界，输入已记录，可手动编辑草稿。'),
                 });
             },

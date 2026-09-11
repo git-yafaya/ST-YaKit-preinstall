@@ -36,6 +36,12 @@ async function createWorkbench(host) {
         try { action(); state.error = ''; emit(); } catch (error) { return fail(error); }
         await persist();
     };
+    const addVersion = label => {
+        const version = { id: crypto.randomUUID(), label, number: state.nextVersionNumber++,
+            content: state.draft, createdAt: new Date().toISOString() };
+        state.versions.push(version);
+        return version;
+    };
     const run = async (kind, action) => {
         if (active) return fail(new Error(state.busy === 'preset-save'
             ? '请等待预设写回完成。' : '请等待当前操作完成，或先取消。'));
@@ -58,11 +64,12 @@ async function createWorkbench(host) {
     };
     const design = async (instruction, sourceDraft) => {
         let messages, settings;
+        const forceRevise = sourceDraft !== undefined;
         try {
             required(state.goal, '需求');
             instruction = required(instruction, '设计要求');
             settings = designSettings(state);
-            messages = designMessages(state, instruction, sourceDraft);
+            messages = designMessages(state, instruction, sourceDraft, forceRevise);
         } catch (error) { return fail(error); }
         return run('design', async operation => {
             state.messages.push({ role: 'user', content: instruction }); emit();
@@ -71,6 +78,14 @@ async function createWorkbench(host) {
             state.messages.push({ role: 'assistant', content: text(reply, '模型答复') });
             const result = parseDesign(reply);
             if (revision === operation.revision) {
+                // 替换前逐字留存未保存的草稿，已保存过的内容不重复插入。
+                if (state.draft.trim() && state.draft !== result.prompt
+                    && !state.versions.some(version => version.content === state.draft)) {
+                    addVersion(`自动保留 ${state.nextVersionNumber}`);
+                }
+                if (!forceRevise && result.action !== 'revise') state.selectedVersionId = '';
+                // 反馈版本没有预设来源记录，不能沿用当前条目的写回目标。
+                if (forceRevise || result.action !== 'revise') state.presetSource = null;
                 state.draft = result.prompt; revision++;
                 state.notice = result.explanation || '草稿已更新，请保存为新版本后试写。';
             } else {
@@ -110,11 +125,8 @@ async function createWorkbench(host) {
         saveVersion(label = '') {
             return change(() => {
                 required(state.draft, '提示词草稿');
-                const content = state.draft;
                 label = text(label, '提示词名称') || '未命名提示词';
-                const version = { id: crypto.randomUUID(), label, number: state.nextVersionNumber++,
-                    content, createdAt: new Date().toISOString() };
-                state.versions.push(version); state.selectedVersionId = version.id;
+                state.selectedVersionId = addVersion(label).id;
                 revision++; state.notice = `已保存「${label}」。`;
             });
         },

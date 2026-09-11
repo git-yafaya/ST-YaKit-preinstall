@@ -24,7 +24,7 @@ ST-YaKit-preinstall/
 │   └── launcher.css           # 菜单图标、弹窗尺寸与进退场
 ├── core/
 │   ├── state.js               # 设置校验、记录与版本编号恢复、保存快照
-│   ├── prompts.js             # 设计消息、答复解析与反馈指令
+│   ├── prompts.js             # 独立条目与修订协议、答复解析和反馈指令
 │   ├── settings.js            # 多套 API 配置、旧数据迁移与设计提示词
 │   ├── presets.js             # 预设读取、草稿载入与两种条目写回入口
 │   └── workbench.js           # 草稿、版本保存改名删除、试写及异步状态控制
@@ -61,6 +61,8 @@ ST-YaKit-preinstall/
 │   └── theme-view.js          # 同步当前容器的主题选择
 ├── tests/                     # 本地忽略目录，不随仓库分发
 │   ├── core.test.mjs          # 核心状态与业务边界检查
+│   ├── design-prompts.test.mjs # 条目协议、旧提示词迁移与离线设计检查
+│   ├── design-entries.test.mjs # 草稿留存、来源隔离与异步结果检查
 │   ├── versions-core.test.mjs # 编号、改名、删除及保存恢复检查
 │   ├── versions-ui.test.mjs   # 名称输入保留与删除确认事件检查
 │   ├── settings-core.test.mjs # 配置迁移、切换、提示词请求与导出检查
@@ -90,9 +92,9 @@ ST-YaKit-preinstall/
 1. 酒馆通过 `manifest.json` 加载 `index.js`，发布 `YaKitWorkbenchHost.getContext()`，提供实时酒馆上下文、生成状态、试写背景、预设刷新和连接资源。随后创建扩展菜单入口、共用顶栏和原生 `dialog#yakit-workbench-dialog.yakit-workbench`，样式入口 `style.css` 按地址去重加载。
 2. 首次打开弹窗时按需导入 `app.js`，它通过 ES 模块导入现有状态、提示词、设置、预设、宿主及视图组件；同一模块在酒馆窗口中只执行一次。入口创建 `createSillyTavernHost(getContext)`，再调用 `mountApp(container, host)`，恢复记录并向容器内的 `#yakit-wb-app` 挂载五页工作台。工作组件尚在加载时重复打开共用一次请求，失败只在内容区显示错误，关闭按钮继续可用，重开后可重试。
 3. 关闭弹窗保留工作台实例、输入和滚动位置，重新打开与窗口获得焦点时更新聊天、连接及可试写状态。设置二级页的未确认草稿继续按原规则丢弃。独立演示入口 `preview.html` 直接加载 `preview/preview.js`，用相同的 `shell-template.js`、`app.js` 和本地适配器创建界面；演示只返回内置内容。卸载函数解除环境刷新监听并释放视图订阅及提示计时器。
-4. 需求与草稿输入立即更新内存并排队保存，保留首尾空格和换行。设计请求固定开始时的设置快照，系统消息由最新保存的内置提示词与破限提示词组成；其后依次为需求、源草稿、历史设计讨论及本次要求，不附带当前聊天或此前试写正文。
+4. 需求与草稿输入立即更新内存并排队保存，保留首尾空格和换行。设计请求固定开始时的设置快照，第一个系统消息为最新保存的内置提示词与破限提示词，第二个声明条目范围和返回契约；其后仅为本次需求背景、当前参考条目及本次要求。默认生成独立条目，只有本次明确要求修改当前条目时才修订。历史讨论保留展示，不再逐轮发送；普通设计不附带聊天或试写正文，反馈修订只传关联版本及本次反馈。
 5. 主 API 设计使用 `generateRaw({prompt, instructOverride: true, trimNames: false})`；副 API 连接配置使用 `ConnectionManagerRequestService.sendRequest`；自定义接口使用 `ChatCompletionService.processRequest`。副 API 请求均关闭流式输出、输出上限为 4096 token。
-6. 设计答复必须是含 `prompt` 和 `explanation` 字符串的 JSON，也接受完整 JSON 代码围栏。原始答复进入讨论记录，界面显示修改说明并提供「查看提示词」折叠区，解析成功后更新草稿。保存版本时生成独立 ID、名称、递增编号和时间；已保存正文保持不变，名称可单独修改。空名称使用「未命名提示词」。
+6. 设计答复为 `{action, prompt, explanation}` JSON，也接受完整 JSON 代码围栏。`action` 为 `create` 或 `revise`，缺省兼容为 `create`，非法值拒绝采用；`prompt` 必须为单条完整的非空提示词。原始答复保留在讨论，界面展示说明和「查看提示词」。成功采用前，如果现有非空草稿与结果不同，且没有逐字相同的已保存版本，就以「自动保留 N」新增版本，再替换草稿。新建解除选中版本和预设来源，普通修订保留当前来源；显式传入源稿的反馈修订解除预设来源。取消、格式错误或生成期间修改草稿、需求、版本时不自动留存。手动与自动保存共用独立 ID、名称、递增编号和时间；已保存正文保持不变，名称可单独修改。手动保存的空名称使用「未命名提示词」。
 7. 试写要求选定版本与当前草稿完全一致。请求仅传 `{content, input}`，适配器检查候选非空并保留其原始空白，通过主 API 的 `generateQuietPrompt` 把候选提示词、两个换行和试写要求组合为 `quietPrompt`。使用当前聊天背景、世界书及作者注释，返回正文写入工作台记录，不自动追加聊天消息。
 8. 主 API 的取消、忙碌和连接检查通过后，在调用宿主生成之前同步深拷贝试写条件。成功答复关联发起时的 `versionId`、输入和 `context`，`context.capturedAt` 是条件采集时间，记录的 `createdAt` 是答复入库时间。期间切换连接、聊天或版本不改写已采集条件。按反馈修改时找回该试写的源版本，仅在用户提交后将评价、意见及引用片段交给设计模型；没有片段时交回该次完整正文。
 9. 新建议进入草稿，保存后成为下一版。「版本记录」以提示词名称为主要标识，编号后置，选择后载入草稿并只读显示保存原文和时间；可直接保存名称。删除先在同页展示目标和关联试写数量，确认后删除选中版本及其试写、反馈，保留当前草稿。该页导出从当前内存生成 JSON，排除 `secondaryKey` 和每套 API 配置的 `apiKey`；「工作台」中的复制取当前草稿。
@@ -129,6 +131,8 @@ ST-YaKit-preinstall/
 | 宿主不允许显示密钥 | 保留酒馆连接引用，地址只读；填写自己的密钥后解除引用并允许编辑地址 |
 | 连接读取失败或模型列表为空、错误 | 连接失败清空地址与密钥并阻止保存，重新选择或填写自己的密钥后可继续；模型拉取失败仍可手填模型 |
 | 内置提示词为空白 | 确认后恢复默认设计提示词；破限提示词允许空白，原样保留空格与换行 |
+| 已保存旧版默认提示词 | 仅逐字匹配旧默认内容时迁移到独立条目默认提示词，用户编辑过的内容原样保留 |
+| 连续提交独立需求 | 旧讨论不再作为设计上下文累加；被替换且未保存过的非空草稿逐字留为版本 |
 | 返回、切换顶级页或关闭设置编辑页 | 放弃未确认的 API 和提示词草稿；已确认的配置与提示词继续保存 |
 | 试写期间改变版本 | 结果仍关联请求开始时的版本 |
 | 取消生成 | 核心清空忙碌状态并忽略迟到答复；副 API 传递 AbortSignal，主 API 等宿主请求结束后释放占用 |
@@ -174,7 +178,7 @@ ST-YaKit-preinstall/
 | `designApi` | `main`；可取 `main`、`secondary` |
 | `secondaryApiConfigs` | 默认 `[]`；每项含 `id/name/url/apiKey/model/profileId`，密钥不进入导出 |
 | `activeSecondaryApiId` | 默认空字符串；当前选中的副 API 配置 ID |
-| `assistPrompts.builtin` | 默认设计提示词，要求返回含 `prompt/explanation` 的 JSON；空白确认后恢复默认 |
+| `assistPrompts.builtin` | 默认设计提示词，要求返回 `action/prompt/explanation` JSON；新需求默认独立条目，空白确认后恢复默认 |
 | `assistPrompts.custom` | 默认空字符串；界面显示为破限提示词，与内置内容合并到设计系统消息 |
 | `secondarySource` | `profile`；可取 `profile`、`custom` |
 | `secondaryProfileId` | 空字符串；连接管理中可用配置的 ID |
@@ -269,7 +273,7 @@ Toast 根节点 `#yakit-wb-toast-root` 位于工作台弹窗或预览容器中�
 | `getPrompt(kind)` | 同步返回 `{text, defaultText}`；`kind` 为 `builtin` 或 `custom` |
 | `savePrompt(kind, text)` | 保存提示词原文；空白内置提示词恢复默认，破限提示词允许为空 |
 | `readApiProfile(profileId)` / `fetchApiModels(fields)` | 透传宿主配置读取和模型列表能力，返回值见下表；失败由设置编辑页显示 |
-| `design(instruction)` | 使用当前配置、需求、草稿和讨论生成提示词 |
+| `design(instruction)` | 使用当前配置、本次需求与参考草稿生成独立条目，明确修订时修改当前条目；成功替换前自动留存未保存旧稿 |
 | `saveVersion(label)` | 保存草稿为独立版本，生成稳定 `number` 并递增 `nextVersionNumber`；名称去除首尾空白，空名称使用「未命名提示词」 |
 | `selectVersion(id)` | 选择版本并恢复到草稿，解除此前预设来源绑定 |
 | `renameVersion(id, label)` | 只修改目标名称；空白名称、目标不存在或忙碌时拒绝 |
@@ -293,7 +297,7 @@ Toast 根节点 `#yakit-wb-toast-root` 位于工作台弹窗或预览容器中�
 | `listPresets()` | 返回 `{presets: [{name}], selectedPresetName}`；未提供预设管理器时返回空列表与空名称 |
 | `readPreset(name)` | 返回 `{name, entries}`；条目含 `identifier/name/content/marker` 和可选 `role`，按默认角色顺序排列 |
 | `savePresetEntry({presetName, identifier, content, expectedContent})` | 校验原文后只写目标内容，返回更新后的条目及可选 `notice`；不切换酒馆预设 |
-| `design(messages, {settings, signal})` | `Promise<string>`，返回包含 `prompt` 与 `explanation` 的 JSON 文本 |
+| `design(messages, {settings, signal})` | `Promise<string>`，返回 `{action, prompt, explanation}` JSON 文本；`action` 缺省为 `create`，只接受 `create/revise` |
 | `trial({content, input}, {signal})` | 返回 `{content, context}`；条件结构见下表，候选提示词保留原始空白 |
 
 预设适配器方法均返回 Promise。条目优先按 `prompt_order` 中 `character_id: 100001` 的顺序排列，未列入该顺序的条目依次附在后面；不改变原始顺序数据。`marker: true` 的条目可显示但不能载入草稿或保存。保存的 `expectedContent` 必须是载入时原文，`content` 允许空字符串且保留首尾空白。
@@ -345,7 +349,7 @@ if (selectedPresetName) console.table((await host.readPreset(selectedPresetName)
 | 主 API 设计 | 通过 `generateRaw` 仅传设计消息，沿用当前主 API 的生成参数 |
 | 副 API 设计 | 支持连接管理配置和自定义 OpenAI 兼容接口，均为非流式请求 |
 | 设置 | 多套 API 新增、编辑、选择和删除，连接回填与模型列表；主副选择和上下导航持久化 |
-| 设计提示词 | 内置和破限提示词可编辑、重置并确认保存，用于下一次设计及反馈修改；不额外注入正文试写 |
+| 设计提示词 | 新需求默认单条生成，模型用 `action` 区分新建与明确修订；内置和破限提示词可编辑，固定请求契约补充单条范围，历史讨论仅供展示 |
 | 正文试写 | 通过 `generateQuietPrompt` 使用当前聊天，`quietToLoud: false`、`skipWIAN: false` |
 | 试写条件 | 开始时记录连接、位置、聊天统计、作者注释及世界书选择，保存恢复和导出保持原快照 |
 | 独立演示 | 原有两版提示词及正文、独立 localStorage、反馈与取消；不调用真实模型 |
@@ -372,6 +376,8 @@ UI 代码位于 `ui/`、`styles/`、`style.css` 和页面模板；业务代码�
 | 脚本 | 覆盖内容 |
 | --- | --- |
 | `tests/core.test.mjs` | 版本、反馈归因、正文隔离、取消、格式错误、保存恢复、编辑保护、API 设置快照、密钥导出排除及历史恢复；6 项通过 |
+| `tests/design-prompts.test.mjs` | 新旧答复协议、历史讨论隔离、反馈目标隔离、精确默认迁移和离线两版设计 |
+| `tests/design-entries.test.mjs` | 连续独立条目、旧稿逐字留存和去重、编号、取消与编辑保护、反馈来源隔离、恢复与导出 |
 | `tests/versions-core.test.mjs` | 名称与编号分离、改名保持快照、删除关联清理与草稿保留、忙碌拒绝、旧数据补号、失败后的导出及删空重开 |
 | `tests/versions-ui.test.mjs` | 真实控制器与最小 DOM 检查名称输入保留、同名版本区分、改名、确认与取消、切换及忙碌撤销确认、删除后的空态与焦点 |
 | `tests/settings-core.test.mjs` | 旧配置迁移、多配置切换与编辑、默认提示词与下一次实际设计请求、全配置密钥导出排除 |
@@ -425,5 +431,7 @@ v0.2.14 已通过 35 项本地测试、API 配置与模型检查、弹窗动效�
 v0.2.15 已通过 36 项本地测试、API 配置与弹窗动效检查、全部 JavaScript 语法检查。检查覆盖原生弹窗单次挂载、失败重试、主题与样式作用范围、提示层、重开后环境刷新及离线演示；实际酒馆界面和内存差值待人工验证。
 
 v0.2.16 的独立提交快照已通过 13 项本地检查，覆盖版本编号、改名、确认与取消删除、关联清理、名称输入及草稿保留、旧记录恢复、通知路由和离线试写；相关 JavaScript 语法、组件导入、控件引用与版本一致性检查通过。实际酒馆界面继续由用户人工验收。
+
+v0.2.17 已通过条目请求、旧默认提示词迁移、旧稿留存、来源隔离、取消与并发编辑、保存恢复和导出共 9 项本地检查，以及 JavaScript 语法检查；真实模型对新增与修订的判断待用户人工验收。
 
 SillyTavern 验收遵循本机 `AGENTS.md` 的人工流程。从扩展菜单打开工作台，在宽屏与窄屏检查五页尺寸随窗口调整、四周留白、滑动切页、独立滚动、关闭按钮和常驻导航；切换四种主题，核对窗口、控件、滚动条与选项弹层。检查长选项换行、键盘选择、关闭与重新打开保留输入，以及系统减少动态效果设置。在「预设展示」核对全部条目、折叠编辑、逐条保存及载入草稿。真实预设写回、模型调用和完整试写流程继续由用户人工验收。
