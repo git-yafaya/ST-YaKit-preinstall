@@ -12,6 +12,7 @@
         const api = globalThis.YaKitWorkbench.createApi(context);
         return {
             ...globalThis.YaKitWorkbench.createPresets(context),
+            ...globalThis.YaKitWorkbench.createApiProfiles(context),
             async loadState() {
                 const saved = context().extensionSettings[SETTINGS_KEY];
                 return saved ? structuredClone(saved) : null;

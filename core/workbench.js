@@ -2,12 +2,14 @@
 'use strict';
 const { clone, designSettings, initialState, rawText, required, savedState, settingValue, text } = globalThis.YaKitWorkbench.state;
 const { designMessages, feedbackInstruction, parseDesign } = globalThis.YaKitWorkbench.prompts;
+const { restoreSettings, syncLegacyFields, createSettingsActions } = globalThis.YaKitWorkbench.settings;
 
 async function createWorkbench(host) {
     let loaded;
     let loadError = '';
     try { loaded = await host.loadState(); } catch { loadError = '读取保存内容失败，可以继续编辑并导出当前内容。'; }
     const state = initialState(loaded);
+    restoreSettings(state, loaded);
     state.error = loadError;
     const listeners = new Set();
     let active = null;
@@ -101,7 +103,7 @@ async function createWorkbench(host) {
                     else next[key] = settingValue(key, value);
                 }
                 if ('draft' in next || 'goal' in next) revision++;
-                Object.assign(state, next); state.notice = '';
+                Object.assign(state, next); syncLegacyFields(state, next); state.notice = '';
             });
         },
         design,
@@ -171,9 +173,11 @@ async function createWorkbench(host) {
         exportData() {
             // 密钥只用于连接和本地设置，不放进导出的工作记录。
             const { secondaryKey, ...data } = savedState(state);
+            data.secondaryApiConfigs = data.secondaryApiConfigs.map(({ apiKey, ...config }) => config);
             return JSON.stringify({ formatVersion: 1, ...data }, null, 2);
         },
     };
+    Object.assign(controller, createSettingsActions({ state, host, change }));
     if (globalThis.YaKitWorkbench.createPresetActions) {
         Object.assign(controller, globalThis.YaKitWorkbench.createPresetActions({
             state, host, run, change, isActive: operation => active === operation,

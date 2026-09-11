@@ -37,6 +37,16 @@
                     canTrial: true,
                 };
             },
+            async readApiProfile(profileId) {
+                if (profileId !== 'local-example') throw new Error('找不到所选的本地示例连接。');
+                return { name: '工作台示例', url: 'https://example.invalid/v1', apiKey: '',
+                    model: '本地预置设计', profileId, usesProfileSecret: false };
+            },
+            async fetchApiModels({ profileId = '' } = {}) {
+                if (profileId && profileId !== 'local-example') throw new Error('找不到所选的本地示例连接。');
+                // 预览只返回固定名称，不向填写的地址发起请求。
+                return ['本地预置设计', '本地预置正文'];
+            },
             async design(messages, { signal } = {}) {
                 await pause(signal);
                 // ponytail: 只识别当前草稿的示例标记；真实理解需求时再接入模型。

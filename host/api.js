@@ -55,21 +55,16 @@
                     }
                     result = await service.sendRequest(profileId, prompt, 4096, {
                         stream: false, signal, extractData: true, includePreset: true, includeInstruct: true,
-                    });
+                    }, settings.secondaryModel?.trim() ? { model: settings.secondaryModel.trim() } : {});
                 } else if (settings.secondarySource === 'custom') {
                     if (!context.ChatCompletionService?.processRequest) throw new Error('当前酒馆不支持自定义副 API。');
-                    let url;
-                    try { url = new URL(required(settings.secondaryUrl, '副 API 地址')); }
-                    catch { throw new Error('请填写完整的副 API 地址。'); }
-                    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) {
-                        throw new Error('副 API 地址须为 HTTP 或 HTTPS，密钥请填入密钥栏。');
-                    }
+                    const url = globalThis.YaKitWorkbench.normalizeApiUrl(settings.secondaryUrl);
                     const key = typeof settings.secondaryKey === 'string' ? settings.secondaryKey.trim() : '';
                     if (/[\r\n]/.test(key)) throw new Error('副 API 密钥不能包含换行。');
                     result = await context.ChatCompletionService.processRequest({
                         stream: false, messages: prompt, max_tokens: 4096,
                         model: required(settings.secondaryModel, '副 API 模型'),
-                        chat_completion_source: 'custom', custom_url: url.href.replace(/\/$/, ''),
+                        chat_completion_source: 'custom', custom_url: url,
                         // JSON 也是有效 YAML；显式覆盖认证头，空密钥也不借用酒馆已有密钥。
                         custom_include_headers: JSON.stringify({ Authorization: key ? `Bearer ${key}` : '' }),
                     }, {}, true, signal);

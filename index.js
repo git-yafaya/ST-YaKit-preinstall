@@ -16,6 +16,13 @@ globalThis.YaKitWorkbenchHost = {
             return entry?.enabled && promptManager.shouldTrigger(prompt, 'quiet') ? prompt : null;
         },
         refreshPresetEditor: () => promptManager?.render(false),
+        // 在酒馆窗口读取连接资源，避免子页面重新初始化酒馆模块。
+        getApiProfileResources: async () => {
+            const [{ proxies }, { findSecret, SECRET_KEYS }] = await Promise.all([
+                import('/scripts/openai.js'), import('/scripts/secrets.js'),
+            ]);
+            return { proxies, findSecret, SECRET_KEYS };
+        },
     }),
 };
 

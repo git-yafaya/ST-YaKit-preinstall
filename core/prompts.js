@@ -9,8 +9,10 @@ prompt 必须是可直接使用的完整提示词，不能是修改补丁。`;
 
 function designMessages(state, instruction, draft = state.draft) {
     // 仅传入工作台设计讨论，不隐式加入试写正文或环境记录。
+    const builtin = state.assistPrompts?.builtin || INSTRUCTION;
+    const custom = state.assistPrompts?.custom || '';
     return [
-        { role: 'system', content: INSTRUCTION },
+        { role: 'system', content: builtin + (custom ? `\n\n${custom}` : '') },
         { role: 'user', content: `需求：\n${state.goal}\n\n本次修改的提示词：\n${draft || '尚无草稿'}` },
         ...state.messages.map(({ role, content }) => ({ role, content })),
         { role: 'user', content: instruction },
@@ -40,5 +42,5 @@ function feedbackInstruction(trial, version) {
         + (feedback.excerpt || trial.content);
 }
 
-globalThis.YaKitWorkbench.prompts = { designMessages, parseDesign, feedbackInstruction };
+globalThis.YaKitWorkbench.prompts = { INSTRUCTION, designMessages, parseDesign, feedbackInstruction };
 })();

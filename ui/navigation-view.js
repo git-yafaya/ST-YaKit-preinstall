@@ -1,6 +1,6 @@
 (() => {
   const workbench = globalThis.YaKitWorkbench ??= {};
-  workbench.mountNavigation = function mountNavigation(root) {
+  workbench.mountNavigation = function mountNavigation(root, { onPageChange } = {}) {
     const $ = id => root.querySelector(`#${id}`);
     const document = root.ownerDocument;
     const pages = { workbench: '工作台', presets: '预设展示', trial: '试写与反馈', versions: '版本记录', settings: '设置' };
@@ -16,6 +16,7 @@
     function openPage(name, focus = 'page') {
       const index = names.indexOf(name);
       if (index < 0) return;
+      onPageChange?.(name);
       $('app-shell').style.setProperty('--page-index', index);
       names.forEach(pageName => {
         const page = $(`${pageName}-page`);

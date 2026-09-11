@@ -4,11 +4,11 @@
     <div id="app-shell" class="app-shell">
       <nav id="sidebar" class="sidebar" role="tablist" aria-label="页面导航">
         <span class="nav-indicator" aria-hidden="true"></span>
-        <button type="button" class="nav-item active" data-page="workbench" aria-current="page">工作台</button>
-        <button type="button" class="nav-item" data-page="presets">预设展示</button>
-        <button type="button" class="nav-item" data-page="trial">试写与反馈</button>
-        <button type="button" class="nav-item" data-page="versions">版本记录</button>
-        <button type="button" class="nav-item" data-page="settings">设置</button>
+        <button type="button" class="nav-item active" data-page="workbench" aria-current="page"><span class="nav-icon" aria-hidden="true">✦</span><span class="nav-label">工作台</span></button>
+        <button type="button" class="nav-item" data-page="presets"><span class="nav-icon" aria-hidden="true">☷</span><span class="nav-label">预设展示</span></button>
+        <button type="button" class="nav-item" data-page="trial"><span class="nav-icon" aria-hidden="true">✎</span><span class="nav-label">试写与反馈</span></button>
+        <button type="button" class="nav-item" data-page="versions"><span class="nav-icon" aria-hidden="true">◷</span><span class="nav-label">版本记录</span></button>
+        <button type="button" class="nav-item" data-page="settings"><span class="nav-icon" aria-hidden="true">⚙</span><span class="nav-label">设置</span></button>
       </nav>
       <main>
       <div class="page-viewport"><div class="page-track">

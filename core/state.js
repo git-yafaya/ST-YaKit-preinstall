@@ -16,11 +16,12 @@ function required(value, name) {
 }
 
 const settingDefaults = {
-    theme: 'st', designApi: 'main', secondarySource: 'profile',
+    theme: 'st', navigationStyle: 'top', designApi: 'main', secondarySource: 'profile',
     secondaryProfileId: '', secondaryUrl: '', secondaryModel: '', secondaryKey: '',
 };
 const settingOptions = {
-    theme: ['st', 'forest', 'light', 'dark'], designApi: ['main', 'secondary'], secondarySource: ['profile', 'custom'],
+    theme: ['st', 'forest', 'light', 'dark'], navigationStyle: ['top', 'bottom'],
+    designApi: ['main', 'secondary'], secondarySource: ['profile', 'custom'],
 };
 
 function settingValue(key, value) {

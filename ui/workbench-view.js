@@ -9,7 +9,7 @@
     const toast = workbench.createToast(root.ownerDocument);
     const selects = workbench.mountSelects(root);
     const settings = workbench.mountSettings(controller, root, { run, notify });
-    const { openPage } = workbench.mountNavigation(root);
+    const { openPage } = workbench.mountNavigation(root, { onPageChange: name => { if (name !== 'settings') settings.close(); } });
     const presets = workbench.mountPresets(controller, root, { run: action => run(action, true), openPage });
 
     function showNotice(state) {
