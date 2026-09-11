@@ -133,7 +133,11 @@
 .yakit-workbench .test-options select,.yakit-workbench .test-task-bar select{width:100%}
 .yakit-workbench .test-toggle{display:flex;align-items:center;gap:8px;font-weight:500;line-height:1.6;cursor:pointer}
 .yakit-workbench .test-options>.test-toggle{flex:1 0 100%}
-.yakit-workbench .test-toggle input{appearance:auto;width:16px;height:16px;flex:0 0 16px;padding:0;accent-color:var(--accent)}
+/* 使用原生复选框，清除酒馆自绘勾选和通用输入框样式的残留。 */
+.yakit-workbench .test-toggle input{appearance:auto;display:inline-block;position:static;width:16px;height:16px;flex:0 0 16px;margin:0;padding:0;border:0;border-radius:0;background:transparent;line-height:normal;overflow:visible;transform:none;filter:none;outline:none;accent-color:var(--accent);cursor:pointer}
+.yakit-workbench .test-toggle input::before{content:none}
+.yakit-workbench .test-toggle input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.yakit-workbench .test-toggle input:disabled{opacity:.5;cursor:not-allowed}
 .yakit-workbench .trial-controls>.page-hint{margin:0 0 14px}
 .yakit-workbench .test-task-bar{padding:14px 16px;border-top:1px solid var(--line)}
 .yakit-workbench .test-task-bar>.page-hint{margin-top:10px}
