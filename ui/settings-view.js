@@ -9,7 +9,7 @@
     const api = workbench.mountSettingsApi(controller, root, syncActions);
     let page = 'primary', editing = null, returnButton = null, listKey = '', moduleKey = '', saving = false;
     function syncActions() {
-      header('settings-actions').hidden = page === 'primary';
+      header('settings-actions').hidden = page === 'primary' || page === 'api';
       header('settings-reset').hidden = page === 'primary' || page === 'api';
       header('settings-delete').hidden = page !== 'api' || !editing;
       header('settings-save').textContent = page === 'api' ? '保存' : '确认';
@@ -26,6 +26,14 @@
       $('settings-primary').setAttribute('aria-hidden', String(!isPrimary));
       $('settings-secondary').inert = isPrimary;
       $('settings-secondary').setAttribute('aria-hidden', String(isPrimary));
+      // 复用原按钮和事件，API 页放到底栏，其他页面恢复顶栏顺序。
+      if (next === 'api') {
+        $('settings-api-secondary-actions').append(header('settings-back'), header('settings-delete'));
+        $('settings-api-footer').append(header('settings-save'));
+        $('settings-api-fields').scrollTop = 0;
+      } else {
+        header('settings-actions').append(...['back', 'reset', 'delete', 'save'].map(name => header('settings-' + name)));
+      }
       if (next === 'api') api.open(config); else api.close(isPrimary && previous === 'api');
       if (next === 'builtin' || next === 'custom') prompt.open(next); else prompt.close(isPrimary && previous !== 'primary' && previous !== 'api');
       if (!isPrimary) { returnButton = button; $('settings-secondary').scrollTop = 0; }

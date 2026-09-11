@@ -25,16 +25,21 @@
           </div></details>
         </div>
         <div id="yakit-wb-settings-secondary" class="settings-body" inert aria-hidden="true">
-          <form id="yakit-wb-settings-api-form" class="panel panel-content settings-group" aria-label="配置 API" hidden>
-            <div class="field"><label for="yakit-wb-api-profile">连接配置文件</label><select id="yakit-wb-api-profile"></select><p id="yakit-wb-api-profile-status" class="page-hint" role="status"></p></div>
-            <p class="page-hint">选择酒馆连接配置，或填写 OpenAI 兼容接口地址与模型。</p>
-            <div class="field"><label for="yakit-wb-api-name">配置名称</label><input id="yakit-wb-api-name" required placeholder="填写配置名称" autocomplete="off"></div>
-            <div class="field"><label for="yakit-wb-api-url">Base url</label><input id="yakit-wb-api-url" type="url" placeholder="https://api.example.com/v1" autocomplete="off" spellcheck="false"></div>
-            <div class="field"><label for="yakit-wb-api-key">API-Key</label><input id="yakit-wb-api-key" type="password" placeholder="填写 API-Key" autocomplete="off" spellcheck="false"></div>
-            <button id="yakit-wb-api-fetch-models" type="button" class="button button-primary">拉取模型</button>
-            <p id="yakit-wb-api-model-status" class="page-hint" role="status"></p>
-            <div class="field"><label for="yakit-wb-api-model-select">模型选择</label><select id="yakit-wb-api-model-select"></select></div>
-            <div class="field"><label for="yakit-wb-api-model">模型名称</label><input id="yakit-wb-api-model" placeholder="填写模型名称" autocomplete="off" spellcheck="false"></div>
+          <form id="yakit-wb-settings-api-form" class="panel settings-api-page" aria-label="配置 API" hidden>
+            <div id="yakit-wb-settings-api-fields" class="panel-content settings-group settings-api-fields">
+              <div class="field"><label for="yakit-wb-api-profile">连接配置文件</label><select id="yakit-wb-api-profile"></select><p id="yakit-wb-api-profile-status" class="page-hint" role="status"></p></div>
+              <p class="page-hint">选择酒馆连接配置，或填写 OpenAI 兼容接口地址与模型。</p>
+              <div class="field"><label for="yakit-wb-api-name">配置名称</label><input id="yakit-wb-api-name" required placeholder="填写配置名称" autocomplete="off"></div>
+              <div class="field"><label for="yakit-wb-api-url">Base url</label><input id="yakit-wb-api-url" type="url" placeholder="https://api.example.com/v1" autocomplete="off" spellcheck="false"></div>
+              <div class="field"><label for="yakit-wb-api-key">API-Key</label><input id="yakit-wb-api-key" type="password" placeholder="填写 API-Key" autocomplete="off" spellcheck="false"></div>
+              <button id="yakit-wb-api-fetch-models" type="button" class="button button-primary">拉取模型</button>
+              <p id="yakit-wb-api-model-status" class="page-hint" role="status"></p>
+              <div class="field"><label for="yakit-wb-api-model-select">模型选择</label><select id="yakit-wb-api-model-select"></select></div>
+              <div class="field"><label for="yakit-wb-api-model">模型名称</label><input id="yakit-wb-api-model" placeholder="填写模型名称" autocomplete="off" spellcheck="false"></div>
+            </div>
+            <div id="yakit-wb-settings-api-footer" class="settings-api-footer">
+              <div id="yakit-wb-settings-api-secondary-actions" class="settings-api-secondary-actions"></div>
+            </div>
           </form>
           <div id="yakit-wb-settings-prompt-page" class="panel panel-content settings-group settings-prompt-page" hidden>
             <div class="field"><label id="yakit-wb-prompt-label" for="yakit-wb-prompt-text">提示词</label><textarea id="yakit-wb-prompt-text" rows="14" spellcheck="false"></textarea></div>
