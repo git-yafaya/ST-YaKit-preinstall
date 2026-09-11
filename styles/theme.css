@@ -1,4 +1,4 @@
-/* 与纪实共用配色；只作用于工作台页面和它的宿主弹窗。 */
+/* 工作台与宿主弹窗共用主题变量。 */
 :root.yakit-workbench,
 #yakit-workbench-dialog {
   color-scheme: normal;
@@ -69,16 +69,17 @@
 }
 :is(:root.yakit-workbench, #yakit-workbench-dialog)[data-theme="dark"] {
   color-scheme: dark;
-  --yakit-bg: #1E201B;
-  --yakit-card: #272A23;
-  --yakit-input: #22251F;
-  --yakit-card-hover: #30352A;
-  --yakit-accent: #627F49;
-  --yakit-accent-hover: #789260;
-  --yakit-accent-soft: #344026;
-  --yakit-brown: #B89679;
-  --yakit-text: #E4E6DC;
-  --yakit-text-sub: #A3A79B;
-  --yakit-text-muted: #7B8074;
-  --yakit-border: rgba(255, 255, 255, 0.08);
+  --yakit-bg: #121212;
+  --yakit-card: #1C1C1C;
+  --yakit-input: #161616;
+  --yakit-card-hover: #262626;
+  --yakit-accent: #D4D4D4;
+  --yakit-accent-hover: #F0F0F0;
+  --yakit-accent-soft: #303030;
+  --yakit-brown: #B5B5B5;
+  --yakit-text: #ECECEC;
+  --yakit-text-sub: #B5B5B5;
+  --yakit-text-muted: #949494;
+  --yakit-border: rgba(255, 255, 255, 0.12);
+  --on-accent: #161616;
 }

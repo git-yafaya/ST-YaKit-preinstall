@@ -1,9 +1,9 @@
 (() => {
     'use strict';
 
-    const required = (value, name) => {
+    const required = (value, name, trim = true) => {
         if (typeof value !== 'string' || !value.trim()) throw new Error(`请先填写${name}。`);
-        return value.trim();
+        return trim ? value.trim() : value;
     };
     const checkAbort = signal => {
         if (signal?.aborted) throw new DOMException('操作已取消', 'AbortError');
@@ -83,17 +83,19 @@
             async trial(request, { signal } = {}) {
                 const context = getContext();
                 if (typeof context.generateQuietPrompt !== 'function') throw new Error('当前酒馆不支持正文试写。');
-                const content = required(request?.content, '候选提示词');
+                const content = required(request?.content, '候选提示词', false);
                 const input = required(request?.input, '试写要求');
                 if (context.characterId == null && !context.groupId) throw new Error('请先打开一个角色或群组聊天。');
-                const chatId = context.chatId ?? '';
-                const character = context.characters?.[context.characterId]?.name || context.name2 || '';
-                const result = await primaryRequest(context, signal, () => context.generateQuietPrompt({
+                const options = {
                     // 这里只传候选提示词和本次试写要求；当前聊天背景由酒馆组装。
                     quietPrompt: `${content}\n\n${input}`, quietToLoud: false, skipWIAN: false,
-                }));
-                return { content: result, context: { source: 'sillytavern', api: context.mainApi || '',
-                    chatId, character, groupId: context.groupId ?? '', scenario: input } };
+                };
+                let snapshot;
+                const result = await primaryRequest(context, signal, () => {
+                    snapshot = globalThis.YaKitWorkbench.captureTrialContext(context, options, input);
+                    return context.generateQuietPrompt(options);
+                });
+                return { content: result, context: snapshot };
             },
         };
     }
