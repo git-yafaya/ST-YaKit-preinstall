@@ -67,21 +67,22 @@
             result = await service.processRequest({ ...common, ...structuredClone(payload), [messageKey]: prompt }, {}, extractData, signal);
         } else if (settings.designApi === 'secondary') {
             if (settings.secondarySource === 'profile') {
-                const service = context.ConnectionManagerRequestService;
-                if (!service?.sendRequest) throw new Error('当前酒馆不支持连接配置请求。');
                 const id = required(settings.secondaryProfileId, '副 API 连接配置');
-                const profile = service.getSupportedProfiles().find(item => item.id === id);
-                if (!profile) throw new Error('副 API 连接配置已失效，请重新选择。');
-                const api = service.validateProfile?.(profile) || context.CONNECT_API_MAP?.[profile.api];
-                const type = api?.selected;
-                if (count > 1 && type === 'textgenerationwebui') {
+                const { api, payload, model } = await globalThis.YaKitWorkbench.createApiProfiles(() => context).resolveApiProfile(id);
+                const textCompletion = api.selected === 'textgenerationwebui';
+                const service = textCompletion ? context.TextCompletionService : context.ChatCompletionService;
+                if (!service?.processRequest) throw new Error('当前酒馆不支持此连接配置请求。');
+                if (count > 1 && textCompletion) {
                     throw new Error('文本补全连接不支持单次多样本，请改用独立请求。');
                 }
-                result = await service.sendRequest(id, prompt, common.max_tokens, {
-                    stream: false, signal, extractData, includePreset: false, includeInstruct: false,
-                }, { ...(count > 1 ? { n: count } : {}), custom_prompt_post_processing: '',
-                    ...tokenLimit(api?.source, settings.secondaryModel?.trim() || profile.model, common.max_tokens),
-                    ...(settings.secondaryModel?.trim() ? { model: settings.secondaryModel.trim() } : {}) });
+                const selectedModel = settings.secondaryModel?.trim() || model;
+                checkAbort(signal);
+                // 列表、回填与请求共用解析结果，省略 API 类型的连接也能沿用酒馆当前来源。
+                result = await service.processRequest({
+                    ...common, ...payload, model: selectedModel,
+                    ...tokenLimit(api.source, selectedModel, common.max_tokens),
+                    [textCompletion ? 'prompt' : 'messages']: prompt, custom_prompt_post_processing: '',
+                }, {}, extractData, signal);
             } else if (settings.secondarySource === 'custom') {
                 if (!context.ChatCompletionService?.processRequest) throw new Error('当前酒馆不支持自定义副 API。');
                 const url = globalThis.YaKitWorkbench.normalizeApiUrl(settings.secondaryUrl);

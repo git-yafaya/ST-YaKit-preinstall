@@ -32,7 +32,7 @@ ST-YaKit-preinstall/
 │   ├── test-tasks.js               # 测试任务、独立采样、匿名盲评和人工偏好
 │   └── workbench.js                # 草稿版本、测试任务接入及异步状态控制
 ├── host/
-│   ├── api-profiles.js             # 连接回填、模型列表与接口地址归一
+│   ├── api-profiles.js             # 连接来源解析、字段回填与模型列表
 │   ├── api.js                      # 模型与采样调度、空卡及聊天模式边界
 │   ├── local-host.js               # 离线演示请求及浏览器独立存储
 │   ├── preset-order.js             # 生效顺序、开关权限与目标开关更新
@@ -109,7 +109,7 @@ ST-YaKit-preinstall/
 2. 首次打开弹窗时按需导入 `app.js`，它通过 ES 模块导入现有状态、提示词、设置、预设、宿主及视图组件；同一模块在酒馆窗口中只执行一次。入口创建 `createSillyTavernHost(getContext)`，再调用 `mountApp(container, host)`，恢复记录并向容器内的 `#yakit-wb-app` 挂载五页工作台。工作组件尚在加载时重复打开共用一次请求，失败只在内容区显示错误，关闭按钮继续可用，重开后可重试。
 3. 关闭弹窗保留工作台实例、输入和滚动位置，重新打开与窗口获得焦点时更新聊天、连接及可试写状态。设置二级页的未确认草稿继续按原规则丢弃。独立演示入口 `preview.html` 直接加载 `preview/preview.js`，用相同的 `shell-template.js`、`app.js` 和本地适配器创建界面；演示只返回内置内容。卸载函数解除环境刷新监听并释放视图订阅及提示计时器。
 4. 需求与草稿输入立即更新内存并排队保存，保留首尾空格和换行。设计请求固定开始时的设置快照，第一个系统消息为最新保存的内置提示词与破限提示词，第二个声明条目范围和返回契约；其后仅为本次需求背景、当前参考条目及本次要求。默认生成独立条目，只有本次明确要求修改当前条目时才修订。历史讨论保留展示，不再逐轮发送；普通设计不附带聊天或试写正文，反馈修订只传关联版本及本次反馈。
-5. 四个模块分别通过 `moduleApis` 解析工作台配置快照。设计、场景、盲评和空卡样本使用独立消息通道：主聊天补全与自定义接口使用 `ChatCompletionService.processRequest`，主文本补全使用 `TextCompletionService.processRequest`，保存连接使用 `ConnectionManagerRequestService.sendRequest` 并关闭 `includePreset/includeInstruct`。不走宿主聊天组装、宏替换或 `generateRaw` 的扩展提示事件。请求关闭流式；副 API 上限 4096 token，主聊天补全采用当前答复长度；适用的 OpenAI 模型使用 `max_completion_tokens`。
+5. 四个模块分别通过 `moduleApis` 解析工作台配置快照。设计、场景、盲评和空卡样本使用独立消息通道：聊天补全使用 `ChatCompletionService.processRequest`，文本补全使用 `TextCompletionService.processRequest`。保存连接先通过 `resolveApiProfile` 解析来源和连接参数，再调用对应服务；仅提取预设中的连接字段，不载入预设正文或指令模板。不走宿主聊天组装、宏替换或 `generateRaw` 的扩展提示事件。请求关闭流式；副 API 上限 4096 token，主聊天补全采用当前答复长度；适用的 OpenAI 模型使用 `max_completion_tokens`。
 6. 设计答复为 `{action, prompt, explanation}` JSON，也接受完整 JSON 代码围栏。`action` 为 `create` 或 `revise`，缺省兼容为 `create`，非法值拒绝采用；`prompt` 必须为单条完整的非空提示词。原始答复保留在讨论，界面展示说明和「查看提示词」。成功采用前，如果现有非空草稿与结果不同，且没有逐字相同的已保存版本，就以「自动保留 N」新增版本，再替换草稿。新建解除选中版本和预设来源，普通修订保留当前来源；显式传入源稿的反馈修订解除预设来源。取消、格式错误或生成期间修改草稿、需求、版本时不自动留存。手动与自动保存共用独立 ID、名称、递增编号和时间；已保存正文保持不变，名称可单独修改。手动保存的空名称使用「未命名提示词」。
 7. 测试要求选定版本与草稿完全一致，且填写原始需求。`trial(input)` 先保存任务快照，再固定手填场景或调用场景模块生成场景，随后生成 1—6 份样本并盲评。默认空卡消息严格为 `[{role:"system",content:候选原文},{role:"user",content:场景}]`；正文请求不含需求、讨论、角色、世界书、作者注释或其他样本。关闭空卡时才使用主 API 的 `generateQuietPrompt`，明确本次场景优先，聊天背景仍由酒馆组装。正文只保存到工作台，不追加聊天消息。
 8. 各样本记录关联发起时的 `versionId/taskId/sampleIndex`、场景和 `context`。`context.capturedAt` 为请求开始时间，记录 `createdAt` 为入库时间。空卡独立样本统一并发，任务层用 `Promise.allSettled` 等待各份完成并逐份保存；当前聊天模式逐次生成。单次模式传真实 `n` 并读取原始 `choices`，不拆分同一答复。全部成功后将原始需求、场景和随机标签的正文交给裁判，由 `judgement` 校验需求清单及每条证据，再映射回样本。初次盲评默认选最高分，同分按任务原顺序；不自动写人工偏好。反馈仍按试写源版本修订，只传本次意见及引用或完整正文，当前需求框为空也可修订历史反馈。
@@ -268,7 +268,7 @@ ST-YaKit-preinstall/
 | `mainApiLabel` | 当前酒馆 `mainApi`，仅用于展示 |
 | `contextLabel` | 当前角色或群组名及聊天 ID；无聊天时显示提示 |
 | `canTrial` | 已选角色或群组、具备静默生成接口且主 API 非断开状态时为真 |
-| `canGenerate` | 存在聊天补全、文本补全或连接独立请求服务；与是否选择角色和主 API 在线状态分开 |
+| `canGenerate` | 存在聊天补全或文本补全独立请求服务；与是否选择角色和主 API 在线状态分开 |
 | `feedback.status` | 新试写为 `pending`；评价为 `satisfied` 或 `revise` |
 | `feedback.note` / `excerpt` | 默认空；提交时去除首尾空白，引用须属于该次正文 |
 
@@ -320,9 +320,10 @@ Toast 根节点 `#yakit-wb-toast-root` 位于工作台弹窗或预览容器中�
 
 | 接口 | 职责 |
 | --- | --- |
-| `YaKitWorkbenchHost.getContext()` | 返回酒馆当前上下文、生成与背景只读查询；`refreshPresetEditor()` 刷新预设列表，`getPresetPromptContext()` 返回 `{characterId,isToggleAllowed(entry)}`，`getApiProfileResources()` 异步提供酒馆的 `{proxies,findSecret,SECRET_KEYS}` |
+| `YaKitWorkbenchHost.getContext()` | 返回酒馆当前上下文、生成与背景只读查询；`refreshPresetEditor()` 刷新预设列表，`getPresetPromptContext()` 返回 `{characterId,isToggleAllowed(entry)}`，`getApiProfileResources()` 异步提供酒馆的 `{proxies,findSecret,SECRET_KEYS,chat_completion_sources,textgen_types}` |
 | `YaKitWorkbench.createApi(getContext)` | 返回 `{design,trial,prepareTrialSettings}` 模型请求适配器 |
-| `YaKitWorkbench.createApiProfiles(getContext)` | 创建连接回填和模型列表接口，返回 `{readApiProfile, fetchApiModels}` |
+| `YaKitWorkbench.createApiProfiles(getContext)` | 创建连接解析、回填和模型列表接口，返回 `{resolveApiProfile, readApiProfile, fetchApiModels}` |
+| `YaKitWorkbench.resolveProfileApi(context, profile)` | 同步返回有效的 `CONNECT_API_MAP` 项；省略 API 时按当前类型及配置中的预设解析，不可用或不支持时返回 `null` |
 | `YaKitWorkbench.createPresets(getContext)` | 创建聊天补全预设列表、读取、试作复制与条目写回适配器 |
 | `YaKitWorkbench.createSillyTavernHost(getContext)` | 创建保存、环境、模型及预设适配器 |
 | `YaKitWorkbench.createLocalHost()` | 创建原有示例请求与独立浏览器存储适配器，仅预览入口加载 |
@@ -386,7 +387,8 @@ Toast 根节点 `#yakit-wb-toast-root` 位于工作台弹窗或预览容器中�
 | `loadState()` | `Promise<object\|null>`，返回酒馆保存记录 |
 | `saveState(data)` | `Promise<void>`，更新扩展设置并触发防抖保存 |
 | `getEnvironment()` | 返回 `{profiles, mainApiLabel, contextLabel, canTrial, canGenerate}` |
-| `readApiProfile(profileId)` | 返回 `{name,url,apiKey,model,profileId,usesProfileSecret}`；无法显示密钥时保留连接引用 |
+| `resolveApiProfile(profileId)` | 仅酒馆适配器提供，返回 `{context,profile,api,payload,model}`；`payload` 只含连接字段，可能含代理凭据或自定义请求头，仅供当前请求使用 |
+| `readApiProfile(profileId)` | 返回 `{name,url,apiKey,model,profileId,usesProfileSecret}`；无法显示密钥、需要原生来源或额外连接参数时保留连接引用 |
 | `fetchApiModels({profileId,url,apiKey,model})` | 返回去重的模型名称数组；空列表或请求错误时拒绝 Promise，模型可手填 |
 | `listPresets()` | 返回 `{presets: [{name}], selectedPresetName}`；未提供预设管理器时返回空列表与空名称 |
 | `readPreset(name)` | 返回 `{name, entries, orderCharacterId}`；条目含 `identifier/name/content/marker/enabled/toggleable/toggleReason` 和可选 `role`，按生效角色顺序排列 |
@@ -472,13 +474,15 @@ if (presetName) console.log((await presetHost.copyPreset(presetName)).name);
 | 兼容性 | 最低 SillyTavern 1.18.0；依赖上述生成与连接服务、宿主上下文，以及现代浏览器的 structuredClone、crypto.randomUUID、AbortController |
 | 验收状态 | 本地契约检查已覆盖核心和适配器；真实主副 API 调用及界面交互待用户人工验收 |
 
-连接列表依赖启用的 `connection-manager`、已保存的连接配置和 `ConnectionManagerRequestService.getSupportedProfiles()`。独立主聊天补全与自定义副 API 依赖 `ChatCompletionService.processRequest()`，主文本补全依赖 `TextCompletionService.processRequest()`；主连接还读取 `getChatCompletionModel/getTextGenModel/getTextGenServer` 和连接参数，连接配置调用关闭 `includePreset/includeInstruct`。主 API 的连接状态与当前生成状态由宿主实时读取。试写条件还读取 `getChatCompletionModel`、`getTextGenModel`、`getTextGenServer`、`getMaxContextTokens`、`getPresetManager`、`chatMetadata`、`extensionPrompts`、当前聊天/角色/群组、`powerUserSettings`、世界书模块的 `selected_world_info` / `world_info.charLore`，以及 Prompt Manager 的 `getPromptOrderEntry` / `getPromptById` / `shouldTrigger`。
+连接列表依赖启用的 `connection-manager`、`extensionSettings.connectionManager.profiles` 和 `CONNECT_API_MAP`。`resolveProfileApi` 校验显式 API；未录入 API 的配置按当前主 API 类型解析，`mode` 与当前类型不同、来源未知或非聊天/文本补全时不列出。命名预设可提供继承来源，列表保留全部可解析配置的 `{id,name}`。独立聊天补全依赖 `ChatCompletionService.processRequest()`，独立文本补全依赖 `TextCompletionService.processRequest()`；连接参数读取 `getChatCompletionModel/getTextGenModel/getTextGenServer`，请求选项不加载生成预设或指令模板。主 API 的连接状态与当前生成状态由宿主实时读取。试写条件还读取 `getMaxContextTokens`、`getPresetManager`、`chatMetadata`、`extensionPrompts`、当前聊天/角色/群组、`powerUserSettings`、世界书模块的 `selected_world_info` / `world_info.charLore`，以及 Prompt Manager 的 `getPromptOrderEntry` / `getPromptById` / `shouldTrigger`。
 
 预设接入依赖 `getPresetManager('openai')` 的 `getPresetList`、`getSelectedPresetName`、`getCompletionPresetByName` 与 `savePreset`，以及 Prompt Manager 的 `configuration.promptOrder`、`activeCharacter.id` 和 `isPromptToggleAllowed`。写回复制已保存预设，只替换目标正文或生效顺序中的开关，调用 `savePreset(name, next, {skipUpdate: true})`；成功后更新内存中对应字段，不切换当前预设。当前活动条目无冲突时同步 `chatCompletionSettings`、触发 `saveSettingsDebounced()` 并通过宿主桥 `refreshPresetEditor()` 调用 `promptManager.render(false)` 刷新列表。保存请求失败前不修改宿主内存。
 
 整份预设复制复用 `savePreset(newName, structuredClone(saved))` 的默认路径，由宿主 `updateList` 注册并选中副本；编号依据调用时的预设名称列表。原预设的已保存对象保持不变，副本的完整字段独立保存。
 
-API 设置读取依赖 `ConnectionManagerRequestService.getProfile/validateProfile`、连接管理列表、`CONNECT_API_MAP`、命名预设，以及酒馆 `openai.js` 的 `proxies` 和 `secrets.js` 的 `findSecret/SECRET_KEYS`。模型列表使用 `getRequestHeaders()` 调用 `/api/backends/chat-completions/status`；连接引用保留其源类型和密钥引用，文本补全连接暂不支持模型列表，独立接口使用归一化的 OpenAI 兼容地址。读取和拉取模型不切换酒馆当前连接。离线演示只返回固定的示例连接与模型，不访问填写的地址。
+API 回填、模型列表及副连接请求共用 `resolveApiProfile`。地址与模型优先取连接中已录入的值，再取命名预设和该来源的酒馆设置；自定义请求头、Azure、Vertex、Workers 等连接字段按来源提取。代理优先取命名代理，再取预设；仅在来源一致时沿用当前代理，当前代理密码还要求地址一致。未录入 `secret-id` 时由酒馆使用该来源当前密钥；已录入时保留原引用。密钥类别通过 `chat_completion_sources/textgen_types` 枚举映射到 `SECRET_KEYS`，`findSecret` 不允许显示密钥时返回空值并保留连接引用。原生来源、自定义请求头等额外参数也要求保留引用。所有读取均不改写或切换酒馆连接。
+
+模型列表使用 `getRequestHeaders()` 调用 `/api/backends/chat-completions/status`，与生成使用相同的来源、地址、密钥引用及连接字段；文本补全连接暂不支持模型列表，其他来源是否返回列表由宿主状态接口决定，失败仍可手填模型。独立接口使用归一化的 OpenAI 兼容地址。离线演示只返回固定的示例连接与模型，不访问填写的地址。
 
 ## 开发与验证
 
@@ -495,13 +499,13 @@ UI 代码位于 `ui/`、`styles/`、`style.css` 和页面模板；业务代码�
 | `tests/versions-ui.test.mjs` | 真实控制器与最小 DOM 检查名称输入保留、同名版本区分、改名、确认与取消、切换及忙碌撤销确认、删除后的空态与焦点 |
 | `tests/settings-core.test.mjs` | 导航默认值、自动模式保存恢复、旧手动选择及非法值校验；旧配置迁移、多配置编辑、提示词请求与密钥导出排除 |
 | `tests/settings-ui.test.mjs` | API 底栏按钮归位与操作；PC、手机、平板、iPadOS 自动导航与手动覆盖；连接及模型结果过期、密钥解除引用、输入保留与提示词草稿 |
-| `tests/api-profiles.mjs` | 连接与密钥回填、模型空值和错误、地址归一、模型覆盖、主连接不变及离线演示 |
+| `tests/api-profiles.mjs` | 省略 API/模型/密钥继承、预设优先级、各来源连接字段与密钥映射、代理配对、模型列表与错误、地址归一及离线演示 |
 | `tests/presets-core.test.mjs` | 默认预设、草稿隔离、原文基线、搭配恢复、版本删除、开关失败和真实适配器联接 |
 | `tests/presets-host.test.mjs` | 生效顺序、正文与开关冲突、缺引用启用、标记权限、保存锁和等待期间的宿主编辑 |
 | `tests/preset-copy.test.mjs` | 完整复制与独立性、试作编号与重名、复制试作、保存失败、并发忙碌与核心状态同步 |
 | `tests/preset-display.test.mjs` | 复制按钮及禁用条件、全部条目展示、多条编辑、保存期间继续输入、原文冲突与重读、读取失败及切换后的输入保留 |
 | `tests/preset-preview-ui.mjs` | 原版输入保留、只读测试预览、显式应用、删除版本快照、外部修改和开关事件 |
-| `tests/st-host.test.mjs` | 模拟宿主验证请求参数、连接选用、持久化与取消边界；契约检查通过，不调用真实模型 |
+| `tests/st-host.test.mjs` | 多连接列表与刷新、省略 API 的列举及独立请求、来源过滤、持久化与取消边界；不调用真实模型 |
 | `tests/trial-record.test.mjs` | 从真实适配器到核心，验证试写期间切换条件后原版本归属、保存恢复与导出 |
 | `tests/test-pipeline.test.mjs` | 固定场景、独立/单次采样、匿名评分隔离、取消、部分失败重评、恢复脱敏与偏好 |
 | `tests/isolated-host.mjs` | 无角色空卡、真实 n、主副连接、关闭预设及宏、取消、离线场景与评分 |
@@ -538,5 +542,7 @@ git diff --check
 v0.3.4 已通过全部 63 项本地测试，以及 API 配置、独立请求、弹窗动效、预设预览四个独立脚本、全部 JavaScript 语法及差异检查。新增覆盖空卡主连接三路并发与参数固定、部分失败和取消、裁判输入隔离、逐字引用校验、需求/违例/疑点保存恢复与导出、历史评分兼容、并列排名、匿名标签更新和人工偏好保留。酒馆中需人工核对三份正文与聊天记录隔离，逐项查看需求、原句和排名，选择最喜欢的样本并提交反馈，再重新打开确认结果保留；真实模型评分质量与页面效果尚待人工验收。
 
 API 编辑底栏已通过设置、导航和样式边界共 3 项本地检查，以及相关 JavaScript 语法和差异检查。人工验收时，在宽屏与窄屏新建、编辑 API，滚动到模型名称，核对左侧返回与删除、右侧保存常驻；再检查返回后的草稿处理、删除已有配置，以及提示词页的顶栏确认。
+
+v0.3.5 已通过连接列表、继承字段、模型回填与覆盖、密钥映射、独立请求、设置保存、取消与试写隔离的本地检查。使用本机已保存配置结构进行只读检查，6 个连接均可列举、回填并构造一致的模型列表和生成参数；网络请求全部模拟。人工验收时刷新酒馆，进入「设置 → 副 API → 配置 API」，核对原先省略 API 类型的连接已出现，选择后检查地址、模型和密钥复用，保存并实际调用。
 
 SillyTavern 验收遵循本机 `AGENTS.md` 的人工流程。从扩展菜单打开工作台，在宽屏与窄屏检查五页尺寸随窗口调整、四周留白、滑动切页、独立滚动、关闭按钮和常驻导航；切换四种主题，核对窗口、控件与选项弹层。确认仅「预设预览」保留原有滚动条，其他页面正文、讨论区、文本框、设置子页及可样式化选项弹层均隐藏滚动条，并检查滚轮、触屏和键盘仍可滚动。检查长选项换行、键盘选择、关闭与重新打开保留输入，以及系统减少动态效果设置。在「预设预览」核对折叠编辑、逐条保存、开关、不同条目的版本搭配、重新打开后切回原版及载入草稿。真实预设写回、模型调用和完整试写流程继续由用户人工验收。

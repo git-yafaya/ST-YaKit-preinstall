@@ -27,10 +27,11 @@
                 const host = context();
                 let profiles = [];
                 if (!host.extensionSettings.disabledExtensions?.includes('connection-manager')
-                    && host.extensionSettings.connectionManager?.profiles
-                    && host.ConnectionManagerRequestService?.getSupportedProfiles) {
-                    profiles = host.ConnectionManagerRequestService.getSupportedProfiles()
-                        .filter(profile => typeof profile.id === 'string' && typeof profile.name === 'string')
+                    && Array.isArray(host.extensionSettings.connectionManager?.profiles)) {
+                    // 省略 API 的连接会沿用当前来源，不能用宿主的独立请求列表过滤掉它们。
+                    profiles = host.extensionSettings.connectionManager.profiles
+                        .filter(profile => profile && typeof profile.id === 'string' && typeof profile.name === 'string'
+                            && globalThis.YaKitWorkbench.resolveProfileApi(host, profile))
                         .map(({ id, name }) => ({ id, name }));
                 }
                 const group = host.groups?.find(item => String(item.id) === String(host.groupId));
@@ -40,8 +41,7 @@
                 return {
                     profiles, promptTargets: [], mainApiLabel: host.mainApi || '未选择',
                     contextLabel: hasChat ? `${name} · ${host.chatId || '新聊天'}` : '请先打开角色或群组聊天',
-                    canGenerate: Boolean(host.ChatCompletionService?.processRequest || host.TextCompletionService?.processRequest
-                        || host.ConnectionManagerRequestService?.sendRequest),
+                    canGenerate: Boolean(host.ChatCompletionService?.processRequest || host.TextCompletionService?.processRequest),
                     canTrial: hasChat && typeof host.generateQuietPrompt === 'function'
                         && host.onlineStatus !== 'no_connection',
                 };

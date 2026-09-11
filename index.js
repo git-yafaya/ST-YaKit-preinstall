@@ -22,10 +22,10 @@ globalThis.YaKitWorkbenchHost = {
             isToggleAllowed: entry => promptManager.isPromptToggleAllowed(entry),
         } : null,
         getApiProfileResources: async () => {
-            const [{ proxies }, { findSecret, SECRET_KEYS }] = await Promise.all([
-                import('/scripts/openai.js'), import('/scripts/secrets.js'),
+            const [{ proxies, chat_completion_sources }, { findSecret, SECRET_KEYS }, { textgen_types }] = await Promise.all([
+                import('/scripts/openai.js'), import('/scripts/secrets.js'), import('/scripts/textgen-settings.js'),
             ]);
-            return { proxies, findSecret, SECRET_KEYS };
+            return { proxies, findSecret, SECRET_KEYS, chat_completion_sources, textgen_types };
         },
     }),
 };
