@@ -1,7 +1,7 @@
 (() => {
   const workbench = globalThis.YaKitWorkbench ??= {};
   workbench.mountPresets = function mountPresets(controller, root, { run, openPage }) {
-    const $ = id => root.querySelector(`#${id}`);
+    const $ = id => root.querySelector(`#yakit-wb-${id}`);
     const entries = workbench.mountPresetEntries(controller, root, { run, openPage });
     let presetKey = '';
     $('refresh-presets').addEventListener('click', () => run(() => controller.refreshPresets()));

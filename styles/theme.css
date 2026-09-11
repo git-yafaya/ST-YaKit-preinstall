@@ -1,6 +1,5 @@
-/* 工作台与宿主弹窗共用主题变量。 */
-:root.yakit-workbench,
-#yakit-workbench-dialog {
+/* 工作台直接继承酒馆主题变量，预览与弹窗使用同一组局部配色。 */
+.yakit-workbench {
   color-scheme: normal;
   --yakit-bg: var(--SmartThemeBlurTintColor, #1E201B);
   --yakit-card: var(--SmartThemeBlurTintColor, #272A23);
@@ -34,10 +33,10 @@
   --error-line: color-mix(in srgb, var(--paper) 65%, #b44);
   --error-text: var(--text);
 }
-:root.yakit-workbench[data-theme="st"] {
+.yakit-workbench[data-theme="st"] {
   font-family: var(--mainFontFamily, Inter), "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
 }
-:is(:root.yakit-workbench, #yakit-workbench-dialog)[data-theme="forest"] {
+.yakit-workbench[data-theme="forest"] {
   color-scheme: light;
   --yakit-bg: #F9F8F6;
   --yakit-card: #FFFFFF;
@@ -52,7 +51,7 @@
   --yakit-text-muted: #9A9D93;
   --yakit-border: rgba(72, 78, 63, 0.12);
 }
-:is(:root.yakit-workbench, #yakit-workbench-dialog)[data-theme="light"] {
+.yakit-workbench[data-theme="light"] {
   color-scheme: light;
   --yakit-bg: #F3F4F6;
   --yakit-card: #FFFFFF;
@@ -67,7 +66,7 @@
   --yakit-text-muted: #626D7C;
   --yakit-border: #DDE2E9;
 }
-:is(:root.yakit-workbench, #yakit-workbench-dialog)[data-theme="dark"] {
+.yakit-workbench[data-theme="dark"] {
   color-scheme: dark;
   --yakit-bg: #121212;
   --yakit-card: #1C1C1C;

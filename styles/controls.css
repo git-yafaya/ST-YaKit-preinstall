@@ -1,73 +1,76 @@
 /* 控件沿用纪实的字号、输入底色、圆角和按压反馈。 */
-:root{font-family:Inter,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;font-size:14px;font-synthesis:none;color:var(--text);background:var(--background);--scroll-thumb:color-mix(in srgb,var(--accent) 35%,transparent)}
-:root[data-theme="light"]{--scroll-thumb:#929BA8}
-*{box-sizing:border-box;scrollbar-width:thin;scrollbar-color:transparent transparent}
-*:hover,*:focus-within{scrollbar-color:var(--scroll-thumb) transparent}
+.yakit-workbench{font-family:Inter,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;font-size:14px;font-synthesis:none;line-height:normal;text-align:left;color:var(--text);background:var(--background);--scroll-thumb:color-mix(in srgb,var(--accent) 35%,transparent)}
+.yakit-workbench[data-theme="light"]{--scroll-thumb:#929BA8}
+:is(.yakit-workbench,.yakit-workbench *){box-sizing:border-box;text-shadow:none;scrollbar-width:thin;scrollbar-color:transparent transparent}
+:is(.yakit-workbench,.yakit-workbench *):hover,:is(.yakit-workbench,.yakit-workbench *):focus-within{scrollbar-color:var(--scroll-thumb) transparent}
 @supports selector(::-webkit-scrollbar){
   /* 标准属性让位给细滚动条，轨道始终透明。 */
-  *{scrollbar-width:auto;scrollbar-color:auto}
-  *::-webkit-scrollbar{width:4px;height:4px}
-  *::-webkit-scrollbar-track,*::-webkit-scrollbar-corner{background:transparent}
-  *::-webkit-scrollbar-thumb{background:transparent;border-radius:99px}
-  *:hover::-webkit-scrollbar-thumb,*:focus-within::-webkit-scrollbar-thumb{background:var(--scroll-thumb)}
+  :is(.yakit-workbench,.yakit-workbench *){scrollbar-width:auto;scrollbar-color:auto}
+  :is(.yakit-workbench,.yakit-workbench *)::-webkit-scrollbar{width:4px;height:4px}
+  :is(.yakit-workbench,.yakit-workbench *)::-webkit-scrollbar-track,:is(.yakit-workbench,.yakit-workbench *)::-webkit-scrollbar-corner{background:transparent}
+  :is(.yakit-workbench,.yakit-workbench *)::-webkit-scrollbar-thumb{background:transparent;border:0!important;box-shadow:none;border-radius:99px}
+  :is(.yakit-workbench,.yakit-workbench *):hover::-webkit-scrollbar-thumb,:is(.yakit-workbench,.yakit-workbench *):focus-within::-webkit-scrollbar-thumb{background:var(--scroll-thumb)}
 }
 @media(hover:none){
-  *{scrollbar-color:var(--scroll-thumb) transparent}
+  :is(.yakit-workbench,.yakit-workbench *){scrollbar-color:var(--scroll-thumb) transparent}
   @supports selector(::-webkit-scrollbar){
-    *{scrollbar-color:auto}
-    *::-webkit-scrollbar-thumb{background:var(--scroll-thumb)}
+    :is(.yakit-workbench,.yakit-workbench *){scrollbar-color:auto}
+    :is(.yakit-workbench,.yakit-workbench *)::-webkit-scrollbar-thumb{background:var(--scroll-thumb)}
   }
 }
-button,input,textarea,select{font:inherit}
-button,a,input,textarea,select,.button{-webkit-tap-highlight-color:transparent}
-button,a,.button{touch-action:manipulation;transition:color .15s ease,background .15s ease,border-color .15s ease,transform .15s ease}
-button{cursor:pointer;border:0}
-button:disabled,select:disabled{opacity:.5;cursor:not-allowed}
-button:active:not(:disabled),.button:active:not(:disabled){transform:scale(.97)}
-a{color:inherit;text-decoration:none}
-button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,.button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-textarea,input,select{min-width:0}
-textarea,input{width:100%;margin:0;border:1px solid var(--line);border-radius:6px;background:var(--field);color:var(--text);box-shadow:none}
-textarea{min-height:80px;padding:10px;resize:vertical;line-height:1.6}
-input{height:32px;padding:0 10px;line-height:30px}
-textarea::placeholder,input::placeholder{color:var(--yakit-text-muted);opacity:1}
-select{min-height:40px;max-width:100%;padding:10px 32px 10px 12px;border:0;border-radius:8px;background:var(--field);color:var(--text);font-size:13px;line-height:1.5;white-space:nowrap;text-overflow:ellipsis;cursor:pointer;transition:background .16s ease}
-select:hover:not(:disabled){background:var(--surface)}
-:root[data-theme="light"] select:hover:not(:disabled){background:#E8ECF2}
-select option{background:var(--paper);color:var(--text)}
+.yakit-workbench button,.yakit-workbench input,.yakit-workbench textarea,.yakit-workbench select{font:inherit}
+.yakit-workbench button,.yakit-workbench a,.yakit-workbench input,.yakit-workbench textarea,.yakit-workbench select,.yakit-workbench .button{-webkit-tap-highlight-color:transparent}
+.yakit-workbench button,.yakit-workbench a,.yakit-workbench .button{touch-action:manipulation;transition:color .15s ease,background .15s ease,border-color .15s ease,transform .15s ease}
+.yakit-workbench button{cursor:pointer;border:0}
+.yakit-workbench button:disabled,.yakit-workbench select:disabled{opacity:.5;cursor:not-allowed}
+.yakit-workbench button:active:not(:disabled),.yakit-workbench .button:active:not(:disabled){transform:scale(.97)}
+.yakit-workbench a{color:inherit;text-decoration:none;filter:none}
+.yakit-workbench button:focus-visible,.yakit-workbench a:focus-visible,.yakit-workbench input:focus-visible,.yakit-workbench textarea:focus-visible,.yakit-workbench select:focus-visible,.yakit-workbench .button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.yakit-workbench textarea,.yakit-workbench input,.yakit-workbench select{min-width:0}
+.yakit-workbench input:disabled,.yakit-workbench textarea:disabled{filter:none}
+.yakit-workbench textarea,.yakit-workbench input{width:100%;margin:0;border:1px solid var(--line);border-radius:6px;background:var(--field);color:var(--text);box-shadow:none}
+.yakit-workbench textarea{display:inline-block;max-height:none;min-height:80px;padding:10px;resize:vertical;line-height:1.6}
+.yakit-workbench input{height:32px;padding:0 10px;line-height:30px}
+.yakit-workbench textarea::placeholder,.yakit-workbench input::placeholder{color:var(--yakit-text-muted);opacity:1}
+.yakit-workbench select{appearance:auto;margin:0;height:auto;min-height:40px;max-width:100%;padding:10px 32px 10px 12px;border:0;border-radius:8px;background:var(--field);color:var(--text);font-size:13px;line-height:1.5;white-space:nowrap;text-overflow:ellipsis;cursor:pointer;transition:background .16s ease}
+.yakit-workbench select:hover:not(:disabled){background:var(--surface)}
+.yakit-workbench[data-theme="light"] select:hover:not(:disabled){background:#E8ECF2}
+.yakit-workbench select option,.yakit-workbench select option:not(:checked){background:var(--paper);color:var(--text)}
+.yakit-workbench select option:disabled:not(:checked){color:var(--muted)}
 /* 原生选单在支持的浏览器中使用同一套弹层样式。 */
 @supports (appearance:base-select) and selector(::picker(select)){
-  select,select::picker(select){appearance:base-select}
-  select{padding-inline-end:12px}
-  select::picker(select){box-sizing:border-box;inline-size:anchor-size(self-inline);min-inline-size:0;max-inline-size:calc(100vw - 28px);max-block-size:min(320px,60dvh);overflow:auto;margin-block:4px;padding:5px;border:1px solid var(--line);border-radius:8px;background:var(--paper);background:rgb(from var(--paper) r g b / 1);color:var(--text);box-shadow:0 10px 25px -5px #0000001f,0 8px 10px -6px #0000000f;animation:select-enter .16s ease-out}
-  select option{min-height:40px;padding:10px 12px;border-radius:8px;background:transparent;white-space:normal;overflow-wrap:anywhere;transition:background .16s ease}
-  select option:checked{color:var(--accent);font-weight:600}
-  select option:hover,select option:focus{background:var(--selected)}
-  select option:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
-  select::picker-icon{color:var(--muted);flex-shrink:0}
+  .yakit-workbench select,.yakit-workbench select::picker(select){appearance:base-select}
+  .yakit-workbench select{padding-inline-end:12px}
+  .yakit-workbench select::picker(select){box-sizing:border-box;inline-size:anchor-size(self-inline);min-inline-size:0;max-inline-size:calc(100vw - 28px);max-block-size:min(320px,60dvh);overflow:auto;margin-block:4px;padding:5px;border:1px solid var(--line);border-radius:8px;background:var(--paper);background:rgb(from var(--paper) r g b / 1);color:var(--text);box-shadow:0 10px 25px -5px #0000001f,0 8px 10px -6px #0000000f;animation:yakit-wb-select-enter .16s ease-out}
+  .yakit-workbench select option,.yakit-workbench select option:not(:checked){min-height:40px;padding:10px 12px;border-radius:8px;background:transparent;white-space:normal;overflow-wrap:anywhere;transition:background .16s ease}
+  .yakit-workbench select option:checked{color:var(--accent);font-weight:600}
+  .yakit-workbench select option:hover,.yakit-workbench select option:focus{background:var(--selected)}
+  .yakit-workbench select option:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+  .yakit-workbench select::picker-icon{color:var(--muted);flex-shrink:0}
 }
-@keyframes select-enter{from{opacity:0;translate:0 -4px}to{opacity:1;translate:0 0}}
-h1,h2,h3,p{margin:0}
-label{font-size:13px;font-weight:600}
-small{font-weight:400}
-[hidden]{display:none!important}
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-.button{min-height:36px;padding:10px 22px;border-radius:14px;font-size:13px;display:inline-flex;gap:8px;align-items:center;justify-content:center;font-weight:600;white-space:nowrap;cursor:pointer}
-.button-primary{background:var(--accent);color:var(--on-accent)}
-.button-primary:hover:not(:disabled){background:var(--accent-dark)}
-.button-secondary{background:var(--field);border:1px solid var(--line);color:var(--text)}
-.button-secondary:hover:not(:disabled){background:var(--surface)}
-.button-quiet{background:transparent;color:var(--muted)}
-.button-quiet:hover:not(:disabled){background:var(--surface);color:var(--text)}
-.button>span[aria-hidden="true"]{font-size:15px;font-weight:400}
+@keyframes yakit-wb-select-enter{from{opacity:0;translate:0 -4px}to{opacity:1;translate:0 0}}
+.yakit-workbench h1,.yakit-workbench h2,.yakit-workbench h3,.yakit-workbench p{margin:0}
+.yakit-workbench h1{line-height:normal}
+.yakit-workbench label{font-size:13px;font-weight:600}
+.yakit-workbench small{font-weight:400;color:inherit;opacity:1}
+.yakit-workbench [hidden]{display:none!important}
+.yakit-workbench .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.yakit-workbench .button{min-height:36px;padding:10px 22px;border-radius:14px;font-size:13px;display:inline-flex;gap:8px;align-items:center;justify-content:center;font-weight:600;white-space:nowrap;cursor:pointer}
+.yakit-workbench .button-primary{background:var(--accent);color:var(--on-accent)}
+.yakit-workbench .button-primary:hover:not(:disabled){background:var(--accent-dark)}
+.yakit-workbench .button-secondary{background:var(--field);border:1px solid var(--line);color:var(--text)}
+.yakit-workbench .button-secondary:hover:not(:disabled){background:var(--surface)}
+.yakit-workbench .button-quiet{background:transparent;color:var(--muted)}
+.yakit-workbench .button-quiet:hover:not(:disabled){background:var(--surface);color:var(--text)}
+.yakit-workbench .button>span[aria-hidden="true"]{font-size:15px;font-weight:400}
 /* 折叠入口沿用按钮反馈，箭头跟随原生展开状态。 */
-summary.button{list-style:none;white-space:normal;overflow-wrap:anywhere}
-summary.button::-webkit-details-marker{display:none}
-summary.button::after{content:"";flex:0 0 6px;width:6px;height:6px;margin-left:4px;border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:rotate(45deg);transition:transform .15s ease}
-details[open]>summary.button::after{transform:rotate(225deg)}
-.busy-bar{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;max-width:calc(100% - 28px);width:max-content;padding:10px 18px;border-radius:12px;border:1px solid var(--line);background:var(--paper);box-shadow:0 6px 24px #0000001f;font-size:13px;z-index:5}
-.busy-bar .button{margin-left:8px;flex-shrink:0}
-.spinner{width:13px;height:13px;flex-shrink:0;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-@media(max-width:480px){.busy-bar{font-size:12px;gap:8px}.busy-bar .button{margin-left:0}}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}select::picker(select){animation:none}}
+.yakit-workbench summary.button{list-style:none;white-space:normal;overflow-wrap:anywhere}
+.yakit-workbench summary.button::-webkit-details-marker{display:none}
+.yakit-workbench summary.button::after{content:"";flex:0 0 6px;width:6px;height:6px;margin-left:4px;border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:rotate(45deg);transition:transform .15s ease}
+.yakit-workbench details[open]>summary.button::after{transform:rotate(225deg)}
+.yakit-workbench .busy-bar{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;max-width:calc(100% - 28px);width:max-content;padding:10px 18px;border-radius:12px;border:1px solid var(--line);background:var(--paper);box-shadow:0 6px 24px #0000001f;font-size:13px;z-index:5}
+.yakit-workbench .busy-bar .button{margin-left:8px;flex-shrink:0}
+.yakit-workbench .spinner{width:13px;height:13px;flex-shrink:0;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:yakit-wb-spin 1s linear infinite}
+@keyframes yakit-wb-spin{to{transform:rotate(360deg)}}
+@media(max-width:480px){.yakit-workbench .busy-bar{font-size:12px;gap:8px}.yakit-workbench .busy-bar .button{margin-left:0}}
+@media(prefers-reduced-motion:reduce){:is(.yakit-workbench,.yakit-workbench *),:is(.yakit-workbench,.yakit-workbench *)::before,:is(.yakit-workbench,.yakit-workbench *)::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.yakit-workbench select::picker(select){animation:none}}

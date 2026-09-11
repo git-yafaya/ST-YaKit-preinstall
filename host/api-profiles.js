@@ -25,7 +25,7 @@
             const api = service?.validateProfile?.(profile) || context.CONNECT_API_MAP?.[profile.api];
             let proxy;
             if (profile.proxy) {
-                // 此方法由父窗口提供，避免在工作台框架内再次初始化酒馆模块。
+                // 通过宿主入口复用酒馆已经加载的连接资源。
                 const resources = await context.getApiProfileResources();
                 proxy = resources.proxies.find(item => item.name === profile.proxy);
                 if (!proxy) throw new Error('找不到连接配置使用的代理。');

@@ -1,8 +1,8 @@
 (() => {
   const workbench = globalThis.YaKitWorkbench ??= {};
   workbench.mountNavigation = function mountNavigation(root, { onPageChange } = {}) {
-    const $ = id => root.querySelector(`#${id}`);
-    const document = root.ownerDocument;
+    const $ = id => root.querySelector(`#yakit-wb-${id}`);
+    const container = root.closest('.yakit-workbench');
     const pages = { workbench: '工作台', presets: '预设展示', trial: '试写与反馈', versions: '版本记录', settings: '设置' };
     const names = Object.keys(pages);
     const buttons = Array.from(root.querySelectorAll('[data-page]'));
@@ -11,7 +11,7 @@
       // 各页留在轨道上，切页不重建输入、选区或滚动位置。
       page.hidden = false;
       page.setAttribute('role', 'tabpanel');
-      page.setAttribute('aria-labelledby', `nav-${name}`);
+      page.setAttribute('aria-labelledby', `yakit-wb-nav-${name}`);
     });
     function openPage(name, focus = 'page') {
       const index = names.indexOf(name);
@@ -33,18 +33,18 @@
         if (active) button.setAttribute('aria-current', 'page');
         else button.removeAttribute('aria-current');
       });
-      document.getElementById('page-title').textContent = pages[name];
+      container.querySelector('#yakit-wb-page-title').textContent = pages[name];
       if (focus) (focus === 'tab' ? buttons[index] : $(`${name}-page`)).focus({ preventScroll: true });
       names.forEach(pageName => {
         $(`${pageName}-page`).setAttribute('aria-hidden', String(pageName !== name));
       });
     }
     buttons.forEach((button, index) => {
-      button.id = `nav-${button.dataset.page}`;
+      button.id = `yakit-wb-nav-${button.dataset.page}`;
       button.type = 'button';
       button.title = pages[button.dataset.page];
       button.setAttribute('role', 'tab');
-      button.setAttribute('aria-controls', `${button.dataset.page}-page`);
+      button.setAttribute('aria-controls', `yakit-wb-${button.dataset.page}-page`);
       button.style.gridColumn = index + 1;
       button.addEventListener('click', () => openPage(button.dataset.page, 'tab'));
       button.addEventListener('keydown', event => {

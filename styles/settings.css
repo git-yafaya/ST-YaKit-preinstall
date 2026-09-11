@@ -1,40 +1,40 @@
 /* 设置的一级、二级内容共用主页尺寸、配色和切页动画。 */
-.page-frame:has(> .settings-panel){padding:0;overflow:hidden}
-.settings-panel{height:100%;min-height:0;overflow:hidden}
-.settings-track{display:flex;width:200%;height:100%;transition:transform var(--view-duration) var(--view-easing)}
-.settings-panel[data-subpage="secondary"]>.settings-track{transform:translateX(-50%)}
-.settings-body{flex:0 0 50%;width:50%;min-width:0;height:100%;padding:20px 24px;overflow:auto;overscroll-behavior:contain}
-.settings-content{display:flex;flex-direction:column;gap:14px}
-.settings-card{flex-shrink:0}
-.settings-card>summary{width:100%;justify-content:space-between;border-radius:0;padding:14px 16px;font-weight:600}
-.settings-card>summary:hover{background:var(--surface)}
-.settings-card[open]>summary{border-bottom:1px solid var(--line)}
-.settings-group .page-hint{margin-top:0}
-.settings-group .field>.page-hint{margin-top:8px}
-.settings-group select{width:100%}
-.settings-group [role="status"]:empty{display:none}
-.api-config-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end}
-.api-config-toolbar>.button{min-height:40px}
-.api-config-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.settings-entry{display:flex;flex-direction:column;gap:6px;padding:12px 14px;color:var(--text);font:inherit;text-align:left;overflow-wrap:anywhere}
-.settings-entry:hover{background:var(--surface)}
-.settings-entry strong{font-size:13px;font-weight:600}
-.settings-entry small{color:var(--muted);font-size:12px;line-height:1.6}
-.navigation-options{display:flex;gap:8px;margin:0;padding:0;border:0}
-.navigation-options legend{margin-bottom:8px;font-size:13px;font-weight:600}
-.navigation-options label{position:relative;flex:1;cursor:pointer}
-.navigation-options input{position:absolute;opacity:0;width:1px;height:1px}
-.navigation-options span{display:block;padding:8px;text-align:center;border-radius:8px;background:var(--field);border:1px solid var(--line);font-weight:500}
-.navigation-options input:checked+span{background:var(--selected);color:var(--accent)}
-.navigation-options input:focus-visible+span{outline:2px solid var(--focus);outline-offset:2px}
-#api-fetch-models{align-self:flex-start}
-.settings-prompt-page{min-height:100%}
-.settings-prompt-page>.field{display:flex;flex:1;flex-direction:column;min-height:220px}
-.settings-prompt-page textarea{flex:1;resize:vertical}
-.prompt-modified{color:color-mix(in srgb,#C0392B 60%,var(--text))}
-#settings-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
-.app-toolbar #settings-actions .button{flex:0 0 auto;width:auto;padding:0 10px;font-size:12px}
-.app-toolbar:has(#settings-actions:not([hidden])) #workbench-close{margin-left:0}
-.app-toolbar:has(#settings-actions:not([hidden])) .app-brand{font-size:14px}
-@media(max-width:600px){.app-toolbar:has(#settings-actions:not([hidden])) .app-brand{display:none}}
-@media(max-width:480px){.settings-body{padding:14px}.api-config-list{grid-template-columns:minmax(0,1fr)}#settings-actions{gap:4px}.app-toolbar #settings-actions .button{padding-inline:7px}}
+.yakit-workbench .page-frame:has(> .settings-panel){padding:0;overflow:hidden}
+.yakit-workbench .settings-panel{height:100%;min-height:0;overflow:hidden}
+.yakit-workbench .settings-track{display:flex;width:200%;height:100%;transition:transform var(--view-duration) var(--view-easing)}
+.yakit-workbench .settings-panel[data-subpage="secondary"]>.settings-track{transform:translateX(-50%)}
+.yakit-workbench .settings-body{flex:0 0 50%;width:50%;min-width:0;height:100%;padding:20px 24px;overflow:auto;overscroll-behavior:contain}
+.yakit-workbench .settings-content{display:flex;flex-direction:column;gap:14px}
+.yakit-workbench .settings-card{flex-shrink:0}
+.yakit-workbench .settings-card>summary{width:100%;justify-content:space-between;border-radius:0;padding:14px 16px;font-weight:600}
+.yakit-workbench .settings-card>summary:hover{background:var(--surface)}
+.yakit-workbench .settings-card[open]>summary{border-bottom:1px solid var(--line)}
+.yakit-workbench .settings-group .page-hint{margin-top:0}
+.yakit-workbench .settings-group .field>.page-hint{margin-top:8px}
+.yakit-workbench .settings-group select{width:100%}
+.yakit-workbench .settings-group [role="status"]:empty{display:none}
+.yakit-workbench .api-config-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end}
+.yakit-workbench .api-config-toolbar>.button{min-height:40px}
+.yakit-workbench .api-config-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.yakit-workbench .settings-entry{display:flex;flex-direction:column;gap:6px;padding:12px 14px;color:var(--text);font:inherit;text-align:left;overflow-wrap:anywhere}
+.yakit-workbench .settings-entry:hover{background:var(--surface)}
+.yakit-workbench .settings-entry strong{font-size:13px;font-weight:600}
+.yakit-workbench .settings-entry small{color:var(--muted);font-size:12px;line-height:1.6}
+.yakit-workbench .navigation-options{display:flex;gap:8px;margin:0;padding:0;border:0}
+.yakit-workbench .navigation-options legend{margin-bottom:8px;font-size:13px;font-weight:600}
+.yakit-workbench .navigation-options label{position:relative;flex:1;cursor:pointer}
+.yakit-workbench .navigation-options input{position:absolute;opacity:0;width:1px;height:1px}
+.yakit-workbench .navigation-options span{display:block;padding:8px;text-align:center;border-radius:8px;background:var(--field);border:1px solid var(--line);font-weight:500}
+.yakit-workbench .navigation-options input:checked+span{background:var(--selected);color:var(--accent)}
+.yakit-workbench .navigation-options input:focus-visible+span{outline:2px solid var(--focus);outline-offset:2px}
+.yakit-workbench #yakit-wb-api-fetch-models{align-self:flex-start}
+.yakit-workbench .settings-prompt-page{min-height:100%}
+.yakit-workbench .settings-prompt-page>.field{display:flex;flex:1;flex-direction:column;min-height:220px}
+.yakit-workbench .settings-prompt-page textarea{flex:1;resize:vertical}
+.yakit-workbench .prompt-modified{color:color-mix(in srgb,#C0392B 60%,var(--text))}
+.yakit-workbench #yakit-wb-settings-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
+.yakit-workbench .app-toolbar #yakit-wb-settings-actions .button{flex:0 0 auto;width:auto;padding:0 10px;font-size:12px}
+.yakit-workbench .app-toolbar:has(#yakit-wb-settings-actions:not([hidden])) #yakit-wb-workbench-close{margin-left:0}
+.yakit-workbench .app-toolbar:has(#yakit-wb-settings-actions:not([hidden])) .app-brand{font-size:14px}
+@media(max-width:600px){.yakit-workbench .app-toolbar:has(#yakit-wb-settings-actions:not([hidden])) .app-brand{display:none}}
+@media(max-width:480px){.yakit-workbench .settings-body{padding:14px}.yakit-workbench .api-config-list{grid-template-columns:minmax(0,1fr)}.yakit-workbench #yakit-wb-settings-actions{gap:4px}.yakit-workbench .app-toolbar #yakit-wb-settings-actions .button{padding-inline:7px}}

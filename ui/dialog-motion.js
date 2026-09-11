@@ -1,6 +1,8 @@
 /** 关闭按钮、遮罩和 Esc 共用退场动画，结束后再关闭原生弹窗。 */
 export function attachDialogMotion(dialog) {
     let closingAnimation;
+    let preserveCancel = false;
+    let cancelReset;
     const reset = () => {
         closingAnimation = null;
         dialog.classList.remove('yakit-workbench--closing');
@@ -24,9 +26,22 @@ export function attachDialogMotion(dialog) {
             dialog.close();
         });
     };
-    dialog.addEventListener('cancel', event => {
+    dialog.addEventListener('keydown', event => {
+        if (event.key !== 'Escape') return;
+        const select = event.target.closest?.('select');
+        const css = dialog.ownerDocument.defaultView.CSS;
+        // 已处理的 Esc 与展开的原生下拉保留系统行为，同时拦住随后的弹窗 cancel。
+        preserveCancel = event.defaultPrevented || Boolean(select && (!css?.supports?.('selector(select:open)') || select.matches(':open')));
+        clearTimeout(cancelReset);
+        cancelReset = setTimeout(() => { preserveCancel = false; }, 0);
+        if (preserveCancel) return;
         event.preventDefault();
         close();
+    });
+    dialog.addEventListener('cancel', event => {
+        const handled = event.defaultPrevented;
+        event.preventDefault();
+        if (!handled && !preserveCancel) close();
     });
     dialog.addEventListener('close', reset);
     dialog.addEventListener('yakit:open', reset);

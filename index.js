@@ -4,7 +4,7 @@ import { selected_world_info, world_info } from '/scripts/world-info.js';
 import { promptManager } from '/scripts/openai.js';
 import { mountLauncher } from './ui/launcher.js';
 
-// 工作台在同源框架中运行，通过此入口读取当前酒馆上下文。
+// 工作台通过宿主适配入口读取当前酒馆上下文。
 globalThis.YaKitWorkbenchHost = {
     getContext: () => ({ ...SillyTavern.getContext(), isGenerating, getTextGenModel, getMaxContextTokens,
         // 只暴露试写条件需要的世界书选择，正文命中仍由酒馆处理。
@@ -16,7 +16,7 @@ globalThis.YaKitWorkbenchHost = {
             return entry?.enabled && promptManager.shouldTrigger(prompt, 'quiet') ? prompt : null;
         },
         refreshPresetEditor: () => promptManager?.render(false),
-        // 在酒馆窗口读取连接资源，避免子页面重新初始化酒馆模块。
+        // 配置页打开时按需读取酒馆的连接资源。
         getApiProfileResources: async () => {
             const [{ proxies }, { findSecret, SECRET_KEYS }] = await Promise.all([
                 import('/scripts/openai.js'), import('/scripts/secrets.js'),
@@ -26,4 +26,9 @@ globalThis.YaKitWorkbenchHost = {
     }),
 };
 
-mountLauncher(new URL('./index.html', import.meta.url).href);
+mountLauncher(async container => {
+    // 首次打开才加载工作台组件，后续打开复用已创建的界面。
+    const { mountApp } = await import('./app.js');
+    const host = globalThis.YaKitWorkbench.createSillyTavernHost(globalThis.YaKitWorkbenchHost.getContext);
+    return mountApp(container, host);
+});

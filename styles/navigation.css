@@ -1,12 +1,10 @@
 /* 顶栏与分段导航常驻，五页共用纪实的尺寸和切页节奏。 */
-:root {
+.yakit-workbench{
   --view-duration: 240ms;
   --view-easing: cubic-bezier(0.16, 1, 0.3, 1);
 }
-html, body { width: 100%; height: 100%; min-height: 0; overflow: hidden; }
-body { margin: 0; display: flex; flex-direction: column; }
-#app { flex: 1; width: 100%; min-height: 0; overflow: hidden; }
-.app-toolbar {
+.yakit-workbench #yakit-wb-app{ flex: 1; width: 100%; min-height: 0; overflow: hidden; }
+.yakit-workbench .app-toolbar{
   display: flex;
   align-items: center;
   flex: 0 0 56px;
@@ -16,7 +14,7 @@ body { margin: 0; display: flex; flex-direction: column; }
   border-bottom: 1px solid var(--line);
 }
 /* 五页共用固定标题，图标与入口一致并跟随文字颜色。 */
-.app-brand {
+.yakit-workbench .app-brand{
   display: flex;
   align-items: center;
   gap: 8px;
@@ -24,14 +22,14 @@ body { margin: 0; display: flex; flex-direction: column; }
   font-weight: 600;
   white-space: nowrap;
 }
-.app-brand-icon {
+.yakit-workbench .app-brand-icon{
   flex: 0 0 1em;
   width: 1em;
   height: 1em;
   background: currentColor;
   mask: url('../ui/workbench.svg') center / contain no-repeat;
 }
-.app-toolbar .button {
+.yakit-workbench .app-toolbar .button{
   display: flex;
   align-items: center;
   justify-content: center;
@@ -45,12 +43,12 @@ body { margin: 0; display: flex; flex-direction: column; }
   background: var(--field);
   color: var(--text);
 }
-.app-toolbar .button:hover { background: var(--surface); color: var(--text); }
-#workbench-close { margin-left: auto; }
-#workbench-close span { font-size: 24px; }
-.app-shell { display: flex; flex-direction: column; width: 100%; height: 100%; min-height: 0; }
-.app-shell > main { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; padding: 0; overflow: hidden; }
-.sidebar {
+.yakit-workbench .app-toolbar .button:hover{ background: var(--surface); color: var(--text); }
+.yakit-workbench #yakit-wb-workbench-close{ margin-left: auto; }
+.yakit-workbench #yakit-wb-workbench-close span{ font-size: 24px; }
+.yakit-workbench .app-shell{ display: flex; flex-direction: column; width: 100%; height: 100%; min-height: 0; }
+.yakit-workbench .app-shell > main{ display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; padding: 0; overflow: hidden; }
+.yakit-workbench .sidebar{
   position: relative;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -63,7 +61,7 @@ body { margin: 0; display: flex; flex-direction: column; }
   border-radius: 8px;
   background: var(--surface);
 }
-.nav-indicator {
+.yakit-workbench .nav-indicator{
   position: absolute;
   inset: 4px auto 4px 4px;
   width: calc((100% - 2px) / 5 - 6px);
@@ -74,7 +72,7 @@ body { margin: 0; display: flex; flex-direction: column; }
   transition: transform var(--view-duration) var(--view-easing);
   pointer-events: none;
 }
-.nav-item {
+.yakit-workbench .nav-item{
   position: relative;
   grid-row: 1;
   min-width: 0;
@@ -94,21 +92,21 @@ body { margin: 0; display: flex; flex-direction: column; }
   white-space: nowrap;
   transition: background .18s ease, color .18s ease;
 }
-.nav-item:hover { background: var(--field); }
-.nav-item[aria-selected="true"], .nav-item[aria-selected="true"]:hover { background: transparent; color: #35372f; }
+.yakit-workbench .nav-item:hover{ background: var(--field); }
+.yakit-workbench .nav-item[aria-selected="true"],.yakit-workbench .nav-item[aria-selected="true"]:hover{ background: transparent; color: #35372f; }
 /* 深色导航使用灰色底板和浅色文字。 */
-:root[data-theme="dark"] .nav-indicator { background: var(--selected); box-shadow: 0 1px 4px rgba(0, 0, 0, .24); }
-:root[data-theme="dark"] .nav-item[aria-selected="true"] { color: var(--text); }
-.nav-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.page-viewport { flex: 1; min-height: 0; overflow: clip; position: relative; }
-.page-track {
+.yakit-workbench[data-theme="dark"] .nav-indicator{ background: var(--selected); box-shadow: 0 1px 4px rgba(0, 0, 0, .24); }
+.yakit-workbench[data-theme="dark"] .nav-item[aria-selected="true"]{ color: var(--text); }
+.yakit-workbench .nav-item:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; }
+.yakit-workbench .page-viewport{ flex: 1; min-height: 0; overflow: clip; position: relative; }
+.yakit-workbench .page-track{
   display: flex;
   width: 500%;
   height: 100%;
   transform: translateX(calc(var(--page-index, 0) * -20%));
   transition: transform var(--view-duration) var(--view-easing);
 }
-.page-frame {
+.yakit-workbench .page-frame{
   flex: 0 0 20%;
   width: 20%;
   min-width: 0;
@@ -118,21 +116,21 @@ body { margin: 0; display: flex; flex-direction: column; }
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-.page { width: 100%; min-height: 100%; animation: none; }
-.page:focus { outline: none; }
+.yakit-workbench .page{ width: 100%; min-height: 100%; animation: none; }
+.yakit-workbench .page:focus{ outline: none; }
 @media (max-width: 480px) {
-  .app-toolbar { padding-inline: 14px; gap: 8px; }
-  .sidebar { width: calc(100% - 28px); margin-inline: 14px; }
-  .nav-item { padding-inline: 3px; }
-  .page-frame { padding: 14px; }
+  .yakit-workbench .app-toolbar{ padding-inline: 14px; gap: 8px; }
+  .yakit-workbench .sidebar{ width: calc(100% - 28px); margin-inline: 14px; }
+  .yakit-workbench .nav-item{ padding-inline: 3px; }
+  .yakit-workbench .page-frame{ padding: 14px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .page-track, .nav-indicator { transition: none; }
+  .yakit-workbench .page-track,.yakit-workbench .nav-indicator{ transition: none; }
 }
 
 /* 底部图标导航仍保留每页的可访问名称和相同的滑动轨道。 */
-.nav-icon{display:none;font-size:18px;line-height:1}
-.app-shell[data-navigation-style="bottom"]>.sidebar{order:2;margin-top:0;margin-bottom:12px}
-.app-shell[data-navigation-style="bottom"] .nav-item{display:flex;align-items:center;justify-content:center;height:34px}
-.app-shell[data-navigation-style="bottom"] .nav-icon{display:inline-block}
-.app-shell[data-navigation-style="bottom"] .nav-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.yakit-workbench .nav-icon{display:none;font-size:18px;line-height:1}
+.yakit-workbench .app-shell[data-navigation-style="bottom"]>.sidebar{order:2;margin-top:0;margin-bottom:12px}
+.yakit-workbench .app-shell[data-navigation-style="bottom"] .nav-item{display:flex;align-items:center;justify-content:center;height:34px}
+.yakit-workbench .app-shell[data-navigation-style="bottom"] .nav-icon{display:inline-block}
+.yakit-workbench .app-shell[data-navigation-style="bottom"] .nav-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}

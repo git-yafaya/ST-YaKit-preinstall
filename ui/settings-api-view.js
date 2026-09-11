@@ -2,7 +2,7 @@
   const workbench = globalThis.YaKitWorkbench ??= {};
   /** 连接与模型的异步结果只填写仍在编辑的草稿。 */
   workbench.mountSettingsApi = function(controller, root, onChange) {
-    const $ = id => root.querySelector(`#${id}`);
+    const $ = id => root.querySelector(`#yakit-wb-${id}`);
     const inputs = { name: $('api-name'), url: $('api-url'), apiKey: $('api-key'), model: $('api-model') };
     const profile = $('api-profile'), form = $('settings-api-form');
     let editingId = '', revision = 0, profileRequest = 0, modelRequest = 0;

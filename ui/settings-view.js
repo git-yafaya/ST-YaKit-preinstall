@@ -1,10 +1,11 @@
 (() => {
   const workbench = globalThis.YaKitWorkbench ??= {};
   workbench.mountSettings = function mountSettings(controller, root, { run }) {
-    const $ = id => root.querySelector(`#${id}`);
-    // 顶栏位于应用挂载点外，按所属文档查找二级操作区。
-    const header = id => root.ownerDocument.getElementById(id);
-    const theme = workbench.mountTheme(controller);
+    const $ = id => root.querySelector(`#yakit-wb-${id}`);
+    // 顶栏与页面共用工作台容器，避免命中宿主或其他工作台。
+    const container = root.closest('.yakit-workbench');
+    const header = id => container.querySelector(`#yakit-wb-${id}`);
+    const theme = workbench.mountTheme(controller, container);
     const prompt = workbench.mountSettingsPrompt(controller, root);
     const api = workbench.mountSettingsApi(controller, root, syncActions);
     let page = 'primary', editing = null, returnButton = null, listKey = '', saving = false;
@@ -45,7 +46,7 @@
     $('theme').addEventListener('change', () => run(() => controller.update({ theme: $('theme').value })));
     $('design-api').addEventListener('change', () => run(() => controller.update({ designApi: $('design-api').value })));
     $('api-config').addEventListener('change', () => run(() => controller.selectApiConfig($('api-config').value)));
-    root.querySelectorAll('input[name="navigation-style"]').forEach(input => input.addEventListener('change', () => {
+    root.querySelectorAll('input[name="yakit-wb-navigation-style"]').forEach(input => input.addEventListener('change', () => {
       if (input.checked) run(() => controller.update({ navigationStyle: input.value }));
     }));
     header('settings-back').addEventListener('click', () => showPage('primary'));
@@ -60,7 +61,7 @@
     }
     header('settings-save').addEventListener('click', () => run(() => commit(), true));
     header('settings-delete').addEventListener('click', () => run(() => commit(true), true));
-    const dialog = parent !== window ? parent.document.getElementById('yakit-workbench-dialog') : null;
+    const dialog = root.closest('dialog');
     dialog?.addEventListener('close', close);
     dialog?.addEventListener('yakit:open', close);
     function render(state) {
@@ -68,7 +69,7 @@
       $('design-api').value = state.designApi || 'main';
       $('design-api').disabled = Boolean(state.busy);
       $('app-shell').dataset.navigationStyle = state.navigationStyle || 'top';
-      root.querySelectorAll('input[name="navigation-style"]').forEach(input => { input.checked = input.value === (state.navigationStyle || 'top'); });
+      root.querySelectorAll('input[name="yakit-wb-navigation-style"]').forEach(input => { input.checked = input.value === (state.navigationStyle || 'top'); });
       $('main-api-label').textContent = state.mainApiLabel || '当前主 API';
       const configs = state.secondaryApiConfigs || [];
       const nextList = JSON.stringify([configs, state.profiles]);
@@ -78,7 +79,7 @@
         $('api-config-list').replaceChildren(...configs.map(config => {
           const button = root.ownerDocument.createElement('button');
           button.type = 'button'; button.className = 'panel settings-entry';
-          button.setAttribute('aria-label', `配置 ${config.name}`); button.setAttribute('aria-controls', 'settings-api-form');
+          button.setAttribute('aria-label', `配置 ${config.name}`); button.setAttribute('aria-controls', 'yakit-wb-settings-api-form');
           const name = root.ownerDocument.createElement('strong'); name.textContent = config.name;
           const summary = root.ownerDocument.createElement('small');
           summary.textContent = [config.url, config.model, state.profiles?.find(item => item.id === config.profileId)?.name || config.profileId].filter(Boolean).join(' · ') || '沿用酒馆当前连接';

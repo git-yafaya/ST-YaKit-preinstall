@@ -1,37 +1,26 @@
 import { attachDialogMotion } from './dialog-motion.js';
+import { shellTemplate } from './shell-template.js';
 
-export function mountLauncher(url) {
+export function mountLauncher(mount) {
     const existing = document.getElementById('yakit-workbench-dialog');
-    if (existing) return () => {
-        existing.dispatchEvent(new Event('yakit:open'));
-        if (!existing.open) existing.showModal();
-    };
+    if (existing) return () => existing.dispatchEvent(new Event('yakit:open'));
     const menu = document.getElementById('extensionsMenu');
     if (!menu) throw new Error('未找到 SillyTavern 扩展菜单。');
-    for (const file of ['theme.css', 'launcher.css']) {
+    const styleUrl = new URL('../style.css', import.meta.url).href;
+    if (![...document.querySelectorAll('link[rel="stylesheet"]')].some(link => link.href === styleUrl)) {
         const style = document.createElement('link');
         style.rel = 'stylesheet';
-        style.href = new URL(`../styles/${file}`, import.meta.url).href;
+        style.href = styleUrl;
         document.head.append(style);
     }
     const dialog = document.createElement('dialog');
     dialog.id = 'yakit-workbench-dialog';
+    dialog.className = 'yakit-workbench';
+    dialog.dataset.theme = 'st';
     dialog.setAttribute('aria-label', '预设工作台');
+    dialog.innerHTML = shellTemplate;
     const close = attachDialogMotion(dialog);
-    const frame = document.createElement('iframe');
-    frame.title = '预设工作台';
-    // 框架内的按钮与键盘退出共用宿主窗口的退场效果。
-    frame.addEventListener('load', () => {
-        frame.contentDocument.getElementById('workbench-close')?.addEventListener('click', close);
-        frame.contentDocument.addEventListener('keydown', event => {
-            if (event.key !== 'Escape' || event.defaultPrevented) return;
-            // 原生下拉先处理 Esc；旧浏览器无法判断展开状态时保留系统行为。
-            const select = event.target.closest?.('select');
-            if (select && (!frame.contentWindow.CSS?.supports?.('selector(select:open)') || select.matches(':open'))) return;
-            event.preventDefault();
-            close();
-        });
-    });
+    dialog.querySelector('#yakit-wb-workbench-close').addEventListener('click', close);
     // 按下和松开都在遮罩上才关闭，避免从窗口内拖动到外侧时误触。
     let backdropPressed = false;
     const outside = event => {
@@ -43,13 +32,25 @@ export function mountLauncher(url) {
         if (backdropPressed && outside(event)) close();
         backdropPressed = false;
     });
-    dialog.append(frame);
     document.body.append(dialog);
-    const open = () => {
-        if (!frame.hasAttribute('src')) frame.src = url;
-        dialog.dispatchEvent(new Event('yakit:open'));
+    let mounted = false;
+    let pending;
+    dialog.addEventListener('yakit:open', () => {
         if (!dialog.open) dialog.showModal();
-    };
+        if (mounted || pending) return;
+        const content = dialog.querySelector('#yakit-wb-app');
+        content.textContent = '正在加载工作台…';
+        // 关闭只隐藏窗口；首次加载中的重复打开也复用同一次挂载。
+        pending = Promise.resolve().then(() => mount(dialog)).then(() => {
+            mounted = true;
+        }).catch(error => {
+            const message = document.createElement('p');
+            message.setAttribute('role', 'alert');
+            message.textContent = `工作台加载失败：${error?.message || String(error)}。请关闭后重新打开重试。`;
+            content.replaceChildren(message);
+        }).finally(() => { pending = null; });
+    });
+    const open = () => dialog.dispatchEvent(new Event('yakit:open'));
     const entry = document.createElement('button');
     entry.id = 'yakit-workbench-entry'; entry.type = 'button'; entry.className = 'list-group-item flex-container flexGap5';
     const icon = document.createElement('span');

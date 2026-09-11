@@ -10,11 +10,10 @@ ST-YaKit-preinstall/
 ├── README.md                  # 用户安装、配置与使用说明
 ├── Public.md                  # 模块、数据流与接口契约
 ├── manifest.json              # 酒馆扩展入口、版本及兼容性声明
-├── index.js                   # 发布宿主、试写条件及预设刷新桥并挂载入口
-├── index.html                 # 同源页面、共用标题和顶部控件与脚本加载顺序
-├── preview.html               # 独立演示入口，转到显式预览模式
-├── app.js                     # 按入口选择适配器并创建核心和视图
-├── style.css                  # 主题、控件、页面、导航与轻提示样式入口
+├── index.js                   # 发布宿主适配入口并按需挂载工作台
+├── preview.html               # 直接加载本地演示的页面入口
+├── app.js                     # 加载组件、挂载控制器并管理环境刷新
+├── style.css                  # 工作台全部局部样式入口
 ├── styles/
 │   ├── theme.css              # 四套主题与工作台变量映射
 │   ├── controls.css           # 操作与展开按钮、输入、选项弹层及滚动条
@@ -37,10 +36,12 @@ ST-YaKit-preinstall/
 │   ├── local-host.js          # 离线演示请求及浏览器独立存储
 │   └── st-host.js             # 酒馆设置、环境及模型和预设适配器入口
 ├── preview/
-│   └── examples.js            # 原有演示需求、提示词与两版正文
+│   ├── examples.js            # 原有演示需求、提示词与两版正文
+│   └── preview.js             # 通过本地适配器挂载同一套界面
 ├── ui/
 │   ├── workbench.svg          # 扩展菜单的工作台图标
-│   ├── launcher.js            # 扩展菜单、样式加载与弹窗事件绑定
+│   ├── launcher.js            # 扩展菜单、唯一弹窗与首次按需加载
+│   ├── shell-template.js      # 正式窗口和预览共用顶栏与挂载容器
 │   ├── dialog-motion.js       # 统一关闭动画与重新打开状态
 │   ├── workbench-template.js  # 五页轨道、文字图标导航与工作台模板
 │   ├── workbench-view.js      # 状态渲染、通知分发、事件、复制与下载
@@ -56,7 +57,7 @@ ST-YaKit-preinstall/
 │   ├── settings-view.js       # 设置导航、配置列表与顶栏保存操作
 │   ├── settings-api-view.js   # API 编辑草稿、连接回填与模型选择
 │   ├── settings-prompt-view.js # 提示词草稿、重置及修改标记
-│   └── theme-view.js          # 内外主题同步与酒馆配色监听
+│   └── theme-view.js          # 同步当前容器的主题选择
 ├── tests/                     # 本地忽略目录，不随仓库分发
 │   ├── core.test.mjs          # 核心状态与业务边界检查
 │   ├── settings-core.test.mjs # 配置迁移、切换、提示词请求与导出检查
@@ -70,7 +71,8 @@ ST-YaKit-preinstall/
 │   ├── preview-host.test.mjs  # 独立演示、旧数据、取消与入口隔离
 │   ├── theme.test.mjs         # 主题同步与宿主变量检查
 │   ├── navigation.test.mjs    # 切页、键盘焦点与输入保留检查
-│   ├── launcher.test.mjs      # 原生下拉与退出键事件检查
+│   ├── launcher.test.mjs      # 单次挂载、失败重试与弹窗事件检查
+│   ├── native-styles.test.mjs # 局部样式、关闭隐藏与主题范围检查
 │   ├── select-toggle.test.mjs # 触屏下拉事件边界与卸载检查
 │   ├── toast.test.mjs         # 轻提示文本、显示时序与卸载清理
 │   ├── toast-routing.test.mjs # 状态提示去重、重复操作及错误优先
@@ -80,11 +82,11 @@ ST-YaKit-preinstall/
 
 ## 加载与数据流
 
-扩展菜单入口显示「工作台」，图标由 `styles/launcher.css` 以 CSS 遮罩引用 `ui/workbench.svg`，使用 1em 尺寸和 `currentColor` 跟随菜单文字；图标设置 `aria-hidden`，按钮名称由文字提供。页面顶栏固定显示同一 SVG 图标与「预设工作台」，由 `styles/navigation.css` 设置排版与主题颜色；浏览器标题、宿主对话框和 iframe 名称同步为「预设工作台」。
+扩展菜单入口显示「工作台」，图标由 `styles/launcher.css` 以 CSS 遮罩引用 `ui/workbench.svg`，使用 1em 尺寸和 `currentColor` 跟随菜单文字；图标设置 `aria-hidden`，按钮名称由文字提供。页面顶栏固定显示同一 SVG 图标与「预设工作台」，由 `styles/navigation.css` 设置排版与主题颜色；对话框的可访问名称为「预设工作台」。
 
-1. 酒馆根据 `manifest.json` 加载 ES 模块 `index.js`。入口读取 `/script.js` 的 `isGenerating` 和 `getMaxContextTokens`、`/scripts/textgen-settings.js` 的 `getTextGenModel`、世界书模块的当前选择及 Prompt Manager 中启用的静默提示条目。将这些只读能力与实时 `SillyTavern.getContext()` 包装为 `globalThis.YaKitWorkbenchHost.getContext()`，再挂载扩展菜单入口。`getApiProfileResources()` 在父窗口按需读取代理与密钥服务，避免工作台 iframe 再次初始化酒馆模块。
-2. 用户首次打开「工作台」时，同源 iframe 加载 `index.html`；关闭保留页面及工作输入，设置二级页的未确认草稿会丢弃。顶部控件静态位于 `#app` 外，`launcher.js` 在 iframe 加载后将关闭按钮绑定到统一退场函数，应用启动报错时仍保留关闭入口。宿主加载限定到工作台弹窗的 `theme.css` 与 `launcher.css`；iframe 通过 `style.css` 加载界面样式，脚本按 `state → prompts → core/settings → core/presets → workbench → api → api-profiles → host/presets → st-host → settings-template → theme-view → settings-api-view → settings-prompt-view → settings-view → trial-template → versions-template → preset-template → workbench-template → navigation-view → preset-entries-view → preset-view → toast → select-view → workbench-view → app` 顺序加载，内部协作命名空间为 `globalThis.YaKitWorkbench`。
-3. 普通入口由 `app.js` 通过父页面桥加载 `host/trial-context.js` 并创建 `createSillyTavernHost(getContext)`，再创建控制器、恢复保存记录并读取连接列表和当前聊天。页面重新获得焦点时刷新环境；普通入口缺少酒馆桥时显示错误。独立入口 `preview.html` 转到 `index.html?mode=preview`，显式加载示例与 `createLocalHost()`，复用同一套视图；演示请求只返回内置内容。
+1. 酒馆通过 `manifest.json` 加载 `index.js`，发布 `YaKitWorkbenchHost.getContext()`，提供实时酒馆上下文、生成状态、试写背景、预设刷新和连接资源。随后创建扩展菜单入口、共用顶栏和原生 `dialog#yakit-workbench-dialog.yakit-workbench`，样式入口 `style.css` 按地址去重加载。
+2. 首次打开弹窗时按需导入 `app.js`，它通过 ES 模块导入现有状态、提示词、设置、预设、宿主及视图组件；同一模块在酒馆窗口中只执行一次。入口创建 `createSillyTavernHost(getContext)`，再调用 `mountApp(container, host)`，恢复记录并向容器内的 `#yakit-wb-app` 挂载五页工作台。工作组件尚在加载时重复打开共用一次请求，失败只在内容区显示错误，关闭按钮继续可用，重开后可重试。
+3. 关闭弹窗保留工作台实例、输入和滚动位置，重新打开与窗口获得焦点时更新聊天、连接及可试写状态。设置二级页的未确认草稿继续按原规则丢弃。独立演示入口 `preview.html` 直接加载 `preview/preview.js`，用相同的 `shell-template.js`、`app.js` 和本地适配器创建界面；演示只返回内置内容。卸载函数解除环境刷新监听并释放视图订阅及提示计时器。
 4. 需求与草稿输入立即更新内存并排队保存，保留首尾空格和换行。设计请求固定开始时的设置快照，系统消息由最新保存的内置提示词与破限提示词组成；其后依次为需求、源草稿、历史设计讨论及本次要求，不附带当前聊天或此前试写正文。
 5. 主 API 设计使用 `generateRaw({prompt, instructOverride: true, trimNames: false})`；副 API 连接配置使用 `ConnectionManagerRequestService.sendRequest`；自定义接口使用 `ChatCompletionService.processRequest`。副 API 请求均关闭流式输出、输出上限为 4096 token。
 6. 设计答复必须是含 `prompt` 和 `explanation` 字符串的 JSON，也接受完整 JSON 代码围栏。原始答复进入讨论记录，界面显示修改说明并提供「查看提示词」折叠区，解析成功后更新草稿。保存版本时生成独立 ID、名称和时间，已保存版本保持不变。
@@ -100,6 +102,8 @@ ST-YaKit-preinstall/
 
 | 情况 | 当前处理 |
 | --- | --- |
+| 首次加载期间重复打开 | 共享同一次组件挂载，关闭后加载完成不会自行重开窗口 |
+| 工作台加载失败 | 内容区显示错误，保留关闭按钮；下次打开重新尝试挂载 |
 | 空需求、空设计要求、保存版本时空草稿或空试写要求 | 提交失败并显示错误；编辑时允许暂存空白，预设条目允许清空保存 |
 | 副 API 连接未选、已失效或列表为空 | 明确报错，不回退主 API，也不自动选择其他连接 |
 | 自定义地址或模型缺失 | 发起设计前阻止请求；地址只接受 HTTP(S)，拒绝内嵌凭据、查询参数、片段和密钥换行；去除尾部斜杠与 `/chat/completions` |
@@ -143,13 +147,13 @@ ST-YaKit-preinstall/
 
 记录位于 `extensionSettings.yakitPromptWorkbench`，经 `saveSettingsDebounced()` 交给酒馆保存。核心按顺序提交完整深拷贝，防止旧保存覆盖新编辑；宿主的防抖保存不提供逐次落盘确认，工作台只能感知读取或调用阶段抛出的错误。
 
-独立演示使用 `localStorage['yakit.prompt-workbench.preview.v1']`，保留历史演示数据，与酒馆设置分开。通过本地静态服务打开 `preview.html`；该入口与普通酒馆入口均复用 `index.html`，没有独立 UI 副本。
+独立演示使用 `localStorage['yakit.prompt-workbench.preview.v1']`，保留历史演示数据，与酒馆设置分开。通过本地静态服务打开 `preview.html`；该入口通过 `preview/preview.js` 复用 `app.js` 和 `shell-template.js`，只使用本地适配器。
 
 持久化内容包括设置、需求、草稿、讨论、版本、试写、反馈和选中记录。`profiles/mainApiLabel/contextLabel/canTrial/presets/selectedPresetName/presetEntries/presetSource/busy/error/notice` 不持久化。主题、导航样式、主副 API 与配置选择立即保存；API 编辑通过顶栏「保存」提交，提示词编辑通过「确认」提交。未提交的设计要求、试写要求、版本名称、反馈和预设条目编辑框属于视图临时内容；预设逐条编辑不进入工作记录持久化或导出。
 
 导出结构为 `{formatVersion: 1, ...savedState}`，其中排除副 API 密钥。预设条目通过独立按钮手动写回；未提供工作记录导入或删除入口。
 
-预设列表、条目和来源不进入工作记录；关闭后重开保留同一个 iframe，重新加载页面才清除写回来源。普通设计可继续修改已载入条目的草稿，保存版本保留来源，选择已有版本则解除来源。预设读取不触发工作记录保存，加载工作记录失败时也不会因初始化读取预设而写回空记录。冲突检查基于当前酒馆内存；宿主保存接口不提供跨窗口事务校验。
+预设列表、条目和来源不进入工作记录；关闭后重开复用同一弹窗与工作台实例，重新加载页面才清除写回来源。普通设计可继续修改已载入条目的草稿，保存版本保留来源，选择已有版本则解除来源。预设读取不触发工作记录保存，加载工作记录失败时也不会因初始化读取预设而写回空记录。冲突检查基于当前酒馆内存；宿主保存接口不提供跨窗口事务校验。
 
 ## 设置与主题
 
@@ -192,33 +196,33 @@ API 和提示词编辑共用二级滑动轨道与顶栏操作，使用主页的 
 | 页面分区 | 五页省去重复的分区标题行，通过 `aria-label` 保留区域名称；预设条目数和版本数显示在选择框标签中，导出位于版本操作区 |
 | 操作按钮 | 复制、引用、刷新、跳转、导出及取消共用次按钮；主操作沿用主按钮，关闭按钮显示主题底色和边框 |
 | 展开与反馈 | 原生 `summary` 与单选项共用按钮样式；展开箭头跟随 `details[open]`，反馈选中态跟随 `input:checked`，键盘焦点清晰可见 |
-| 页面留白 | 默认上下 20px、左右 24px；iframe 视口不超过 480px 时为 14px |
+| 页面留白 | 默认上下 20px、左右 24px；浏览器视口不超过 480px 时为 14px |
 | 切页 | 五页常驻同一轨道，正文与导航指示器同步平移；240ms，`cubic-bezier(0.16, 1, 0.3, 1)` |
 | 窗口进退场 | 240ms 淡入或淡出，缩放从或至 0.98；关闭按钮、Esc、遮罩共用退场函数 |
 | Toast | 底部居中，距底部 24px，间隔 8px；内边距 10px / 18px，圆角 12px，字号 13px；停留 2300ms 后淡出，300ms 后移除 |
 | 减少动态效果 | 停用过渡与动画，关闭直接完成 |
 
-顶栏固定留在正文上方，显示入口图标、「预设工作台」标题和关闭按钮；另保留仅供读屏的当前页面名称。设置二级页顶栏增加返回、保存或确认，以及对应的删除或重置；窄屏进入编辑页时让标题为操作区留出空间。导航常驻于设置选择的上方或下方，上方长页签显示省略号，下方图标保留读屏名称和 `title`。切页通过 `inert` 和 `aria-hidden` 隔离非当前页，不重建工作内容并保留滚动位置，设置编辑草稿按上文规则清理。页签支持左右方向键、Home、End；快捷入口聚焦目标页。当前页只保留在当前 iframe，重新加载后回到工作台。Esc 尊重控件已取消的事件，展开的原生下拉优先关闭选项；旧浏览器无法判断下拉展开状态时，焦点位于下拉框内由系统处理 Esc。遮罩关闭要求按下与松开均位于窗口外，退出期间再次打开会清除待关闭状态。
+顶栏固定留在正文上方，显示入口图标、「预设工作台」标题和关闭按钮；另保留仅供读屏的当前页面名称。设置二级页顶栏增加返回、保存或确认，以及对应的删除或重置；窄屏进入编辑页时让标题为操作区留出空间。导航常驻于设置选择的上方或下方，上方长页签显示省略号，下方图标保留读屏名称和 `title`。切页通过 `inert` 和 `aria-hidden` 隔离非当前页，不重建工作内容并保留滚动位置，设置编辑草稿按上文规则清理。页签支持左右方向键、Home、End；快捷入口聚焦目标页。当前页只保留在本次工作台实例，重新加载后回到工作台。Esc 尊重控件已取消的事件，展开的原生下拉优先关闭选项；旧浏览器无法判断下拉展开状态时，焦点位于下拉框内由系统处理 Esc。遮罩关闭要求按下与松开均位于窗口外，退出期间再次打开会清除待关闭状态。
 
-主题由 iframe 根元素和宿主弹窗的 `data-theme` 同步控制；`st` 模式从父页面正文读取 `--SmartThemeBodyColor`、`--SmartThemeBlurTintColor`、`--SmartThemeChatTintColor`、`--SmartThemeBorderColor`、`--SmartThemeQuoteColor`、`--SmartThemeEmColor` 和 `--mainFontFamily`，监听父根元素与正文的 `style/class/data-theme` 变化。林系风、浅色的 `--yakit-*` 颜色与纪实一致；深色使用黑灰背景和浅灰强调色，并通过 `--on-accent` 为主按钮配置深色文字。现有组件变量映射到这些主题值，深色导航选中项使用 `--selected` 背景和 `--text` 文字。宿主样式只匹配工作台弹窗，iframe 样式只匹配带 `yakit-workbench` 类的根元素；主题仍使用本工作台的设置保存。
+主题由所属 `.yakit-workbench` 容器的 `data-theme` 控制；`st` 模式直接继承酒馆的 `--SmartThemeBodyColor`、`--SmartThemeBlurTintColor`、`--SmartThemeChatTintColor`、`--SmartThemeBorderColor`、`--SmartThemeQuoteColor`、`--SmartThemeEmColor` 和 `--mainFontFamily`。主题切换只更新工作台容器，不修改酒馆根元素，也不创建主题监听器。林系风、浅色与纪实一致，深色使用黑灰背景及浅灰强调色。全部页面与控件选择器限定在 `.yakit-workbench` 内，菜单入口使用独立 ID；控件 ID、标签关联及单选组名统一带 `yakit-wb-` 前缀，避免和酒馆或其他插件共用标识。
 
 按钮沿用主页的圆角、间距、150ms 颜色过渡与按下缩放，禁用态继续由原有状态控制。预设条目名称可换行，操作按钮行空间不足时自动换行。非提交按钮显式使用 `type="button"`；设计表单由提交按钮触发，设置编辑由顶栏按钮确认。折叠入口保留原生 `details/summary`，反馈和导航位置保留原生单选输入，键盘操作由浏览器处理。
 
-设置、预设、版本和试写记录共用原生 `select`。支持 `appearance: base-select` 与 `::picker(select)` 时，弹层跟随控件宽度、限制在 iframe 视口内，最高为 `min(320px, 60dvh)`，超长名称换行、过多选项滚动；背景取 `--paper` 的不透明颜色，选中、悬停与焦点使用主题变量，入场为 160ms 淡入与 4px 位移。原生键盘选择、表单提交和动态连接选项保持原有行为。不支持该特性时使用系统选单，并提供选项文字和背景色；系统可能忽略部分样式。
+设置、预设、版本和试写记录共用原生 `select`。支持 `appearance: base-select` 与 `::picker(select)` 时，弹层跟随控件宽度、限制在浏览器视口内，最高为 `min(320px, 60dvh)`，超长名称换行、过多选项滚动；背景取 `--paper` 的不透明颜色，选中、悬停与焦点使用主题变量，入场为 160ms 淡入与 4px 位移。原生键盘选择、表单提交和动态连接选项保持原有行为。不支持该特性时使用系统选单，并提供选项文字和背景色；系统可能忽略部分样式。
 
 `select-view.js` 在工作台根节点委托 `pointerdown`，覆盖各页和动态新增的下拉框，卸载时移除监听。浏览器支持 `base-select` 和 `:open`，且主触点再次按下已展开、启用的 `select` 本身时，取消默认事件，阻止兼容鼠标按下在原生弹层收起后重新打开列表；实际外观为系统选单时跳过。选项及分组、鼠标、触控笔、键盘和 `input/change` 仍走原有处理。取消主 `pointerdown` 抑制兼容鼠标事件的依据见 [Pointer Events 规范](https://www.w3.org/TR/pointerevents/#compatibility-mapping-with-mouse-events)。
 
 五页正文、讨论区、文本框和选项弹层共用 `controls.css` 的细滚动条与透明轨道。悬停或焦点进入时显示滑块，触屏常显；浅色使用中性灰，其他主题由强调色生成滑块色。支持 WebKit 滚动条伪元素时宽高均为 4px，其余支持标准属性的浏览器使用 `thin`。
 
-Toast 根节点位于工作台 iframe 的 `body`，五页共用，不挤占正文，也不拦截点击；提示以纯文本写入，通过 `aria-live="polite"` 播报。正常提示使用 `--yakit-text` 背景和 `--yakit-bg` 文字，提醒为纪实的黄色，错误为红底白字。最大宽度为视口减 28px，长文本自动换行。淡入与淡出沿用纪实的 12px 位移和 300ms 过渡，减少动态效果设置继续由共用样式处理。卸载工作台时移除根节点并清理未完成的帧和计时器。
+Toast 根节点 `#yakit-wb-toast-root` 位于工作台弹窗或预览容器中，通过绝对定位显示在容器底部，五页共用，不挤占正文也不拦截点击。提示以纯文本写入并通过 `aria-live="polite"` 播报；正常、提醒和错误继续使用现有主题色、黄色和红色。最大宽度为容器减 28px，长文本换行，入场位移 12px、过渡 300ms；卸载时移除节点并清理帧与计时器。剪贴板回退文本框和下载链接同样临时创建在当前工作台容器内。
 
 ## 公开 API
 
-当前未发布供其他插件消费的稳定 API。以下是内部组件契约，宿主桥位于父页面，控制器与视图位于工作台 iframe。
+当前未发布供其他插件消费的稳定 API。以下为酒馆同一文档内的宿主适配、组件及控制器契约。
 
 | 接口 | 职责 |
 | --- | --- |
-| `YaKitWorkbenchHost.getContext()` | 返回酒馆当前上下文、生成与背景只读查询；`refreshPresetEditor()` 刷新预设列表，`getApiProfileResources()` 异步提供父窗口的 `{proxies,findSecret,SECRET_KEYS}` |
+| `YaKitWorkbenchHost.getContext()` | 返回酒馆当前上下文、生成与背景只读查询；`refreshPresetEditor()` 刷新预设列表，`getApiProfileResources()` 异步提供酒馆的 `{proxies,findSecret,SECRET_KEYS}` |
 | `YaKitWorkbench.createApi(getContext)` | 创建模型请求适配器 |
 | `YaKitWorkbench.createApiProfiles(getContext)` | 创建连接回填和模型列表接口，返回 `{readApiProfile, fetchApiModels}` |
 | `YaKitWorkbench.createPresets(getContext)` | 创建聊天补全预设列表、读取与条目写回适配器 |
@@ -226,12 +230,14 @@ Toast 根节点位于工作台 iframe 的 `body`，五页共用，不挤占正�
 | `YaKitWorkbench.createLocalHost()` | 创建原有示例请求与独立浏览器存储适配器，仅预览入口加载 |
 | `YaKitWorkbench.captureTrialContext(host, options, scenario)` | 同步深拷贝主 API 连接、实际注入参数和请求开始时的背景条件 |
 | `YaKitWorkbench.createWorkbench(host)` | 恢复记录、读取环境并返回控制器 |
-| `YaKitWorkbench.mountWorkbench(controller, root)` | 挂载五页工作台，返回解除订阅、主题监听与 Toast 清理函数 |
-| `YaKitWorkbench.createToast(document)` | 创建当前文档的轻提示，返回 `{show, dispose}`；`show(message, {type, durationMs})` 默认 `success` / 2300ms，另支持 `warning` 和 `error`，卸载后调用不再显示 |
+| `mountApp(container, host)` | `app.js` 的 ES 导出；向容器内的 `#yakit-wb-app` 挂载工作台，返回释放视图、焦点及重开监听的函数 |
+| `mountLauncher(mount)` | `ui/launcher.js` 的 ES 导出；创建唯一原生弹窗，首次打开等待 `mount(container)`，成功后复用实例，失败后可重开重试 |
+| `YaKitWorkbench.mountWorkbench(controller, root)` | 显式传入 `#yakit-wb-app`，挂载五页工作台，返回订阅、设置事件、下拉与 Toast 清理函数 |
+| `YaKitWorkbench.createToast(document, container = document.body)` | 在指定容器创建轻提示，工作台传入自己的弹窗，返回 `{show, dispose}`；`show(message, {type, durationMs})` 默认 `success` / 2300ms，另支持 `warning` 和 `error`，卸载后调用不再显示 |
 | `YaKitWorkbench.mountPresets(controller, root, {run, openPage})` | 绑定预设选择、明确重读与草稿写回控件，返回 `{render}` |
 | `YaKitWorkbench.mountPresetEntries(controller, root, {run, openPage})` | 绑定全部条目的编辑、逐条保存与草稿载入，返回 `{render, rebase}`；`rebase(state)` 在明确重读成功后更新原文基线 |
-| `YaKitWorkbench.mountNavigation(root, {onPageChange} = {})` | 返回 `{openPage}`，绑定五页常驻导航与快捷入口；切页回调用于清理设置草稿，从 `root.ownerDocument` 读取读屏页名并管理焦点 |
-| `YaKitWorkbench.mountTheme(controller)` | 返回 `{sync, dispose}`；同步 iframe 与宿主弹窗主题，并可解除宿主主题监听 |
+| `YaKitWorkbench.mountNavigation(root, {onPageChange} = {})` | 返回 `{openPage}`，绑定五页常驻导航与快捷入口；切页回调用于清理设置草稿，从所属工作台容器读取读屏页名并管理焦点 |
+| `YaKitWorkbench.mountTheme(controller, container)` | 返回 `{sync, dispose}`；仅更新容器的 `data-theme`，酒馆主题变量直接继承，`dispose` 保留空操作契约 |
 | `YaKitWorkbench.state` / `.prompts` / `.settings` | 状态校验、保存快照、设计消息、答复解析、配置恢复与设置操作 |
 
 | 控制器方法 | 参数与结果 |
@@ -305,11 +311,11 @@ Toast 根节点位于工作台 iframe 的 `body`，五页共用，不挤占正�
 
 本地演示的 `connection`、`injection`、`chat` 仅描述内置示例；实际位置与角色为 `local-preview` / `null`，没有宿主消息注入。`requestedScenario` 保留本次输入，`scenario` 保留示例场景，说明文字明确标记本地演示。
 
-工作台已打开后，在开发者工具中选择其 iframe 执行以下只读示例：
+工作台已打开后，在酒馆页面的开发者工具中执行以下只读示例：
 
 ```javascript
 const api = globalThis.YaKitWorkbench;
-const host = api.createSillyTavernHost(parent.YaKitWorkbenchHost.getContext);
+const host = api.createSillyTavernHost(globalThis.YaKitWorkbenchHost.getContext);
 const saved = await host.loadState();
 console.table(api.state.initialState(saved).versions.map(({ id, label }) => ({ id, label })));
 const { selectedPresetName } = await host.listPresets();
@@ -320,7 +326,7 @@ if (selectedPresetName) console.table((await host.readPreset(selectedPresetName)
 
 | 项目 | 已实现内容与限制 |
 | --- | --- |
-| 酒馆入口 | 扩展菜单与同源 iframe 工作台；独立 `preview.html` 提供离线演示 |
+| 酒馆入口 | 扩展菜单在原生 `dialog` 中直接挂载组件，首次打开加载，后续复用；`preview.html` 提供离线演示 |
 | 主 API 设计 | 通过 `generateRaw` 仅传设计消息，沿用当前主 API 的生成参数 |
 | 副 API 设计 | 支持连接管理配置和自定义 OpenAI 兼容接口，均为非流式请求 |
 | 设置 | 多套 API 新增、编辑、选择和删除，连接回填与模型列表；主副选择和上下导航持久化 |
@@ -340,7 +346,7 @@ if (selectedPresetName) console.table((await host.readPreset(selectedPresetName)
 
 预设接入依赖 `getPresetManager('openai')` 的 `getPresetList`、`getSelectedPresetName`、`getCompletionPresetByName` 与 `savePreset`。写回复制已保存预设，只替换目标正文，调用 `savePreset(name, next, {skipUpdate: true})`，避免默认列表更新切换当前预设；成功后更新内存中对应条目。当前活动条目无冲突时同步 `chatCompletionSettings`、触发 `saveSettingsDebounced()` 并通过宿主桥 `refreshPresetEditor()` 调用 `promptManager.render(false)` 刷新列表。保存请求失败前不修改宿主内存。
 
-API 设置读取依赖 `ConnectionManagerRequestService.getProfile/validateProfile`、连接管理列表、`CONNECT_API_MAP`、命名预设，以及父窗口 `openai.js` 的 `proxies` 和 `secrets.js` 的 `findSecret/SECRET_KEYS`。模型列表使用 `getRequestHeaders()` 调用 `/api/backends/chat-completions/status`；连接引用保留其源类型和密钥引用，文本补全连接暂不支持模型列表，独立接口使用归一化的 OpenAI 兼容地址。读取和拉取模型不切换酒馆当前连接。离线演示只返回固定的示例连接与模型，不访问填写的地址。
+API 设置读取依赖 `ConnectionManagerRequestService.getProfile/validateProfile`、连接管理列表、`CONNECT_API_MAP`、命名预设，以及酒馆 `openai.js` 的 `proxies` 和 `secrets.js` 的 `findSecret/SECRET_KEYS`。模型列表使用 `getRequestHeaders()` 调用 `/api/backends/chat-completions/status`；连接引用保留其源类型和密钥引用，文本补全连接暂不支持模型列表，独立接口使用归一化的 OpenAI 兼容地址。读取和拉取模型不切换酒馆当前连接。离线演示只返回固定的示例连接与模型，不访问填写的地址。
 
 ## 开发与验证
 
@@ -359,10 +365,11 @@ UI 代码位于 `ui/`、`styles/`、`style.css` 和页面模板；业务代码�
 | `tests/preset-display.test.mjs` | 全部条目展示、多条编辑、保存期间继续输入、原文冲突与重读、读取失败及切换后的输入保留 |
 | `tests/st-host.test.mjs` | 模拟宿主验证请求参数、连接选用、持久化与取消边界；契约检查通过，不调用真实模型 |
 | `tests/trial-record.test.mjs` | 从真实适配器到核心，验证试写期间切换条件后原版本归属、保存恢复与导出 |
-| `tests/preview-host.test.mjs` | 演示入口隔离、原两版流程、旧存储恢复、可变请求快照与取消 |
-| `tests/theme.test.mjs` | 四主题、双容器同步、宿主颜色变化与监听释放 |
+| `tests/preview-host.test.mjs` | 显式宿主挂载、焦点与重开环境刷新及清理、离线两版流程、旧存储恢复、请求快照和取消 |
+| `tests/theme.test.mjs` | 容器主题各自生效，宿主根主题保持不变 |
 | `tests/navigation.test.mjs` | 页签键盘操作、快捷入口、隐藏页隔离与草稿和滚动保留 |
-| `tests/launcher.test.mjs` | 已处理的 Esc、展开或收起的原生下拉及旧浏览器选择器兼容 |
+| `tests/launcher.test.mjs` | 唯一弹窗、并发打开只挂载一次、关闭期间加载完成、失败重试、Esc/cancel 与遮罩 |
+| `tests/native-styles.test.mjs` | 样式局部化、原生弹窗关闭隐藏、四主题、窗口尺寸与提示层 |
 | `tests/select-toggle.test.mjs` | 触屏首次与再次点击的事件处理、鼠标与键盘、选项冒泡、系统选单、禁用、不支持增强和卸载；不模拟浏览器原生弹层 |
 | `tests/toast.test.mjs` | 纯文本输出、2300ms 停留、300ms 淡出、状态样式及卸载清理 |
 | `tests/toast-routing.test.mjs` | 普通渲染去重、同文案重复操作、订阅与 catch 去重及错误与本地反馈 |
@@ -397,5 +404,7 @@ v0.2.12 已通过现有导航、预设编辑与通知路由检查，以及修改
 v0.2.13 已通过下拉事件、原生下拉 Esc 和通知路由共 7 项本地检查，以及相关 JavaScript 语法和差异检查。手机端还需人工检查首次展开、再次点击收起、重新展开、点击外部关闭、选项选择和列表滚动。
 
 v0.2.14 已通过 35 项本地测试、API 配置与模型检查、弹窗动效及全部 JavaScript 语法检查；入口 25 个脚本和 87 个控件 ID 均已核对。新增检查覆盖设置迁移、全部配置密钥导出排除、提示词用于实际设计、二级草稿清理及异步回填。API 新建、切换、编辑、删除、真实模型列表、提示词确认与重置，以及上下导航和二级页动效仍由用户在酒馆人工验收。
+
+v0.2.15 已通过 36 项本地测试、API 配置与弹窗动效检查、全部 JavaScript 语法检查。检查覆盖原生弹窗单次挂载、失败重试、主题与样式作用范围、提示层、重开后环境刷新及离线演示；实际酒馆界面和内存差值待人工验证。
 
 SillyTavern 验收遵循本机 `AGENTS.md` 的人工流程。从扩展菜单打开工作台，在宽屏与窄屏检查五页尺寸随窗口调整、四周留白、滑动切页、独立滚动、关闭按钮和常驻导航；切换四种主题，核对窗口、控件、滚动条与选项弹层。检查长选项换行、键盘选择、关闭与重新打开保留输入，以及系统减少动态效果设置。在「预设展示」核对全部条目、折叠编辑、逐条保存及载入草稿。真实预设写回、模型调用和完整试写流程继续由用户人工验收。

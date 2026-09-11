@@ -20,7 +20,8 @@
     mask: url('../ui/workbench.svg') center / contain no-repeat;
 }
 
-dialog#yakit-workbench-dialog {
+dialog#yakit-workbench-dialog.yakit-workbench,
+.yakit-workbench.yakit-workbench-preview {
     box-sizing: border-box;
     /* 各页共用视口尺寸，窗口四周各留 12px。 */
     width: calc(100vw - 24px);
@@ -38,14 +39,16 @@ dialog#yakit-workbench-dialog {
     overflow: hidden;
 }
 
-#yakit-workbench-dialog::backdrop { background: rgba(0, 0, 0, .35); }
-#yakit-workbench-dialog iframe { display: block; width: 100%; height: 100%; border: 0; }
+.yakit-workbench.yakit-workbench-preview { position: fixed; inset: 0; display: flex; flex-direction: column; }
+
+#yakit-workbench-dialog.yakit-workbench::backdrop { background: rgba(0, 0, 0, .35); }
+dialog#yakit-workbench-dialog.yakit-workbench:not([open]) { display: none; }
 
 /* 与纪实窗口一致：入场结束后不保留变换，关闭时等待退场完成。 */
-dialog#yakit-workbench-dialog[open] { animation: yakit-workbench-enter 240ms ease-out; }
-dialog#yakit-workbench-dialog[open]::backdrop { animation: yakit-workbench-backdrop-enter 240ms ease-out; }
-dialog#yakit-workbench-dialog.yakit-workbench--closing { animation: yakit-workbench-exit 240ms ease-in both; }
-dialog#yakit-workbench-dialog.yakit-workbench--closing::backdrop { animation: yakit-workbench-backdrop-exit 240ms ease-in both; }
+dialog#yakit-workbench-dialog.yakit-workbench[open] { display: flex; flex-direction: column; animation: yakit-workbench-enter 240ms ease-out; }
+dialog#yakit-workbench-dialog.yakit-workbench[open]::backdrop { animation: yakit-workbench-backdrop-enter 240ms ease-out; }
+dialog#yakit-workbench-dialog.yakit-workbench.yakit-workbench--closing { animation: yakit-workbench-exit 240ms ease-in both; }
+dialog#yakit-workbench-dialog.yakit-workbench.yakit-workbench--closing::backdrop { animation: yakit-workbench-backdrop-exit 240ms ease-in both; }
 
 @keyframes yakit-workbench-enter {
     from { opacity: 0; transform: scale(.98); }
@@ -56,8 +59,8 @@ dialog#yakit-workbench-dialog.yakit-workbench--closing::backdrop { animation: ya
 @keyframes yakit-workbench-backdrop-exit { to { opacity: 0; } }
 
 @media (prefers-reduced-motion: reduce) {
-    dialog#yakit-workbench-dialog[open],
-    dialog#yakit-workbench-dialog[open]::backdrop,
-    dialog#yakit-workbench-dialog.yakit-workbench--closing,
-    dialog#yakit-workbench-dialog.yakit-workbench--closing::backdrop { animation: none; }
+    dialog#yakit-workbench-dialog.yakit-workbench[open],
+    dialog#yakit-workbench-dialog.yakit-workbench[open]::backdrop,
+    dialog#yakit-workbench-dialog.yakit-workbench.yakit-workbench--closing,
+    dialog#yakit-workbench-dialog.yakit-workbench.yakit-workbench--closing::backdrop { animation: none; }
 }

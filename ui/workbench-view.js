@@ -1,12 +1,14 @@
 (() => {
   const workbench = globalThis.YaKitWorkbench ??= {};
-  workbench.mountWorkbench = function mountWorkbench(controller, root = document.getElementById('app')) {
+  workbench.mountWorkbench = function mountWorkbench(controller, root) {
+    const document = root.ownerDocument;
+    const container = root.closest('.yakit-workbench');
     root.innerHTML = workbench.workbenchTemplate;
-    const $ = id => root.querySelector(`#${id}`);
+    const $ = id => root.querySelector(`#yakit-wb-${id}`);
     const statusNames = { pending: '待反馈', satisfied: '达到预期', revise: '还需修改' };
     let messageKey = '', versionKey = '', trialKey = '', feedbackKey = '', selection = '';
     let lastNotice = '', lastError = '', shownError = '', errorCount = 0, noticeCount = 0;
-    const toast = workbench.createToast(root.ownerDocument);
+    const toast = workbench.createToast(document, container);
     const selects = workbench.mountSelects(root);
     const settings = workbench.mountSettings(controller, root, { run, notify });
     const { openPage } = workbench.mountNavigation(root, { onPageChange: name => { if (name !== 'settings') settings.close(); } });
@@ -52,7 +54,7 @@
       return state.trials.find(item => item.id === state.selectedTrialId);
     }
     function feedback() {
-      const status = root.querySelector('input[name="feedback-status"]:checked')?.value;
+      const status = root.querySelector('input[name="yakit-wb-feedback-status"]:checked')?.value;
       if (!status) throw new Error('先选择「达到预期」或「还需修改」，再提交反馈。');
       return { status, note: $('feedback-note').value, excerpt: $('excerpt').value };
     }
@@ -134,7 +136,7 @@
       if (feedbackKey !== nextFeedbackKey) {
         feedbackKey = nextFeedbackKey; selection = '';
         setValue('excerpt', trial?.feedback?.excerpt); setValue('feedback-note', trial?.feedback?.note);
-        root.querySelectorAll('input[name="feedback-status"]').forEach(input => { input.checked = input.value === trial?.feedback?.status; });
+        root.querySelectorAll('input[name="yakit-wb-feedback-status"]').forEach(input => { input.checked = input.value === trial?.feedback?.status; });
       }
       $('feedback-state').textContent = trial?.feedback?.status && trial.feedback.status !== 'pending' ? `已保存评价 · ${statusNames[trial.feedback.status]}` : '尚未提交评价';
     }
@@ -164,7 +166,7 @@
     }));
     // 只引用正文区域里的选区，点击按钮后仍保留最后一次选中的片段。
     function rememberSelection() {
-      const selected = window.getSelection();
+      const selected = document.defaultView.getSelection();
       if (selected?.rangeCount && $('trial-output').contains(selected.anchorNode) && $('trial-output').contains(selected.focusNode)) selection = selected.toString();
     }
     $('trial-output').addEventListener('mouseup', rememberSelection);
@@ -177,11 +179,11 @@
     });
     $('copy').addEventListener('click', () => run(async () => {
       const content = controller.getState().draft;
-      try { await navigator.clipboard.writeText(content); }
+      try { await document.defaultView.navigator.clipboard.writeText(content); }
       catch {
         // 剪贴板接口不可用时，尝试浏览器的原生复制。
         const field = document.createElement('textarea'); field.value = content; field.style.cssText = 'position:fixed;left:-9999px';
-        document.body.append(field); field.select();
+        container.append(field); field.select();
         const copied = document.execCommand('copy'); field.remove();
         if (!copied) throw new Error('浏览器未允许复制，请选中草稿后手动复制。');
       }
@@ -191,7 +193,7 @@
       const data = await controller.exportData();
       const url = URL.createObjectURL(new Blob([data], { type: 'application/json;charset=utf-8' }));
       const link = document.createElement('a'); link.href = url; link.download = `YaKit-提示词工作记录-${new Date().toISOString().slice(0, 10)}.json`;
-      document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+      container.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
       notify('工作记录已导出。');
     }));
     render(controller.getState());

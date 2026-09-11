@@ -2,7 +2,7 @@
   const workbench = globalThis.YaKitWorkbench ??= {};
   workbench.mountPresetEntries = function mountPresetEntries(controller, root, { run, openPage }) {
     const document = root.ownerDocument;
-    const list = root.querySelector('#preset-entries');
+    const list = root.querySelector('#yakit-wb-preset-entries');
     // 按预设保留原来的节点，切页、重读及保存其他条目不会清空输入或选区。
     const presets = new Map();
     function element(tag, className, text) {
@@ -84,8 +84,8 @@
       });
       // 节点和顺序不变时不动 DOM，状态通知不会打断正在编辑的光标。
       if (nodes.length !== list.children.length || nodes.some((node, index) => node !== list.children[index])) list.replaceChildren(...nodes);
-      root.querySelector('#preset-entry-count').textContent = `${entries.length} 个条目`;
-      root.querySelector('#preset-empty').hidden = Boolean(entries.length);
+      root.querySelector('#yakit-wb-preset-entry-count').textContent = `${entries.length} 个条目`;
+      root.querySelector('#yakit-wb-preset-empty').hidden = Boolean(entries.length);
     }
     return { render, rebase: state => render(state, true) };
   };

@@ -1,11 +1,11 @@
 (() => {
   const workbench = globalThis.YaKitWorkbench ??= {};
-  workbench.createToast = function createToast(document = globalThis.document) {
+  workbench.createToast = function createToast(document = globalThis.document, container = document.body) {
     let root = document.createElement('div');
-    root.id = 'yakit-toast-root';
+    root.id = 'yakit-wb-toast-root';
     root.setAttribute('aria-live', 'polite');
     root.setAttribute('aria-relevant', 'additions');
-    document.body.appendChild(root);
+    container.appendChild(root);
     const active = new Set();
 
     function show(message, { type = 'success', durationMs = 2300 } = {}) {

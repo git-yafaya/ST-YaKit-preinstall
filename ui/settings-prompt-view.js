@@ -3,7 +3,7 @@
   workbench.promptTitles = { builtin: '内置提示词', custom: '破限提示词' };
   /** 编辑与重置只改变草稿，点击确认后才交给控制器保存。 */
   workbench.mountSettingsPrompt = function(controller, root) {
-    const $ = id => root.querySelector(`#${id}`);
+    const $ = id => root.querySelector(`#yakit-wb-${id}`);
     let kind = '', revision = 0;
     function refresh() {
       const modified = $('prompt-text').value !== controller.getPrompt(kind).defaultText;
