@@ -1,23 +1,16 @@
 .yakit-workbench{font-family:Inter,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;font-size:14px;font-synthesis:none;line-height:normal;text-align:left;color:var(--text);background:var(--background);--scroll-thumb:color-mix(in srgb,var(--accent) 35%,transparent)}
 .yakit-workbench[data-theme="light"]{--scroll-thumb:#929BA8}
-:is(.yakit-workbench,.yakit-workbench *){box-sizing:border-box;text-shadow:none;scrollbar-width:thin;scrollbar-color:transparent transparent}
-/* 悬停和聚焦不增加优先级，让后面的细滚动条规则始终生效。 */
-:is(.yakit-workbench,.yakit-workbench *):where(:hover,:focus-within){scrollbar-color:var(--scroll-thumb) transparent}
+:is(.yakit-workbench,.yakit-workbench *){box-sizing:border-box;text-shadow:none}
+/* 滑块持续可见，滚动条尺寸保持固定。 */
+@supports not selector(::-webkit-scrollbar){
+  :is(.yakit-workbench,.yakit-workbench *){scrollbar-width:thin;scrollbar-color:var(--scroll-thumb) transparent}
+}
 @supports selector(::-webkit-scrollbar){
-  /* 标准属性让位给细滚动条，轨道始终透明。 */
+  /* 细滚动条固定为 4px，轨道始终透明。 */
   :is(.yakit-workbench,.yakit-workbench *){scrollbar-width:auto;scrollbar-color:auto}
   :is(.yakit-workbench,.yakit-workbench *)::-webkit-scrollbar{width:4px;height:4px}
   :is(.yakit-workbench,.yakit-workbench *)::-webkit-scrollbar-track,:is(.yakit-workbench,.yakit-workbench *)::-webkit-scrollbar-corner{background:transparent}
-  /* 方向规则也覆盖宿主样式，失去焦点后滑块仍保持原来的外观。 */
-  :is(.yakit-workbench,.yakit-workbench *)::-webkit-scrollbar-thumb:vertical,:is(.yakit-workbench,.yakit-workbench *)::-webkit-scrollbar-thumb:horizontal{background:transparent;border:0!important;box-shadow:none;border-radius:99px}
-  :is(.yakit-workbench,.yakit-workbench *):hover::-webkit-scrollbar-thumb,:is(.yakit-workbench,.yakit-workbench *):focus-within::-webkit-scrollbar-thumb{background:var(--scroll-thumb)}
-}
-@media(hover:none){
-  :is(.yakit-workbench,.yakit-workbench *){scrollbar-color:var(--scroll-thumb) transparent}
-  @supports selector(::-webkit-scrollbar){
-    :is(.yakit-workbench,.yakit-workbench *){scrollbar-color:auto}
-    :is(.yakit-workbench,.yakit-workbench *)::-webkit-scrollbar-thumb:vertical,:is(.yakit-workbench,.yakit-workbench *)::-webkit-scrollbar-thumb:horizontal{background:var(--scroll-thumb)}
-  }
+  :is(.yakit-workbench,.yakit-workbench *)::-webkit-scrollbar-thumb:vertical,:is(.yakit-workbench,.yakit-workbench *)::-webkit-scrollbar-thumb:horizontal{background:var(--scroll-thumb);border:0!important;box-shadow:none;border-radius:99px}
 }
 /* 仅预设预览的外框和内部控件保留滚动条，其他区域仍可正常滚动。 */
 :is(.yakit-workbench,.yakit-workbench *):not(.page-frame:has(> #yakit-wb-presets-page),#yakit-wb-presets-page,#yakit-wb-presets-page *){scrollbar-width:none}
