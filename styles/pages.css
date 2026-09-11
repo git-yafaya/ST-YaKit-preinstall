@@ -23,12 +23,18 @@
 .yakit-workbench .preset-picker select{flex:1 1 140px;width:0}
 .yakit-workbench .preset-save .page-hint{margin-top:0}
 .yakit-workbench .preset-entries{display:flex;flex-direction:column;gap:14px}
-.yakit-workbench .preset-entry{border-radius:14px}
-.yakit-workbench .preset-entry-summary{width:100%;justify-content:flex-start;text-align:left}
-.yakit-workbench .preset-entry-name{flex:1;min-width:0}
+/* 开关只占标题右侧，展开正文保留全宽，长标题在预留区域内换行。 */
+.yakit-workbench .preset-entry-row{position:relative}
+.yakit-workbench .preset-entry{border-radius:14px;min-width:0}
+.yakit-workbench .preset-entry-toggle{position:absolute;inset-block-start:0;inset-inline-end:0;width:86px}
+.yakit-workbench .preset-entry-toggle[aria-checked="true"]{color:var(--accent);background:var(--selected)}
+.yakit-workbench .preset-entry-summary{width:100%;justify-content:flex-start;text-align:left;flex-wrap:wrap;padding-inline-end:106px}
+.yakit-workbench .preset-entry-name{flex:1 1 100px;min-width:0}
 .yakit-workbench .preset-entry-body{padding:14px 16px}
 .yakit-workbench .preset-entry-editor{min-height:160px}
 .yakit-workbench .preset-entry-body .page-hint{margin:10px 0}
+.yakit-workbench .preset-prompt-picker{margin-bottom:14px}
+.yakit-workbench .preset-prompt-picker select{flex:1 1 140px;width:0}
 .yakit-workbench .preset-save{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}
 .yakit-workbench .preset-save .page-hint{flex:1 1 160px;overflow-wrap:anywhere}
 .yakit-workbench .draft-toolbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;padding:12px 16px;color:var(--muted);font-size:12px}

@@ -16,6 +16,12 @@ globalThis.YaKitWorkbenchHost = {
             return entry?.enabled && promptManager.shouldTrigger(prompt, 'quiet') ? prompt : null;
         },
         refreshPresetEditor: () => promptManager?.render(false),
+        // 顺序与可切换范围沿用酒馆当前配置，包含酒馆允许开关的占位条目。
+        getPresetPromptContext: () => promptManager ? {
+            characterId: promptManager.configuration.promptOrder.strategy === 'global'
+                ? promptManager.configuration.promptOrder.dummyId : promptManager.activeCharacter?.id,
+            isToggleAllowed: entry => promptManager.isPromptToggleAllowed(entry),
+        } : null,
         // 配置页打开时按需读取酒馆的连接资源。
         getApiProfileResources: async () => {
             const [{ proxies }, { findSecret, SECRET_KEYS }] = await Promise.all([

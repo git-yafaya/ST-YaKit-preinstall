@@ -12,7 +12,8 @@
       return node;
     }
     function createEditor(entry) {
-      const node = element('details', 'preset-entry');
+      const node = element('div', 'preset-entry-row');
+      const details = element('details', 'preset-entry');
       const summary = element('summary', 'preset-entry-summary button button-secondary');
       const name = element('span', 'preset-entry-name');
       const role = element('span', 'subtle-badge');
@@ -25,8 +26,14 @@
       const save = element('button', 'button button-secondary', '保存条目');
       const load = element('button', 'button button-secondary', '载入草稿');
       save.type = load.type = 'button';
-      actions.append(save, load); body.append(input, hint, actions); node.append(summary, body);
-      const editor = { node, name, role, input, hint, actions, save, load, content: entry.content, marker: entry.marker, edited: false };
+      const toggle = element('button', 'button button-secondary preset-entry-toggle');
+      toggle.type = 'button'; toggle.setAttribute('role', 'switch');
+      actions.append(save, load);
+      const editor = { node, name, role, input, hint, actions, save, load, toggle, identifier: entry.identifier,
+        entry, content: entry.content, savedContent: entry.content, marker: entry.marker, edited: false };
+      editor.prompt = workbench.createPresetPromptView(controller, editor, { element, run, updateStatus });
+      body.append(editor.prompt.row, input, editor.prompt.preview, hint, actions, editor.prompt.status);
+      details.append(summary, body); node.append(details, toggle);
       input.value = entry.content;
       input.addEventListener('input', () => {
         const state = controller.getState();
@@ -35,15 +42,21 @@
       });
       save.addEventListener('click', () => run(async () => {
         const content = input.value;
-        await controller.savePresetContent(entry.identifier, content, editor.content);
+        await controller.savePresetContent(entry.identifier, content, editor.savedContent);
         if (!controller.getState().error) {
-          editor.content = content;
+          editor.content = editor.savedContent = content;
           editor.edited = input.value !== content;
         }
       }));
       load.addEventListener('click', () => run(async () => {
         await controller.loadPresetEntry(entry.identifier);
         if (!controller.getState().error) openPage('workbench');
+      }));
+      // 开关放在折叠控件外，点击和键盘操作都不会顺带展开条目。
+      toggle.addEventListener('click', () => run(async () => {
+        toggle.disabled = true;
+        try { await controller.setPresetEntryEnabled(entry.identifier, !editor.entry.enabled); }
+        finally { updateStatus(editor, controller.getState()); }
       }));
       return editor;
     }
@@ -52,6 +65,12 @@
       editor.save.disabled = Boolean(state.busy) || editor.marker || !changed;
       editor.load.disabled = Boolean(state.busy) || editor.marker;
       editor.hint.textContent = editor.marker ? '标记条目由酒馆生成，仅供查看，不能编辑。' : changed ? '有修改待保存' : '与已读取内容一致';
+      editor.toggle.disabled = Boolean(state.busy) || !editor.entry.toggleable;
+      editor.toggle.setAttribute('aria-checked', String(Boolean(editor.entry.enabled)));
+      editor.toggle.setAttribute('aria-label', `${editor.entry.name}的启用状态`);
+      editor.toggle.textContent = editor.entry.enabled ? '已开启' : '已关闭';
+      editor.toggle.title = editor.entry.toggleReason || '保存此条目的启用状态';
+      editor.prompt.render(state);
     }
     function render(state, rebase = false) {
       const entries = state.presetEntries || [];
@@ -64,14 +83,19 @@
         const key = JSON.stringify([entry.identifier, occurrence]);
         if (!editors.has(key)) editors.set(key, createEditor(entry));
         const editor = editors.get(key);
+        const override = state.presetPromptOverrides?.find(item => item.presetName === presetName && item.identifier === entry.identifier);
+        const originalContent = override?.originalContent ?? entry.content;
+        editor.entry = entry;
         // 其他条目的保存结果不能改动本条旧基线，避免跳过原文冲突检查。
         if (!editor.edited) {
-          if (editor.input.value !== entry.content) editor.input.value = entry.content;
-          editor.content = entry.content;
+          if (editor.input.value !== originalContent) editor.input.value = originalContent;
+          editor.content = originalContent;
+          editor.savedContent = entry.content;
         } else if (rebase) {
           // 明确重新读取后采用新基线，同时保留还没保存的输入。
-          editor.content = entry.content;
-          editor.edited = editor.input.value !== entry.content;
+          editor.content = originalContent;
+          editor.savedContent = entry.content;
+          editor.edited = editor.input.value !== originalContent;
         }
         editor.marker = entry.marker;
         editor.name.textContent = entry.name;

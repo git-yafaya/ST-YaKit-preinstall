@@ -5,7 +5,7 @@
       <nav id="yakit-wb-sidebar" class="sidebar" role="tablist" aria-label="页面导航">
         <span class="nav-indicator" aria-hidden="true"></span>
         <button type="button" class="nav-item active" data-page="workbench" aria-current="page"><span class="nav-icon" aria-hidden="true">✦</span><span class="nav-label">工作台</span></button>
-        <button type="button" class="nav-item" data-page="presets"><span class="nav-icon" aria-hidden="true">☷</span><span class="nav-label">预设展示</span></button>
+        <button type="button" class="nav-item" data-page="presets"><span class="nav-icon" aria-hidden="true">☷</span><span class="nav-label">预设预览</span></button>
         <button type="button" class="nav-item" data-page="trial"><span class="nav-icon" aria-hidden="true">✎</span><span class="nav-label">试写与反馈</span></button>
         <button type="button" class="nav-item" data-page="versions"><span class="nav-icon" aria-hidden="true">◷</span><span class="nav-label">版本记录</span></button>
         <button type="button" class="nav-item" data-page="settings"><span class="nav-icon" aria-hidden="true">⚙</span><span class="nav-label">设置</span></button>
@@ -26,7 +26,7 @@
           </div>
         </section>
         <section class="panel draft-panel" aria-label="提示词草稿">
-          <div class="panel-content preset-picker"><button type="button" class="button button-secondary" data-open-page="presets">查看并编辑预设条目 <span aria-hidden="true">→</span></button></div>
+          <div class="panel-content preset-picker"><button type="button" class="button button-secondary" data-open-page="presets">打开预设预览 <span aria-hidden="true">→</span></button></div>
           <div class="draft-toolbar"><span id="yakit-wb-draft-state">当前草稿</span><button type="button" id="yakit-wb-copy" class="button button-secondary">复制提示词 <span aria-hidden="true">⧉</span></button></div>
           <label for="yakit-wb-draft" class="sr-only">提示词草稿</label><textarea id="yakit-wb-draft" class="draft-editor" spellcheck="false" placeholder="先在左侧描述需求，生成第一版提示词。你也可以在这里直接开始写。"></textarea>
           <div class="editor-footer"><span id="yakit-wb-draft-count">0 字</span></div>

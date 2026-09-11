@@ -54,7 +54,8 @@ function initialState(saved) {
         goal: '', draft: '', ...settingDefaults,
         messages: [], versions: [], nextVersionNumber: 1, selectedVersionId: '', trials: [], selectedTrialId: '',
         profiles: [], mainApiLabel: '', contextLabel: '', canTrial: false,
-        presets: [], selectedPresetName: '', presetEntries: [], presetSource: null,
+        presets: [], selectedPresetName: '', presetEntries: [], presetSource: null, presetOrderCharacterId: null,
+        presetPromptOverrides: [],
         busy: null, error: '', notice: '',
     };
     if (!saved || typeof saved !== 'object') return state;
@@ -74,6 +75,15 @@ function initialState(saved) {
         id: item.id, label: typeof item.label === 'string' ? item.label : '已保存版本',
         number: Number.isSafeInteger(item.number) && item.number > 0 ? item.number : null,
         content: item.content, createdAt: typeof item.createdAt === 'string' ? item.createdAt : '',
+    }));
+    // 测试版本写入预设前保留原文，刷新酒馆后仍能切回原版。
+    state.presetPromptOverrides = records('presetPromptOverrides').filter(item => item
+        && typeof item.presetName === 'string' && item.presetName.trim()
+        && typeof item.identifier === 'string' && item.identifier.trim()
+        && typeof item.originalContent === 'string' && typeof item.appliedContent === 'string'
+        && typeof item.versionId === 'string' && item.versionId).map(item => ({
+        presetName: item.presetName, identifier: item.identifier, originalContent: item.originalContent,
+        appliedContent: item.appliedContent, versionId: item.versionId,
     }));
     // 编号独立于记录数量，删除后继续递增；旧记录按原顺序补号。
     if (Number.isSafeInteger(saved.nextVersionNumber) && saved.nextVersionNumber > 0) {
@@ -106,7 +116,7 @@ function initialState(saved) {
 function savedState(state) {
     // 预设目标只在当前页面有效，重新加载页面后须重新读取并选择条目。
     const { profiles, mainApiLabel, contextLabel, canTrial, presets, selectedPresetName,
-        presetEntries, presetSource, busy, error, notice, ...data } = state;
+        presetEntries, presetSource, presetOrderCharacterId, busy, error, notice, ...data } = state;
     return clone(data);
 }
 
