@@ -122,13 +122,22 @@
 .yakit-workbench .test-options{display:flex;flex-wrap:wrap;align-items:end;gap:12px;margin-bottom:12px}
 .yakit-workbench .test-options>.field{flex:1 1 150px;min-width:0}
 .yakit-workbench .test-options select,.yakit-workbench .test-task-bar select{width:100%}
-.yakit-workbench .test-toggle{display:flex;align-items:center;gap:8px;font-weight:500;line-height:1.6;cursor:pointer}
+/* 选择项整块可点击，沿用主页卡片圆角与按钮按压动效。 */
+.yakit-workbench .test-toggle{display:flex;align-items:center;gap:12px;width:100%;min-width:0;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--field);font-weight:500;line-height:1.6;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:color .15s ease,background .15s ease,border-color .15s ease,transform .15s ease}
+.yakit-workbench .test-toggle>span{flex:1;min-width:0;overflow-wrap:anywhere}
+.yakit-workbench .test-toggle-content{display:grid;gap:4px}
+.yakit-workbench .test-toggle-content>.page-hint{margin:0;font-weight:400}
+.yakit-workbench .test-toggle:has(>input:checked){background:var(--selected);border-color:var(--accent)}
+.yakit-workbench .test-toggle:has(>input:enabled):hover{background:var(--surface);border-color:var(--accent)}
+.yakit-workbench .test-toggle:has(>input:enabled):active{transform:scale(.97)}
+.yakit-workbench .test-toggle:has(>input:focus-visible){outline:2px solid var(--focus);outline-offset:2px}
+.yakit-workbench .test-toggle:has(>input:disabled){opacity:.5;cursor:not-allowed}
 .yakit-workbench .test-options>.test-toggle{flex:1 0 100%}
 /* 使用原生复选框，清除酒馆自绘勾选和通用输入框样式的残留。 */
 .yakit-workbench .test-toggle input{appearance:auto;display:inline-block;position:static;width:16px;height:16px;flex:0 0 16px;margin:0;padding:0;border:0;border-radius:0;background:transparent;line-height:normal;overflow:visible;transform:none;filter:none;outline:none;accent-color:var(--accent);cursor:pointer}
 .yakit-workbench .test-toggle input::before{content:none}
-.yakit-workbench .test-toggle input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-.yakit-workbench .test-toggle input:disabled{opacity:.5;cursor:not-allowed}
+.yakit-workbench .test-toggle input:focus-visible{outline:none}
+.yakit-workbench .test-toggle input:disabled{cursor:not-allowed}
 .yakit-workbench .trial-controls>.page-hint{margin:0 0 14px}
 .yakit-workbench .test-task-bar{padding:14px 16px;border-top:1px solid var(--line)}
 .yakit-workbench .test-task-bar>.page-hint{margin-top:10px}
