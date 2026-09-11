@@ -23,8 +23,11 @@ ST-YaKit-preinstall/
 │   └── st-host.js             # 酒馆设置读写与当前环境查询
 ├── ui/
 │   ├── launcher.js            # 扩展菜单入口与工作台容器
-│   ├── workbench-template.js  # 工作台静态界面模板
+│   ├── workbench-template.js  # 页面容器、侧栏与工作台双栏模板
 │   ├── workbench-view.js      # 状态渲染、事件、复制与下载
+│   ├── navigation-view.js     # 四页切换与侧栏显示控制
+│   ├── trial-template.js      # 独立试写与反馈页面
+│   ├── versions-template.js   # 版本选择、原文预览与导出页面
 │   ├── settings-template.js   # API 与主题设置模板
 │   └── settings-view.js       # 设置提交与酒馆主题同步
 ├── tests/                     # 本地忽略目录，不随仓库分发
@@ -36,14 +39,14 @@ ST-YaKit-preinstall/
 ## 加载与数据流
 
 1. 酒馆根据 `manifest.json` 加载 ES 模块 `index.js`。入口读取 `/script.js` 的 `isGenerating`，将实时 `SillyTavern.getContext()` 包装为 `globalThis.YaKitWorkbenchHost.getContext()`，并挂载扩展菜单入口。
-2. 用户首次打开「YaKit 提示词工作台」时，同源 iframe 加载 `index.html`；关闭对话框仅隐藏容器，保留页面和未提交输入。iframe 隔离工作台 CSS，脚本按 `state → prompts → workbench → api → st-host → settings-template → settings-view → workbench-template → workbench-view → app` 顺序加载，内部协作命名空间为 `globalThis.YaKitWorkbench`。
+2. 用户首次打开「YaKit 提示词工作台」时，同源 iframe 加载 `index.html`；关闭对话框仅隐藏容器，保留页面和未提交输入。iframe 隔离工作台 CSS，脚本按 `state → prompts → workbench → api → st-host → settings-template → settings-view → trial-template → versions-template → workbench-template → navigation-view → workbench-view → app` 顺序加载，内部协作命名空间为 `globalThis.YaKitWorkbench`。
 3. `app.js` 通过父页面桥创建 `createSillyTavernHost(getContext)`，再创建控制器、恢复保存记录并读取连接列表和当前聊天。页面重新获得焦点时刷新环境；脱离酒馆直接打开页面会显示入口错误。
 4. 需求与草稿输入立即更新内存并排队保存，保留首尾空格和换行。设计请求固定开始时的设置快照，将需求、源草稿、历史设计讨论及本次要求组成消息数组，不附带当前聊天或此前试写正文。
 5. 主 API 设计使用 `generateRaw({prompt, instructOverride: true, trimNames: false})`；副 API 连接配置使用 `ConnectionManagerRequestService.sendRequest`；自定义接口使用 `ChatCompletionService.processRequest`。副 API 请求均关闭流式输出、输出上限为 4096 token。
 6. 设计答复必须是含 `prompt` 和 `explanation` 字符串的 JSON，也接受完整 JSON 代码围栏。原始答复进入讨论记录，界面显示修改说明并提供「查看提示词」折叠区，解析成功后更新草稿。保存版本时生成独立 ID、名称和时间，已保存版本保持不变。
 7. 试写要求选定版本与当前草稿完全一致。请求仅传 `{content, input}`，适配器通过主 API 的 `generateQuietPrompt`，把候选提示词与试写要求放进 `quietPrompt`，使用当前聊天背景、世界书及作者注释。返回正文写入工作台记录，不自动追加聊天消息。
 8. 每次试写保存请求开始时的 `versionId`、输入、时间和聊天来源。按反馈修改时找回该试写的源版本，仅在用户提交后将评价、意见及引用片段交给设计模型；没有片段时交回该次完整正文。
-9. 新建议进入草稿，保存后成为下一版。导出从当前内存生成 JSON，排除 `secondaryKey`；复制取当前草稿。
+9. 新建议进入草稿，保存后成为下一版。「版本记录」选择已有版本并只读显示其原文和保存时间，选择行为仍将该版本载入草稿。该页导出从当前内存生成 JSON，排除 `secondaryKey`；「工作台」中的复制取当前草稿。
 
 ### 边界与持久化
 
@@ -96,7 +99,11 @@ ST-YaKit-preinstall/
 
 设置字段统一在核心校验，未知字段和非法枚举拒绝更新。副 API 完整性在发起设计时检查，允许先保存未填完的配置。正文 API 始终使用当前主 API。
 
-工作台和设置通过侧栏在同一容器中切换，共用 `style.css` 的尺寸、间距、按钮及 160 毫秒过渡规则。根元素 `data-theme` 控制主题；`st` 模式同步父页面的 `--SmartThemeBodyColor`、`--SmartThemeBlurTintColor`、`--SmartThemeChatTintColor`、`--SmartThemeBorderColor`、`--SmartThemeQuoteColor` 和 `--mainFontFamily`，监听父根元素的 `style/class/data-theme` 变化。浅色与深色使用本地主题值；响应式布局和 `prefers-reduced-motion` 规则统一应用。
+侧栏提供工作台、试写与反馈、版本记录、设置四个页面。工作台为需求讨论和提示词编辑双栏，保存版本的操作留在草稿下方；试写页单独承载正文阅读和反馈。所有页面共用 `style.css` 的尺寸、留白、按钮及 160 毫秒过渡规则。
+
+主区工具栏中的按钮控制侧栏显隐；收起时侧栏不占布局空间，也不可通过键盘聚焦，展开按钮保持可见。导航用 `hidden` 切换现有页面节点，保留未提交输入；页面选择及侧栏状态只保留在当前 iframe，重新加载后默认工作台和展开侧栏。各页快捷入口复用同一切页方法。
+
+根元素 `data-theme` 控制主题；`st` 模式同步父页面的 `--SmartThemeBodyColor`、`--SmartThemeBlurTintColor`、`--SmartThemeChatTintColor`、`--SmartThemeBorderColor`、`--SmartThemeQuoteColor` 和 `--mainFontFamily`，监听父根元素的 `style/class/data-theme` 变化。浅色与深色使用本地主题值；响应式布局和 `prefers-reduced-motion` 规则统一应用。
 
 ## 公开 API
 
@@ -108,7 +115,8 @@ ST-YaKit-preinstall/
 | `YaKitWorkbench.createApi(getContext)` | 创建模型请求适配器 |
 | `YaKitWorkbench.createSillyTavernHost(getContext)` | 创建保存、环境及模型适配器 |
 | `YaKitWorkbench.createWorkbench(host)` | 恢复记录、读取环境并返回控制器 |
-| `YaKitWorkbench.mountWorkbench(controller, root)` | 挂载工作台及设置，返回解除订阅与主题监听函数 |
+| `YaKitWorkbench.mountWorkbench(controller, root)` | 挂载四页工作台，返回解除订阅与主题监听函数 |
+| `YaKitWorkbench.mountNavigation(root)` | 绑定四页导航、快捷入口和侧栏显隐，页面状态保留在当前界面 |
 | `YaKitWorkbench.state` / `.prompts` | 状态校验、保存快照、设计消息和答复解析 |
 
 | 控制器方法 | 参数与结果 |
@@ -186,4 +194,6 @@ git diff --check
 
 6 项核心测试、宿主契约检查、全部 JavaScript 语法检查与 `git diff --check` 已通过。本机已核对运行中的 Docker 为 SillyTavern 1.18.0，并确认 `script.js`、`st-context.js`、`extensions/shared.js` 与本地参考源码哈希一致。静态和模拟宿主检查不代表真实模型或界面验收完成。
 
-SillyTavern 验收遵循本机 `AGENTS.md` 的人工流程。用户从扩展菜单打开工作台，确认主题与设置切换，分别尝试主 API 和所需副 API，完成两版提示词及对应试写、反馈，再检查取消、复制、导出和重新打开恢复。
+v0.2.1 分区调整另已通过 UI 脚本语法、入口加载顺序、模板标签嵌套与控件引用、CSS 语法检查。
+
+SillyTavern 验收遵循本机 `AGENTS.md` 的人工流程。用户从扩展菜单打开工作台，确认四页切换、侧栏收放与主题，分别尝试主 API 和所需副 API，完成两版提示词及对应试写、反馈，再检查取消、复制、导出和重新打开恢复。

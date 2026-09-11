@@ -7,15 +7,7 @@
     let messageKey = '', versionKey = '', trialKey = '', feedbackKey = '', selection = '', localNotice = '';
     let localError = false;
     const settings = workbench.mountSettings(controller, root, { run, notify });
-    root.querySelectorAll('[data-page]').forEach(button => button.addEventListener('click', () => {
-      root.querySelectorAll('[data-page]').forEach(item => {
-        item.classList.toggle('active', item === button);
-        if (item === button) item.setAttribute('aria-current', 'page');
-        else item.removeAttribute('aria-current');
-      });
-      $('workbench-page').hidden = button.dataset.page !== 'workbench';
-      $('settings-page').hidden = button.dataset.page !== 'settings';
-    }));
+    workbench.mountNavigation(root);
 
     function showNotice(state) {
       $('notice').textContent = localNotice || state.error || state.notice || '';
@@ -103,6 +95,12 @@
       if (versionKey !== nextVersionKey) {
         versionKey = nextVersionKey;
         setOptions('versions', state.versions.map(item => [item.id, item.label]), state.selectedVersionId, '尚未保存版本');
+        $('version-empty').hidden = Boolean(activeVersion);
+        $('version-details').hidden = !activeVersion;
+        // 版本页展示保存时的原文，编辑草稿不会覆盖这里。
+        $('version-content').textContent = activeVersion?.content || '';
+        const savedAt = new Date(activeVersion?.createdAt || '');
+        $('version-created-at').textContent = Number.isNaN(savedAt.getTime()) ? '未记录保存时间' : `保存于 ${savedAt.toLocaleString('zh-CN')}`;
       }
       const nextTrialKey = JSON.stringify([state.trials.map(item => [item.id, item.feedback?.status]), state.selectedTrialId]);
       if (trialKey !== nextTrialKey) {
