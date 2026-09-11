@@ -4,6 +4,7 @@
   workbench.mountTrials = function(controller, root, { run, notify, versionTitle }) {
     const document = root.ownerDocument;
     const $ = id => root.querySelector(`#yakit-wb-${id}`);
+    const judgementView = workbench.mountJudgement(controller, root, { run });
     const statusNames = { pending: '待反馈', satisfied: '达到预期', revise: '还需修改' };
     const taskStatuses = { scenario: '正在生成场景', generating: '正在生成样本', judging: '正在 AI 盲评', completed: '已完成', partial: '部分样本已评分', error: '未完成', cancelled: '已取消' };
     let taskKey = '', trialKey = '', feedbackKey = '', selection = '';
@@ -32,10 +33,10 @@
       setValue('sample-mode', state.sampleRequestMode || 'parallel');
       for (const id of ['empty-card', 'trial-input', 'scene-source', 'sample-count', 'sample-mode']) $(id).disabled = busy;
       $('sample-mode-hint').textContent = !emptyCard
-        ? '当前聊天模式使用主 API 和独立请求；使用副 API 或单次多样本时，请开启空卡模式。'
+        ? '当前聊天模式使用主 API，逐次生成独立样本；使用副 API 或单次多样本时，请开启空卡模式。'
         : state.sampleRequestMode === 'single'
           ? '需要接口真正支持 n 个独立结果；主文本补全或不支持 n 的接口请选择独立请求。'
-          : '每个样本独立生成，使用同一份提示词和固定场景。';
+          : '各样本同时发起独立请求，使用同一份提示词和固定场景。';
       $('trial-version').textContent = activeVersion ? (activeVersion.content === state.draft ? `使用 · ${versionTitle(activeVersion)}` : '草稿已修改，请先保存新版本') : '先保存一个提示词版本';
       // 空卡与副 API 不依赖当前聊天，具体连接能力由控制器检查。
       $('trial-button').disabled = busy || !activeVersion || activeVersion.content !== state.draft || (!emptyCard && !state.canTrial);
@@ -60,13 +61,14 @@
       $('judge-task').disabled = busy || !task?.trialIds.length;
       const scores = task?.judgement?.results || [];
       const visibleTrials = state.trials.filter(item => task ? item.taskId === task.id : !item.taskId);
+      const ranks = judgementView.render(task, trial, visibleTrials, busy);
       if ($('score-order').checked) visibleTrials.sort((a, b) => (scores.find(item => item.trialId === b.id)?.score ?? -1) - (scores.find(item => item.trialId === a.id)?.score ?? -1));
       const nextTrialKey = JSON.stringify([visibleTrials.map(item => [item.id, item.feedback?.status]), state.selectedTrialId, scores, task?.preferredTrialId]);
       if (trialKey !== nextTrialKey) {
         trialKey = nextTrialKey;
         $('trials').replaceChildren(...(visibleTrials.length ? visibleTrials.map((item, index) => {
           const score = scores.find(result => result.trialId === item.id);
-          return new Option(`${task ? `样本 ${item.sampleIndex}` : `第 ${index + 1} 次试写`}${score ? ` · ${score.score} 分` : ''}${item.id === task?.preferredTrialId ? ' · 最喜欢' : ''} · ${statusNames[item.feedback?.status] || '待反馈'}`, item.id);
+          return new Option(`${task ? `样本 ${item.sampleIndex}` : `第 ${index + 1} 次试写`}${score ? ` · ${ranks.get(item.id)} · ${score.score} 分` : ''}${item.id === task?.preferredTrialId ? ' · 最喜欢' : ''} · ${statusNames[item.feedback?.status] || '待反馈'}`, item.id);
         }) : [new Option('暂无样本', '')]));
         $('trials').value = state.selectedTrialId || '';
       }
@@ -77,12 +79,6 @@
       $('trial-context').textContent = trial ? `对应「${trialVersion ? versionTitle(trialVersion) : '已保存版本'}」${trial.context?.explanation ? ` · ${trial.context.explanation}` : ''}` : '';
       $('trial-context').hidden = !trial;
       if ($('trial-output').textContent !== (trial?.content || '')) $('trial-output').textContent = trial?.content || '';
-      const score = scores.find(item => item.trialId === trial?.id);
-      $('sample-score').hidden = !score;
-      $('score-label').textContent = score ? `AI 盲评 · ${score.score} / 100` : '';
-      $('score-reason').textContent = score?.reason || '';
-      $('score-violations').replaceChildren(...(score?.violations || []).map(text => { const item = document.createElement('li'); item.textContent = text; return item; }));
-      $('score-violations').hidden = !score?.violations.length;
       $('prefer-trial').hidden = !task;
       $('prefer-trial').disabled = busy || !trial;
       const preferred = Boolean(trial && trial.id === task?.preferredTrialId);

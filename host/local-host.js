@@ -52,9 +52,10 @@
                 if (purpose === 'scenario') return examples.scene;
                 if (purpose === 'judge') {
                     const data = JSON.parse(messages.at(-1).content);
-                    return JSON.stringify({ results: data.samples.map(sample => ({ label: sample.label,
-                        score: 75, reason: '本地演示评分，真实评分需连接模型。', violations: [],
-                    })) });
+                    return JSON.stringify({ requirements: [{ id: 'R1', text: data.goal || '正文符合本次原始需求', kind: 'hard' }],
+                        results: data.samples.map(sample => ({ label: sample.label,
+                            score: 75, reason: '本地演示评分，真实评分需连接模型。', violations: [], doubts: [],
+                        })) });
                 }
                 // ponytail: 离线示例仅按反馈入口切换第二版，理解自由输入需要真实模型。
                 const revised = messages[1]?.content.includes('本次操作：revise。');

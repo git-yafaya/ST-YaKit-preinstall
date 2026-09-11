@@ -98,11 +98,11 @@
         });
     }
 
-    function captureIsolatedContext(host, settings, messages, mode, count) {
+    function captureIsolatedContext(host, settings, messages, mode, count, preparedConnection) {
         const main = (settings.designApi || 'main') === 'main';
         const profiles = host.extensionSettings?.connectionManager?.profiles || [];
         const profile = profiles.find(item => item.id === settings.secondaryProfileId);
-        const connection = main ? captureConnection(host) : {
+        const connection = main ? structuredClone(preparedConnection || captureConnection(host)) : {
             api: 'secondary', source: settings.secondarySource,
             model: settings.secondaryModel || profile?.model || '',
             profile: settings.secondarySource === 'profile' && profile ? pick(profile, ['id', 'name']) : null,
@@ -117,7 +117,7 @@
             injection: { entryPoint: 'isolatedRequest', placement: 'messages', role: 'system',
                 prompt: messages[0].content, messages },
             chat: { messageCount: 0, textLength: 0 },
-            explanation: `${[connection.api, connection.source, connection.model].filter(Boolean).join(' · ')}；空卡独立消息；${mode === 'single' ? '单次请求' : main ? '独立串行请求' : '独立请求'}。`,
+            explanation: `${[connection.api, connection.source, connection.model].filter(Boolean).join(' · ')}；空卡独立消息；${mode === 'single' ? '单次请求' : '独立并行请求'}。`,
         });
     }
 

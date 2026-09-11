@@ -70,7 +70,8 @@ async function createWorkbench(host) {
         let messages, settings, combined = false;
         const forceRevise = sourceDraft !== undefined;
         try {
-            required(state.goal, '需求');
+            // 历史反馈已有对应条目和意见，不受当前需求框是否为空影响。
+            if (!forceRevise) required(state.goal, '需求');
             instruction = required(instruction, '设计要求');
             settings = scenarios.moduleSettings(state, 'design');
             messages = designMessages(state, instruction, sourceDraft, forceRevise);

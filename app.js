@@ -3,6 +3,7 @@ import './core/prompts.js';
 import './core/settings.js';
 import './core/presets.js';
 import './core/scenarios.js';
+import './core/judgement.js';
 import './core/test-tasks.js';
 import './core/workbench.js';
 import './host/requests.js';
@@ -28,6 +29,7 @@ import './ui/preset-view.js';
 import './ui/toast.js';
 import './ui/select-view.js';
 import './ui/versions-view.js';
+import './ui/judgement-view.js';
 import './ui/trial-view.js';
 import './ui/workbench-view.js';
 

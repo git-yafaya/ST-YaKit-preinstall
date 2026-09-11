@@ -47,6 +47,7 @@
                 };
             },
             design: api.design,
+            prepareTrialSettings: api.prepareTrialSettings,
             trial: api.trial,
         };
     }

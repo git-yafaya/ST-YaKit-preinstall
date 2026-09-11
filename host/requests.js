@@ -20,7 +20,41 @@
         && /^(openai\/)?(o[134](?:-|$)|gpt-5)/.test(model || '')
         ? { max_tokens: undefined, max_completion_tokens: max } : { max_tokens: max };
 
-    async function isolatedRequest(context, messages, settings, signal, count = 1) {
+    function prepareMainRequest(context) {
+        if (context.onlineStatus === 'no_connection') throw new Error('请先连接酒馆主 API。');
+        if (context.mainApi === 'openai' && context.ChatCompletionService?.processRequest) {
+            const current = context.chatCompletionSettings || {};
+            // 只复制连接所需字段，不带入预设正文、辅助提示、宏、停止词或工具。
+            const keys = ['chat_completion_source', 'custom_url', 'custom_include_headers',
+                'reverse_proxy', 'proxy_password', 'azure_base_url', 'azure_deployment_name',
+                'azure_api_version', 'vertexai_region', 'vertexai_auth_mode', 'vertexai_express_project_id', 'workers_ai_account_id',
+                'zai_endpoint', 'siliconflow_endpoint', 'minimax_endpoint'];
+            const connection = Object.fromEntries(keys.filter(key => current[key] !== undefined)
+                .map(key => [key, current[key]]));
+            if (current.chat_completion_source === 'openrouter') Object.assign(connection, {
+                provider: current.openrouter_providers, allow_fallbacks: current.openrouter_allow_fallbacks,
+                use_fallback: current.openrouter_use_fallback, quantizations: current.openrouter_quantizations,
+            });
+            if (current.chat_completion_source === 'nanogpt') Object.assign(connection, {
+                nanogpt_provider: current.nanogpt_provider, nanogpt_payg_override: current.nanogpt_payg_override,
+            });
+            const model = required(context.getChatCompletionModel?.(), '主 API 模型');
+            return { service: context.ChatCompletionService, messageKey: 'messages', payload: structuredClone({
+                ...connection,
+                model, ...tokenLimit(current.chat_completion_source, model, current.openai_max_tokens || 4096),
+            }) };
+        } else if (context.mainApi === 'textgenerationwebui' && context.TextCompletionService?.processRequest) {
+            const current = context.textCompletionSettings || {};
+            return { service: context.TextCompletionService, messageKey: 'prompt', payload: structuredClone({
+                api_type: current.type,
+                api_server: context.getTextGenServer?.(), model: context.getTextGenModel?.(),
+            }) };
+        } else {
+            throw new Error('独立请求需要酒馆的聊天补全或文本补全 API，请切换连接或使用副 API。');
+        }
+    }
+
+    async function isolatedRequest(context, messages, settings, signal, count = 1, prepared) {
         checkAbort(signal);
         const prompt = copyMessages(messages);
         // 多样本必须读取服务商原始 choices，不把一条回复按段落拆分。
@@ -28,38 +62,9 @@
         const common = { stream: false, max_tokens: 4096, ...(count > 1 ? { n: count } : {}) };
         let result;
         if ((settings.designApi || 'main') === 'main') {
-            if (context.onlineStatus === 'no_connection') throw new Error('请先连接酒馆主 API。');
-            if (context.mainApi === 'openai' && context.ChatCompletionService?.processRequest) {
-                const current = context.chatCompletionSettings || {};
-                // 只复制连接所需字段，不带入预设正文、辅助提示、宏、停止词或工具。
-                const keys = ['chat_completion_source', 'custom_url', 'custom_include_headers',
-                    'reverse_proxy', 'proxy_password', 'azure_base_url', 'azure_deployment_name',
-                    'azure_api_version', 'vertexai_region', 'vertexai_auth_mode', 'vertexai_express_project_id', 'workers_ai_account_id',
-                    'zai_endpoint', 'siliconflow_endpoint', 'minimax_endpoint'];
-                const connection = Object.fromEntries(keys.filter(key => current[key] !== undefined)
-                    .map(key => [key, current[key]]));
-                if (current.chat_completion_source === 'openrouter') Object.assign(connection, {
-                    provider: current.openrouter_providers, allow_fallbacks: current.openrouter_allow_fallbacks,
-                    use_fallback: current.openrouter_use_fallback, quantizations: current.openrouter_quantizations,
-                });
-                if (current.chat_completion_source === 'nanogpt') Object.assign(connection, {
-                    nanogpt_provider: current.nanogpt_provider, nanogpt_payg_override: current.nanogpt_payg_override,
-                });
-                const model = required(context.getChatCompletionModel?.(), '主 API 模型');
-                result = await context.ChatCompletionService.processRequest({
-                    ...connection, ...common, messages: prompt,
-                    model, ...tokenLimit(current.chat_completion_source, model, current.openai_max_tokens || 4096),
-                }, {}, extractData, signal);
-            } else if (context.mainApi === 'textgenerationwebui' && context.TextCompletionService?.processRequest) {
-                if (count > 1) throw new Error('主文本补全不支持单次多样本，请改用独立请求。');
-                const current = context.textCompletionSettings || {};
-                result = await context.TextCompletionService.processRequest({
-                    ...common, prompt, api_type: current.type,
-                    api_server: context.getTextGenServer?.(), model: context.getTextGenModel?.(),
-                }, {}, true, signal);
-            } else {
-                throw new Error('独立请求需要酒馆的聊天补全或文本补全 API，请切换连接或使用副 API。');
-            }
+            const { service, messageKey, payload } = prepared || prepareMainRequest(context);
+            if (count > 1 && messageKey === 'prompt') throw new Error('主文本补全不支持单次多样本，请改用独立请求。');
+            result = await service.processRequest({ ...common, ...structuredClone(payload), [messageKey]: prompt }, {}, extractData, signal);
         } else if (settings.designApi === 'secondary') {
             if (settings.secondarySource === 'profile') {
                 const service = context.ConnectionManagerRequestService;
@@ -98,5 +103,5 @@
         return result.choices.map(choice => replyText(choice.message?.content ?? choice.text));
     }
 
-    Object.assign(globalThis.YaKitWorkbench ||= {}, { required, checkAbort, replyText, isolatedRequest });
+    Object.assign(globalThis.YaKitWorkbench ||= {}, { required, checkAbort, replyText, isolatedRequest, prepareMainRequest });
 })();

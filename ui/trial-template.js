@@ -11,7 +11,7 @@
               <div class="field"><label for="yakit-wb-sample-count">独立样本数</label><select id="yakit-wb-sample-count">${[1, 2, 3, 4, 5, 6].map(count => `<option value="${count}" ${count === 3 ? 'selected' : ''}>${count} 个样本</option>`).join('')}</select></div>
               <div class="field"><label for="yakit-wb-sample-mode">样本请求方式</label><select id="yakit-wb-sample-mode"><option value="parallel">独立请求</option><option value="single">单次请求返回 n 个样本</option></select></div>
             </div>
-            <p id="yakit-wb-sample-mode-hint" class="page-hint">每个样本独立生成，使用同一份提示词和固定场景。</p>
+            <p id="yakit-wb-sample-mode-hint" class="page-hint">各样本同时发起独立请求，使用同一份提示词和固定场景。</p>
             <div class="quote-heading"><label for="yakit-wb-trial-input">固定测试场景</label><button type="button" id="yakit-wb-generate-scenario" class="button button-secondary">生成冲突场景</button></div>
             <textarea id="yakit-wb-trial-input" rows="3" placeholder="写下能检验要求的冲突场景。选择 AI 场景后，留空可在创建任务时自动生成。"></textarea>
             <p id="yakit-wb-scenario-hint" class="page-hint" hidden>可先生成并编辑；场景留空时，开始测试会自动生成。已有场景会沿用。</p>
@@ -22,15 +22,24 @@
             <div class="field"><label for="yakit-wb-test-tasks">测试任务</label><select id="yakit-wb-test-tasks"><option value="">暂无测试任务</option></select></div>
             <p id="yakit-wb-task-status" class="page-hint" role="status"></p>
             <details id="yakit-wb-task-snapshot" class="message-prompt" hidden><summary class="button button-secondary">查看本次原始需求与固定场景</summary><div><h3>原始需求</h3><p id="yakit-wb-task-goal" class="test-snapshot-text"></p><h3>固定场景</h3><p id="yakit-wb-task-scene" class="test-snapshot-text"></p></div></details>
-            <div id="yakit-wb-judge-actions" class="test-options" hidden><label class="test-toggle"><input id="yakit-wb-score-order" type="checkbox" checked><span>按 AI 推荐顺序查看</span></label><button type="button" id="yakit-wb-judge-task" class="button button-secondary">重新盲评现有样本</button></div>
+            <div id="yakit-wb-judge-actions" class="test-options" hidden><label class="test-toggle"><input id="yakit-wb-score-order" type="checkbox" checked><span>按 AI 分数排序（允许并列）</span></label><button type="button" id="yakit-wb-judge-task" class="button button-secondary">重新盲评现有样本</button></div>
             <p class="page-hint">AI 评分用于初筛，最终由你选择最喜欢的样本；重评会保留正文与人工反馈。</p>
+            <section id="yakit-wb-judgement-overview" class="judgement-overview" aria-label="盲评需求与排名" hidden>
+              <details class="message-prompt"><summary class="button button-secondary">核对裁判拆出的需求</summary><div><ul id="yakit-wb-judge-requirements"></ul><p id="yakit-wb-judge-requirements-empty" class="page-hint">这次历史评分未记录需求拆解。</p></div></details>
+              <h3>样本评分排名</h3><p class="page-hint">点击样本查看正文与依据；比较理由中的匿名标签可在这里对照。</p>
+              <ol id="yakit-wb-judge-ranking" class="judge-ranking"></ol><p id="yakit-wb-judge-ranking-empty" class="page-hint">暂无评分结果。</p>
+            </section>
           </div>
           <div class="trial-reading">
             <section class="trial-result" aria-label="试写结果">
           <div class="output-heading"><h3>样本正文</h3><label for="yakit-wb-trials" class="sr-only">选择样本</label><select id="yakit-wb-trials" aria-label="选择样本"><option value="">暂无试写</option></select></div>
           <div id="yakit-wb-trial-empty" class="trial-empty"><span aria-hidden="true">Aa<span>✧</span></span><h3>暂无样本正文</h3></div>
           <p id="yakit-wb-trial-context" class="trial-context" hidden></p>
-          <section id="yakit-wb-sample-score" class="sample-score" aria-label="AI 盲评结果" hidden><strong id="yakit-wb-score-label"></strong><p id="yakit-wb-score-reason"></p><ul id="yakit-wb-score-violations"></ul></section>
+          <section id="yakit-wb-sample-score" class="sample-score" aria-label="AI 盲评结果" hidden>
+            <strong id="yakit-wb-score-label"></strong><h3>总评与比较理由</h3><p id="yakit-wb-score-reason"></p>
+            <h3>明确违例</h3><ul id="yakit-wb-score-violations" class="score-evidence"></ul><p id="yakit-wb-score-violations-empty">未发现明确违例。</p>
+            <h3>待核对的疑点</h3><ul id="yakit-wb-score-doubts" class="score-evidence"></ul><p id="yakit-wb-score-doubts-empty">未发现需进一步核对的疑点。</p>
+          </section>
           <article id="yakit-wb-trial-output" class="trial-output" tabindex="0" aria-label="试写正文，可选中片段作为反馈" hidden></article>
             </section>
             <section id="yakit-wb-feedback-section" class="feedback-section" aria-labelledby="yakit-wb-feedback-title" hidden>

@@ -147,5 +147,15 @@
 .yakit-workbench .sample-score strong{color:var(--accent)}
 .yakit-workbench .sample-score p{white-space:pre-wrap;margin-top:6px}
 .yakit-workbench .sample-score ul{padding-left:20px;margin:6px 0 0}
+.yakit-workbench .judgement-overview h3,.yakit-workbench .sample-score h3{font-size:12px;font-weight:600;margin-top:14px}
+.yakit-workbench .judgement-overview>.page-hint{margin-top:6px}
+.yakit-workbench .judgement-overview ul{padding-left:20px;margin:0;font-size:12px;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere}
+.yakit-workbench .judge-ranking{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:10px 0 0}
+.yakit-workbench .judge-ranking li{min-width:0;max-width:100%}
+.yakit-workbench .judge-ranking .button{white-space:normal;text-align:left;overflow-wrap:anywhere}
+.yakit-workbench .judge-ranking [aria-current="true"]{color:var(--accent);background:var(--selected)}
+.yakit-workbench .score-evidence>li+li{margin-top:12px}
+.yakit-workbench .score-evidence .evidence-requirement{color:var(--muted)}
+.yakit-workbench .score-evidence blockquote{white-space:pre-wrap;margin:8px 0;padding:8px 12px;border-left:2px solid var(--accent);background:var(--paper);color:var(--text)}
 .yakit-workbench #yakit-wb-prefer-trial[aria-pressed="true"]{color:var(--accent);background:var(--selected)}
 @media(max-width:480px){.yakit-workbench .test-task-bar{padding:12px}.yakit-workbench .sample-score{margin-inline:12px}.yakit-workbench .feedback-section>.section-row{flex-wrap:wrap}}
