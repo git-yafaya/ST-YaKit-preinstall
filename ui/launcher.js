@@ -16,10 +16,10 @@ export function mountLauncher(url) {
     }
     const dialog = document.createElement('dialog');
     dialog.id = 'yakit-workbench-dialog';
-    dialog.setAttribute('aria-label', 'YaKit 提示词工作台');
+    dialog.setAttribute('aria-label', '预设工作台');
     const close = attachDialogMotion(dialog);
     const frame = document.createElement('iframe');
-    frame.title = 'YaKit 提示词工作台';
+    frame.title = '预设工作台';
     // 框架内的按钮与键盘退出共用宿主窗口的退场效果。
     frame.addEventListener('load', () => {
         frame.contentDocument.getElementById('workbench-close')?.addEventListener('click', close);

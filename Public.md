@@ -11,7 +11,7 @@ ST-YaKit-preinstall/
 ├── Public.md                  # 模块、数据流与接口契约
 ├── manifest.json              # 酒馆扩展入口、版本及兼容性声明
 ├── index.js                   # 发布宿主、试写条件及预设刷新桥并挂载入口
-├── index.html                 # 同源页面、共用顶部控件与脚本加载顺序
+├── index.html                 # 同源页面、共用标题和顶部控件与脚本加载顺序
 ├── preview.html               # 独立演示入口，转到显式预览模式
 ├── app.js                     # 按入口选择适配器并创建核心和视图
 ├── style.css                  # 主题、控件、页面与导航样式加载入口
@@ -66,7 +66,7 @@ ST-YaKit-preinstall/
 
 ## 加载与数据流
 
-扩展菜单入口显示「工作台」，图标由 `styles/launcher.css` 以 CSS 遮罩引用 `ui/workbench.svg`，使用 1em 尺寸和 `currentColor` 跟随菜单文字；图标设置 `aria-hidden`，按钮名称由文字提供。
+扩展菜单入口显示「工作台」，图标由 `styles/launcher.css` 以 CSS 遮罩引用 `ui/workbench.svg`，使用 1em 尺寸和 `currentColor` 跟随菜单文字；图标设置 `aria-hidden`，按钮名称由文字提供。页面顶栏固定显示同一 SVG 图标与「预设工作台」，由 `styles/navigation.css` 设置排版与主题颜色；浏览器标题、宿主对话框和 iframe 名称同步为「预设工作台」。
 
 1. 酒馆根据 `manifest.json` 加载 ES 模块 `index.js`。入口读取 `/script.js` 的 `isGenerating` 和 `getMaxContextTokens`、`/scripts/textgen-settings.js` 的 `getTextGenModel`、世界书模块的当前选择及 Prompt Manager 中启用的静默提示条目。将这些只读能力与实时 `SillyTavern.getContext()` 包装为 `globalThis.YaKitWorkbenchHost.getContext()`，再挂载扩展菜单入口。
 2. 用户首次打开「工作台」时，同源 iframe 加载 `index.html`；关闭对话框仅隐藏容器，保留页面和未提交输入。顶部控件静态位于 `#app` 外，`launcher.js` 在 iframe 加载后将关闭按钮绑定到统一退场函数，应用启动报错时仍保留关闭入口。宿主加载限定到工作台弹窗的 `theme.css` 与 `launcher.css`；iframe 通过 `style.css` 加载界面样式，脚本按 `state → prompts → core/presets → workbench → api → host/presets → st-host → settings-template → theme-view → settings-view → trial-template → versions-template → preset-template → workbench-template → navigation-view → preset-entries-view → preset-view → workbench-view → app` 顺序加载，内部协作命名空间为 `globalThis.YaKitWorkbench`。
@@ -162,7 +162,7 @@ ST-YaKit-preinstall/
 | 窗口进退场 | 240ms 淡入或淡出，缩放从或至 0.98；关闭按钮、Esc、遮罩共用退场函数 |
 | 减少动态效果 | 停用过渡与动画，关闭直接完成 |
 
-顶栏固定留在正文上方，提供关闭按钮，当前页面名称仅供读屏。顶部导航始终显示，窄屏长页签显示省略号，完整名称保留在文字和 `title` 中。切页通过 `inert` 和 `aria-hidden` 隔离非当前页，不重建内容，保留草稿和各页滚动位置。页签支持左右方向键、Home、End；快捷入口聚焦目标页。当前页只保留在当前 iframe，重新加载后回到工作台。Esc 尊重控件已取消的事件，展开的原生下拉优先关闭选项；旧浏览器无法判断下拉展开状态时，焦点位于下拉框内由系统处理 Esc。遮罩关闭要求按下与松开均位于窗口外，退出期间再次打开会清除待关闭状态。
+顶栏固定留在正文上方，显示入口图标、「预设工作台」标题和关闭按钮；另保留仅供读屏的当前页面名称。顶部导航始终显示，窄屏长页签显示省略号，完整名称保留在文字和 `title` 中。切页通过 `inert` 和 `aria-hidden` 隔离非当前页，不重建内容，保留草稿和各页滚动位置。页签支持左右方向键、Home、End；快捷入口聚焦目标页。当前页只保留在当前 iframe，重新加载后回到工作台。Esc 尊重控件已取消的事件，展开的原生下拉优先关闭选项；旧浏览器无法判断下拉展开状态时，焦点位于下拉框内由系统处理 Esc。遮罩关闭要求按下与松开均位于窗口外，退出期间再次打开会清除待关闭状态。
 
 主题由 iframe 根元素和宿主弹窗的 `data-theme` 同步控制；`st` 模式从父页面正文读取 `--SmartThemeBodyColor`、`--SmartThemeBlurTintColor`、`--SmartThemeChatTintColor`、`--SmartThemeBorderColor`、`--SmartThemeQuoteColor`、`--SmartThemeEmColor` 和 `--mainFontFamily`，监听父根元素与正文的 `style/class/data-theme` 变化。林系风、浅色的 `--yakit-*` 颜色与纪实一致；深色使用黑灰背景和浅灰强调色，并通过 `--on-accent` 为主按钮配置深色文字。现有组件变量映射到这些主题值，深色导航选中项使用 `--selected` 背景和 `--text` 文字。宿主样式只匹配工作台弹窗，iframe 样式只匹配带 `yakit-workbench` 类的根元素；主题仍使用本工作台的设置保存。
 
