@@ -14,9 +14,8 @@
 .yakit-workbench .design-content{flex:1}
 .yakit-workbench .composer{margin:14px 0 0;border:1px solid var(--line);border-radius:8px;background:var(--field);overflow:hidden}
 .yakit-workbench .composer textarea{border:0;border-radius:0;min-height:80px}
-.yakit-workbench .composer:focus-within{outline:2px solid var(--focus);outline-offset:2px}
+.yakit-workbench .composer:focus-within{border-color:var(--focus)}
 .yakit-workbench .composer-actions{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:0 10px 10px}
-.yakit-workbench .composer textarea:focus-visible{outline:none}
 .yakit-workbench .draft-panel{display:flex;flex-direction:column}
 .yakit-workbench .preset-picker{border-bottom:1px solid var(--line);flex-shrink:0}
 .yakit-workbench .preset-picker select{flex:1 1 140px;width:0}
@@ -37,7 +36,6 @@
 .yakit-workbench .preset-save .page-hint{flex:1 1 160px;overflow-wrap:anywhere}
 .yakit-workbench .draft-toolbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;padding:12px 16px;color:var(--muted);font-size:12px}
 .yakit-workbench .draft-editor{width:calc(100% - 32px);margin:0 16px 14px;min-height:240px;flex:1}
-.yakit-workbench .draft-editor:focus-visible{outline-offset:2px}
 .yakit-workbench .editor-footer{display:flex;justify-content:space-between;padding:10px 16px;font-size:12px;color:var(--muted);border-top:1px solid var(--line)}
 .yakit-workbench .section-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .yakit-workbench .section-row h3{font-size:13px;font-weight:600}
