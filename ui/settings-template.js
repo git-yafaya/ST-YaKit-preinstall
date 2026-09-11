@@ -4,7 +4,7 @@
     <section id="settings-page" class="page panel settings-panel" aria-labelledby="settings-title" tabindex="-1" hidden>
       <div class="panel-heading"><div><span class="section-kicker">SETTINGS</span><h2 id="settings-title">设置</h2></div></div>
       <div class="panel-content settings-content">
-        <div class="field"><label for="theme">界面主题</label><select id="theme"><option value="st">跟随 SillyTavern</option><option value="light">浅色</option><option value="dark">深色</option></select></div>
+        <div class="field"><label for="theme">界面主题</label><select id="theme"><option value="forest">林系风</option><option value="st">跟随酒馆</option><option value="light">浅色</option><option value="dark">深色</option></select></div>
         <form id="settings-form" class="settings-form">
           <div class="field"><label for="design-api">工作台 AI</label><select id="design-api"><option value="main">主 API</option><option value="secondary">副 API</option></select></div>
           <div id="secondary-settings" class="settings-group" hidden>

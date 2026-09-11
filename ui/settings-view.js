@@ -3,17 +3,8 @@
   workbench.mountSettings = function mountSettings(controller, root, { run, notify }) {
     const $ = id => root.querySelector(`#${id}`);
     const fields = { designApi: 'design-api', secondarySource: 'secondary-source', secondaryProfileId: 'secondary-profile', secondaryUrl: 'secondary-url', secondaryModel: 'secondary-model', secondaryKey: 'secondary-key' };
-    const themeRoot = document.documentElement;
+    const theme = workbench.mountTheme(controller);
     let savedKey = '', profileKey = '', profileEdited = false;
-    const themeVariables = ['--SmartThemeBodyColor', '--SmartThemeBlurTintColor', '--SmartThemeChatTintColor', '--SmartThemeBorderColor', '--SmartThemeQuoteColor', '--mainFontFamily'];
-    function syncTheme() {
-      themeRoot.dataset.theme = controller.getState().theme || 'st';
-      if (themeRoot.dataset.theme !== 'st' || parent === window) return;
-      const theme = parent.getComputedStyle(parent.document.documentElement);
-      themeVariables.forEach(name => themeRoot.style.setProperty(name, theme.getPropertyValue(name)));
-    }
-    const observer = new MutationObserver(syncTheme);
-    if (parent !== window) observer.observe(parent.document.documentElement, { attributes: true, attributeFilter: ['style', 'class', 'data-theme'] });
     function showFields() {
       $('secondary-settings').hidden = $('design-api').value !== 'secondary';
       $('profile-settings').hidden = $('secondary-source').value !== 'profile';
@@ -50,8 +41,8 @@
       $('theme').value = state.theme || 'st';
       $('main-api-label').textContent = state.mainApiLabel || '当前主 API';
       $('save-settings').disabled = Boolean(state.busy);
-      syncTheme();
+      theme.sync();
     }
-    return { render, dispose: () => observer.disconnect() };
+    return { render, dispose: () => theme.dispose() };
   };
 })();

@@ -2,18 +2,17 @@
   const workbench = globalThis.YaKitWorkbench ??= {};
   workbench.workbenchTemplate = `
     <div id="app-shell" class="app-shell">
-      <nav id="sidebar" class="sidebar" aria-label="页面导航">
+      <nav id="sidebar" class="sidebar" role="tablist" aria-label="页面导航">
+        <span class="nav-indicator" aria-hidden="true"></span>
         <button class="nav-item active" data-page="workbench" aria-current="page">工作台</button>
         <button class="nav-item" data-page="trial">试写与反馈</button>
         <button class="nav-item" data-page="versions">版本记录</button>
         <button class="nav-item" data-page="settings">设置</button>
       </nav>
       <main>
-      <div class="page-toolbar">
-        <button id="sidebar-toggle" class="button button-quiet" aria-controls="sidebar" aria-expanded="true" aria-label="隐藏导航"><span aria-hidden="true">☰</span></button>
-        <h1 id="page-title">工作台</h1>
-      </div>
       <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+      <div class="page-viewport"><div class="page-track">
+      <div class="page-frame">
       <div id="workbench-page" class="page workbench" tabindex="-1">
         <section id="design-panel" class="panel design-panel" aria-labelledby="design-title">
           <div class="panel-heading"><div><span class="section-kicker">WORKSHOP</span><h2 id="design-title">需求与修改</h2></div><span class="subtle-badge">工作台 AI</span></div>
@@ -39,9 +38,11 @@
         </section>
 
       </div>
-      ${workbench.trialTemplate}
-      ${workbench.versionsTemplate}
-      ${workbench.settingsTemplate}
+      </div>
+      <div class="page-frame">${workbench.trialTemplate}</div>
+      <div class="page-frame">${workbench.versionsTemplate}</div>
+      <div class="page-frame">${workbench.settingsTemplate}</div>
+      </div></div>
       </main>
     </div>
     <div id="busy-bar" class="busy-bar" role="status" hidden><span class="spinner"></span><span id="busy-text">正在生成…</span><button id="cancel" class="text-button">取消</button></div>

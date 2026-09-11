@@ -20,7 +20,7 @@ const settingDefaults = {
     secondaryProfileId: '', secondaryUrl: '', secondaryModel: '', secondaryKey: '',
 };
 const settingOptions = {
-    theme: ['st', 'light', 'dark'], designApi: ['main', 'secondary'], secondarySource: ['profile', 'custom'],
+    theme: ['st', 'forest', 'light', 'dark'], designApi: ['main', 'secondary'], secondarySource: ['profile', 'custom'],
 };
 
 function settingValue(key, value) {

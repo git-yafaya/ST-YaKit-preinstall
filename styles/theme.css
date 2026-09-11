@@ -1,0 +1,84 @@
+/* 与纪实共用配色；只作用于工作台页面和它的宿主弹窗。 */
+:root.yakit-workbench,
+#yakit-workbench-dialog {
+  color-scheme: normal;
+  --yakit-bg: var(--SmartThemeBlurTintColor, #1E201B);
+  --yakit-card: var(--SmartThemeBlurTintColor, #272A23);
+  --yakit-input: var(--SmartThemeChatTintColor, #22251F);
+  --yakit-card-hover: var(--SmartThemeChatTintColor, #30352A);
+  --yakit-accent: var(--SmartThemeEmColor, #627F49);
+  --yakit-accent-hover: var(--SmartThemeEmColor, #789260);
+  --yakit-accent-soft: var(--SmartThemeQuoteColor, #344026);
+  --yakit-brown: var(--SmartThemeQuoteColor, #B89679);
+  --yakit-text: var(--SmartThemeBodyColor, #E4E6DC);
+  --yakit-text-sub: var(--SmartThemeBodyColor, #A3A79B);
+  --yakit-text-muted: var(--SmartThemeBodyColor, #7B8074);
+  --yakit-border: var(--SmartThemeBorderColor, rgba(255, 255, 255, 0.08));
+  --yakit-radius-card: 16px;
+  --yakit-radius-window: 20px;
+  /* 保留现有组件的变量名，统一从主题取值。 */
+  --background: var(--yakit-bg);
+  --paper: var(--yakit-card);
+  --field: var(--yakit-input);
+  --surface: var(--yakit-card-hover);
+  --accent: var(--yakit-accent);
+  --accent-dark: var(--yakit-accent-hover);
+  --selected: var(--yakit-accent-soft);
+  --text: var(--yakit-text);
+  --muted: var(--yakit-text-sub);
+  --line: var(--yakit-border);
+  --focus: var(--yakit-accent);
+  --on-accent: #fff;
+  --radius: var(--yakit-radius-card);
+  --error-bg: color-mix(in srgb, var(--paper) 90%, #b44);
+  --error-line: color-mix(in srgb, var(--paper) 65%, #b44);
+  --error-text: var(--text);
+}
+:root.yakit-workbench[data-theme="st"] {
+  font-family: var(--mainFontFamily, Inter), "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+}
+:is(:root.yakit-workbench, #yakit-workbench-dialog)[data-theme="forest"] {
+  color-scheme: light;
+  --yakit-bg: #F9F8F6;
+  --yakit-card: #FFFFFF;
+  --yakit-input: #F9F8F6;
+  --yakit-card-hover: #F9F8F6;
+  --yakit-accent: #627F49;
+  --yakit-accent-hover: #526C3D;
+  --yakit-accent-soft: rgba(98, 127, 73, 0.10);
+  --yakit-brown: #8A684D;
+  --yakit-text: #35372F;
+  --yakit-text-sub: #72766B;
+  --yakit-text-muted: #9A9D93;
+  --yakit-border: rgba(72, 78, 63, 0.12);
+}
+:is(:root.yakit-workbench, #yakit-workbench-dialog)[data-theme="light"] {
+  color-scheme: light;
+  --yakit-bg: #F3F4F6;
+  --yakit-card: #FFFFFF;
+  --yakit-input: #F3F4F6;
+  --yakit-card-hover: #F3F4F6;
+  --yakit-accent: #175CD3;
+  --yakit-accent-hover: #1849A9;
+  --yakit-accent-soft: #EAF1FD;
+  --yakit-brown: #475467;
+  --yakit-text: #202939;
+  --yakit-text-sub: #475467;
+  --yakit-text-muted: #626D7C;
+  --yakit-border: #DDE2E9;
+}
+:is(:root.yakit-workbench, #yakit-workbench-dialog)[data-theme="dark"] {
+  color-scheme: dark;
+  --yakit-bg: #1E201B;
+  --yakit-card: #272A23;
+  --yakit-input: #22251F;
+  --yakit-card-hover: #30352A;
+  --yakit-accent: #627F49;
+  --yakit-accent-hover: #789260;
+  --yakit-accent-soft: #344026;
+  --yakit-brown: #B89679;
+  --yakit-text: #E4E6DC;
+  --yakit-text-sub: #A3A79B;
+  --yakit-text-muted: #7B8074;
+  --yakit-border: rgba(255, 255, 255, 0.08);
+}

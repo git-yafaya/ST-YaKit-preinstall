@@ -1,40 +1,60 @@
+import { attachDialogMotion } from './dialog-motion.js';
+
 export function mountLauncher(url) {
     const existing = document.getElementById('yakit-workbench-dialog');
-    if (existing) return () => { if (!existing.open) existing.showModal(); };
+    if (existing) return () => {
+        existing.dispatchEvent(new Event('yakit:open'));
+        if (!existing.open) existing.showModal();
+    };
     const menu = document.getElementById('extensionsMenu');
     if (!menu) throw new Error('未找到 SillyTavern 扩展菜单。');
-    const style = document.createElement('style');
-    style.textContent = `
-      #yakit-workbench-entry{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
-      #yakit-workbench-dialog{width:96vw;height:94dvh;max-width:1900px;max-height:94dvh;padding:0;border:1px solid var(--SmartThemeBorderColor,#52616b);border-radius:14px;background:var(--SmartThemeBlurTintColor,#f4f6f7);color:var(--SmartThemeBodyColor,#25333a);overflow:hidden}
-      #yakit-workbench-dialog::backdrop{background:#0008}
-      #yakit-workbench-dialog .yakit-close{position:absolute;z-index:1;top:20px;right:20px;width:36px;height:36px;padding:0;background:var(--SmartThemeBlurTintColor,#f4f6f7);color:inherit;border:1px solid var(--SmartThemeBorderColor,#52616b);border-radius:7px;font-size:20px;cursor:pointer;transition:background .16s,transform .16s}
-      #yakit-workbench-dialog .yakit-close:hover{background:color-mix(in srgb,var(--SmartThemeBlurTintColor,#f4f6f7) 90%,currentColor)}
-      #yakit-workbench-dialog .yakit-close:active{transform:translateY(1px)}
-      #yakit-workbench-dialog iframe{display:block;width:100%;height:100%;border:0}
-      @media(max-width:610px){#yakit-workbench-dialog{width:100vw;height:100dvh;max-width:100vw;max-height:100dvh;border-radius:0;border:0}}
-      @media(prefers-reduced-motion:reduce){#yakit-workbench-dialog .yakit-close{transition:none}}
-    `;
+    for (const file of ['theme.css', 'launcher.css']) {
+        const style = document.createElement('link');
+        style.rel = 'stylesheet';
+        style.href = new URL(`../styles/${file}`, import.meta.url).href;
+        document.head.append(style);
+    }
     const dialog = document.createElement('dialog');
     dialog.id = 'yakit-workbench-dialog';
     dialog.setAttribute('aria-label', 'YaKit 提示词工作台');
-    const close = document.createElement('button');
-    close.type = 'button'; close.className = 'yakit-close'; close.textContent = '×';
-    close.setAttribute('aria-label', '关闭工作台');
-    close.addEventListener('click', () => dialog.close());
+    const close = attachDialogMotion(dialog);
     const frame = document.createElement('iframe');
     frame.title = 'YaKit 提示词工作台';
-    dialog.append(close, frame);
-    document.head.append(style); document.body.append(dialog);
+    // 框架内的按钮与键盘退出共用宿主窗口的退场效果。
+    frame.addEventListener('load', () => {
+        frame.contentDocument.getElementById('workbench-close')?.addEventListener('click', close);
+        frame.contentDocument.addEventListener('keydown', event => {
+            if (event.key !== 'Escape' || event.defaultPrevented) return;
+            // 原生下拉先处理 Esc；旧浏览器无法判断展开状态时保留系统行为。
+            const select = event.target.closest?.('select');
+            if (select && (!frame.contentWindow.CSS?.supports?.('selector(select:open)') || select.matches(':open'))) return;
+            event.preventDefault();
+            close();
+        });
+    });
+    // 按下和松开都在遮罩上才关闭，避免从窗口内拖动到外侧时误触。
+    let backdropPressed = false;
+    const outside = event => {
+        const rect = dialog.getBoundingClientRect();
+        return event.target === dialog && (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom);
+    };
+    dialog.addEventListener('pointerdown', event => { backdropPressed = outside(event); });
+    dialog.addEventListener('click', event => {
+        if (backdropPressed && outside(event)) close();
+        backdropPressed = false;
+    });
+    dialog.append(frame);
+    document.body.append(dialog);
     const open = () => {
         if (!frame.hasAttribute('src')) frame.src = url;
+        dialog.dispatchEvent(new Event('yakit:open'));
         if (!dialog.open) dialog.showModal();
     };
     const entry = document.createElement('button');
     entry.id = 'yakit-workbench-entry'; entry.type = 'button'; entry.className = 'list-group-item flex-container flexGap5';
     const icon = document.createElement('span');
-    icon.className = 'fa-solid fa-pen-ruler'; icon.setAttribute('aria-hidden', 'true');
-    const label = document.createElement('span'); label.textContent = 'YaKit 提示词工作台';
+    icon.className = 'yakit-workbench-icon'; icon.setAttribute('aria-hidden', 'true');
+    const label = document.createElement('span'); label.textContent = '工作台';
     entry.append(icon, label); entry.addEventListener('click', open); menu.append(entry);
     return open;
 }
