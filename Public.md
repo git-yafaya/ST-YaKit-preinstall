@@ -33,7 +33,7 @@ ST-YaKit-preinstall/
 │   ├── dialog-motion.js       # 统一关闭动画与重新打开状态
 │   ├── workbench-template.js  # 四页轨道、顶部导航与工作台模板
 │   ├── workbench-view.js      # 状态渲染、事件、复制与下载
-│   ├── navigation-view.js     # 四页切换、导航收放与键盘焦点
+│   ├── navigation-view.js     # 四页切换、快捷入口与键盘焦点
 │   ├── trial-template.js      # 独立试写与反馈页面
 │   ├── versions-template.js   # 版本选择、原文预览与导出页面
 │   ├── settings-template.js   # API 与主题设置模板
@@ -114,18 +114,18 @@ ST-YaKit-preinstall/
 
 设置字段统一在核心校验，未知字段和非法枚举拒绝更新。副 API 完整性在发起设计时检查，允许先保存未填完的配置。正文 API 始终使用当前主 API。
 
-顶部导航提供工作台、试写与反馈、版本记录、设置四个页面。工作台在宽屏并排显示需求讨论与提示词编辑，小屏纵向排列；四页共用固定窗口和独立滚动正文。界面规范与 YaKit 纪实保持一致，样式保存在本仓库。
+顶部导航常驻，提供工作台、试写与反馈、版本记录、设置四个页面。工作台在宽屏并排显示需求讨论与提示词编辑，小屏纵向排列；四页共用随宿主视口调整大小的窗口，正文独立滚动。主题、控件与微动效规范与 YaKit 纪实保持一致，样式保存在本仓库。
 
 | 界面项 | 当前规则 |
 | --- | --- |
-| 窗口尺寸 | 高度 `min(680px, 100dvh - 24px)`；宿主视口不足 960px 时宽 `min(560px, 92vw)`，达到 960px 后宽 `min(1040px, 92vw)` |
-| 顶栏与卡片 | 顶栏高 56px，导航开关与关闭按钮均为 32px；窗口圆角 20px，卡片圆角 12px |
+| 窗口尺寸 | 宽度 `calc(100vw - 24px)`，高度 `calc(100dvh - 24px)`；四页共用，四周各留 12px，随宿主视口变化同步调整 |
+| 顶栏与卡片 | 顶栏高 56px，关闭按钮为 32px；窗口圆角 20px，卡片圆角 12px |
 | 页面留白 | 默认上下 20px、左右 24px；iframe 视口不超过 480px 时为 14px |
 | 切页 | 四页常驻同一轨道，正文与导航指示器同步平移；240ms，`cubic-bezier(0.16, 1, 0.3, 1)` |
 | 窗口进退场 | 240ms 淡入或淡出，缩放从或至 0.98；关闭按钮、Esc、遮罩共用退场函数 |
 | 减少动态效果 | 停用过渡与动画，关闭直接完成 |
 
-顶栏固定留在正文上方，保留导航开关与关闭按钮，当前页面名称仅供读屏。导航开关在导航挂载前禁用；收起后导航不占布局空间，也不可通过键盘聚焦。切页通过 `inert` 和 `aria-hidden` 隔离非当前页，不重建内容，保留草稿和各页滚动位置。页签支持左右方向键、Home、End；快捷入口聚焦目标页。当前页与导航收放状态只保留在当前 iframe，重新加载后回到工作台和展开导航。Esc 尊重控件已取消的事件，展开的原生下拉优先关闭选项；旧浏览器无法判断下拉展开状态时，焦点位于下拉框内由系统处理 Esc。遮罩关闭要求按下与松开均位于窗口外，退出期间再次打开会清除待关闭状态。
+顶栏固定留在正文上方，提供关闭按钮，当前页面名称仅供读屏。顶部导航始终显示。切页通过 `inert` 和 `aria-hidden` 隔离非当前页，不重建内容，保留草稿和各页滚动位置。页签支持左右方向键、Home、End；快捷入口聚焦目标页。当前页只保留在当前 iframe，重新加载后回到工作台。Esc 尊重控件已取消的事件，展开的原生下拉优先关闭选项；旧浏览器无法判断下拉展开状态时，焦点位于下拉框内由系统处理 Esc。遮罩关闭要求按下与松开均位于窗口外，退出期间再次打开会清除待关闭状态。
 
 主题由 iframe 根元素和宿主弹窗的 `data-theme` 同步控制；`st` 模式从父页面正文读取 `--SmartThemeBodyColor`、`--SmartThemeBlurTintColor`、`--SmartThemeChatTintColor`、`--SmartThemeBorderColor`、`--SmartThemeQuoteColor`、`--SmartThemeEmColor` 和 `--mainFontFamily`，监听父根元素与正文的 `style/class/data-theme` 变化。林系风、浅色、深色的 `--yakit-*` 颜色与纪实一致；现有组件变量映射到这些主题值。宿主样式只匹配工作台弹窗，iframe 样式只匹配带 `yakit-workbench` 类的根元素；主题仍使用本工作台的设置保存。
 
@@ -144,7 +144,7 @@ ST-YaKit-preinstall/
 | `YaKitWorkbench.createSillyTavernHost(getContext)` | 创建保存、环境及模型适配器 |
 | `YaKitWorkbench.createWorkbench(host)` | 恢复记录、读取环境并返回控制器 |
 | `YaKitWorkbench.mountWorkbench(controller, root)` | 挂载四页工作台，返回解除订阅与主题监听函数 |
-| `YaKitWorkbench.mountNavigation(root)` | 绑定四页导航、快捷入口与导航收放；从 `root.ownerDocument` 读取顶部开关和读屏页名，管理键盘焦点与隐藏页 |
+| `YaKitWorkbench.mountNavigation(root)` | 绑定四页常驻导航与快捷入口；从 `root.ownerDocument` 读取读屏页名，管理键盘焦点与隐藏页 |
 | `YaKitWorkbench.mountTheme(controller)` | 返回 `{sync, dispose}`；同步 iframe 与宿主弹窗主题，并可解除宿主主题监听 |
 | `YaKitWorkbench.state` / `.prompts` | 状态校验、保存快照、设计消息和答复解析 |
 
@@ -232,4 +232,4 @@ v0.2.1 分区调整另已通过 UI 脚本语法、入口加载顺序、模板标
 
 v0.2.5 已通过四主题同步、导航焦点与输入保留、原生下拉 Esc 和弹窗进退场的模拟检查；已核对模板结构、资源路径、六个样式文件的结构、JavaScript 语法与版本一致性。
 
-SillyTavern 验收遵循本机 `AGENTS.md` 的人工流程。从扩展菜单打开工作台，在宽屏与窄屏检查四页尺寸、滑动切页、独立滚动、顶部控件和导航收放；切换四种主题，核对窗口、控件、滚动条与选项弹层。检查长选项换行、键盘选择、关闭与重新打开保留输入，以及系统减少动态效果设置。真实模型调用和完整试写流程继续由用户人工验收。
+SillyTavern 验收遵循本机 `AGENTS.md` 的人工流程。从扩展菜单打开工作台，在宽屏与窄屏检查四页尺寸随窗口调整、四周留白、滑动切页、独立滚动、关闭按钮和常驻导航；切换四种主题，核对窗口、控件、滚动条与选项弹层。检查长选项换行、键盘选择、关闭与重新打开保留输入，以及系统减少动态效果设置。真实模型调用和完整试写流程继续由用户人工验收。

@@ -3,7 +3,6 @@
   workbench.mountNavigation = function mountNavigation(root) {
     const $ = id => root.querySelector(`#${id}`);
     const document = root.ownerDocument;
-    const toggle = document.getElementById('sidebar-toggle');
     const pages = { workbench: '工作台', trial: '试写与反馈', versions: '版本记录', settings: '设置' };
     const names = Object.keys(pages);
     const buttons = Array.from(root.querySelectorAll('[data-page]'));
@@ -58,16 +57,6 @@
       });
     });
     root.querySelectorAll('[data-open-page]').forEach(button => button.addEventListener('click', () => openPage(button.dataset.openPage)));
-    toggle.addEventListener('click', () => {
-      const collapsed = !$('sidebar').hidden;
-      if (collapsed && $('sidebar').contains(document.activeElement)) toggle.focus({ preventScroll: true });
-      $('sidebar').hidden = collapsed;
-      toggle.setAttribute('aria-expanded', String(!collapsed));
-      const label = collapsed ? '显示导航' : '隐藏导航';
-      toggle.setAttribute('aria-label', label);
-      toggle.title = label;
-    });
-    toggle.disabled = false;
     openPage('workbench', false);
   };
 })();
