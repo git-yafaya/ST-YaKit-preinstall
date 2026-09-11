@@ -52,7 +52,7 @@ function designSettings(state) {
 function initialState(saved) {
     const state = {
         goal: '', draft: '', ...settingDefaults,
-        messages: [], versions: [], selectedVersionId: '', trials: [], selectedTrialId: '',
+        messages: [], versions: [], nextVersionNumber: 1, selectedVersionId: '', trials: [], selectedTrialId: '',
         profiles: [], mainApiLabel: '', contextLabel: '', canTrial: false,
         presets: [], selectedPresetName: '', presetEntries: [], presetSource: null,
         busy: null, error: '', notice: '',
@@ -72,8 +72,19 @@ function initialState(saved) {
     state.versions = records('versions').filter(item => item && typeof item.id === 'string'
         && typeof item.content === 'string' && item.content.trim()).map(item => ({
         id: item.id, label: typeof item.label === 'string' ? item.label : '已保存版本',
+        number: Number.isSafeInteger(item.number) && item.number > 0 ? item.number : null,
         content: item.content, createdAt: typeof item.createdAt === 'string' ? item.createdAt : '',
     }));
+    // 编号独立于记录数量，删除后继续递增；旧记录按原顺序补号。
+    if (Number.isSafeInteger(saved.nextVersionNumber) && saved.nextVersionNumber > 0) {
+        state.nextVersionNumber = saved.nextVersionNumber;
+    }
+    for (const version of state.versions) {
+        if (version.number) state.nextVersionNumber = Math.max(state.nextVersionNumber, version.number + 1);
+    }
+    for (const version of state.versions) {
+        if (!version.number) version.number = state.nextVersionNumber++;
+    }
     state.trials = records('trials').filter(item => item && typeof item.id === 'string'
         && typeof item.content === 'string' && state.versions.some(version => version.id === item.versionId))
         .map(item => ({

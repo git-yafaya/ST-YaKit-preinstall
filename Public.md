@@ -23,11 +23,11 @@ ST-YaKit-preinstall/
 │   ├── toast.css              # 纪实同款底部轻提示与状态颜色
 │   └── launcher.css           # 菜单图标、弹窗尺寸与进退场
 ├── core/
-│   ├── state.js               # 设置校验、记录恢复与保存快照
+│   ├── state.js               # 设置校验、记录与版本编号恢复、保存快照
 │   ├── prompts.js             # 设计消息、答复解析与反馈指令
 │   ├── settings.js            # 多套 API 配置、旧数据迁移与设计提示词
 │   ├── presets.js             # 预设读取、草稿载入与两种条目写回入口
-│   └── workbench.js           # 草稿、版本、试写及异步状态控制
+│   └── workbench.js           # 草稿、版本保存改名删除、试写及异步状态控制
 ├── host/
 │   ├── api.js                 # 主副 API 设计与主 API 正文请求
 │   ├── api-profiles.js        # 连接回填、模型列表与接口地址归一
@@ -52,7 +52,8 @@ ST-YaKit-preinstall/
 │   ├── preset-entries-view.js # 全部条目编辑、逐条保存与本次编辑保留
 │   ├── navigation-view.js     # 五页切换、快捷入口与键盘焦点
 │   ├── trial-template.js      # 独立试写与反馈页面
-│   ├── versions-template.js   # 版本选择、原文预览与导出页面
+│   ├── versions-template.js   # 提示词名称、版本选择、改名删除与原文页面
+│   ├── versions-view.js       # 名称同步、记录选择与改名删除确认
 │   ├── settings-template.js   # 界面、API 与提示词设置及二级页模板
 │   ├── settings-view.js       # 设置导航、配置列表与顶栏保存操作
 │   ├── settings-api-view.js   # API 编辑草稿、连接回填与模型选择
@@ -60,6 +61,8 @@ ST-YaKit-preinstall/
 │   └── theme-view.js          # 同步当前容器的主题选择
 ├── tests/                     # 本地忽略目录，不随仓库分发
 │   ├── core.test.mjs          # 核心状态与业务边界检查
+│   ├── versions-core.test.mjs # 编号、改名、删除及保存恢复检查
+│   ├── versions-ui.test.mjs   # 名称输入保留与删除确认事件检查
 │   ├── settings-core.test.mjs # 配置迁移、切换、提示词请求与导出检查
 │   ├── settings-ui.test.mjs   # 设置草稿、过期请求与上下导航检查
 │   ├── api-profiles.mjs       # 连接回填、模型列表及离线接口检查
@@ -89,10 +92,10 @@ ST-YaKit-preinstall/
 3. 关闭弹窗保留工作台实例、输入和滚动位置，重新打开与窗口获得焦点时更新聊天、连接及可试写状态。设置二级页的未确认草稿继续按原规则丢弃。独立演示入口 `preview.html` 直接加载 `preview/preview.js`，用相同的 `shell-template.js`、`app.js` 和本地适配器创建界面；演示只返回内置内容。卸载函数解除环境刷新监听并释放视图订阅及提示计时器。
 4. 需求与草稿输入立即更新内存并排队保存，保留首尾空格和换行。设计请求固定开始时的设置快照，系统消息由最新保存的内置提示词与破限提示词组成；其后依次为需求、源草稿、历史设计讨论及本次要求，不附带当前聊天或此前试写正文。
 5. 主 API 设计使用 `generateRaw({prompt, instructOverride: true, trimNames: false})`；副 API 连接配置使用 `ConnectionManagerRequestService.sendRequest`；自定义接口使用 `ChatCompletionService.processRequest`。副 API 请求均关闭流式输出、输出上限为 4096 token。
-6. 设计答复必须是含 `prompt` 和 `explanation` 字符串的 JSON，也接受完整 JSON 代码围栏。原始答复进入讨论记录，界面显示修改说明并提供「查看提示词」折叠区，解析成功后更新草稿。保存版本时生成独立 ID、名称和时间，已保存版本保持不变。
+6. 设计答复必须是含 `prompt` 和 `explanation` 字符串的 JSON，也接受完整 JSON 代码围栏。原始答复进入讨论记录，界面显示修改说明并提供「查看提示词」折叠区，解析成功后更新草稿。保存版本时生成独立 ID、名称、递增编号和时间；已保存正文保持不变，名称可单独修改。空名称使用「未命名提示词」。
 7. 试写要求选定版本与当前草稿完全一致。请求仅传 `{content, input}`，适配器检查候选非空并保留其原始空白，通过主 API 的 `generateQuietPrompt` 把候选提示词、两个换行和试写要求组合为 `quietPrompt`。使用当前聊天背景、世界书及作者注释，返回正文写入工作台记录，不自动追加聊天消息。
 8. 主 API 的取消、忙碌和连接检查通过后，在调用宿主生成之前同步深拷贝试写条件。成功答复关联发起时的 `versionId`、输入和 `context`，`context.capturedAt` 是条件采集时间，记录的 `createdAt` 是答复入库时间。期间切换连接、聊天或版本不改写已采集条件。按反馈修改时找回该试写的源版本，仅在用户提交后将评价、意见及引用片段交给设计模型；没有片段时交回该次完整正文。
-9. 新建议进入草稿，保存后成为下一版。「版本记录」选择已有版本并只读显示其原文和保存时间，选择行为仍将该版本载入草稿。该页导出从当前内存生成 JSON，排除 `secondaryKey` 和每套 API 配置的 `apiKey`；「工作台」中的复制取当前草稿。
+9. 新建议进入草稿，保存后成为下一版。「版本记录」以提示词名称为主要标识，编号后置，选择后载入草稿并只读显示保存原文和时间；可直接保存名称。删除先在同页展示目标和关联试写数量，确认后删除选中版本及其试写、反馈，保留当前草稿。该页导出从当前内存生成 JSON，排除 `secondaryKey` 和每套 API 配置的 `apiKey`；「工作台」中的复制取当前草稿。
 10. 初始化调用 `refreshPresets()` 获取聊天补全预设列表；当前预设名属于可用列表且宿主提供 `readPreset` 时读取条目。「预设展示」按宿主返回的顺序展示全部条目，包括未启用、未列入默认顺序及标记条目。有预设时选单列出可用预设，无预设时显示「暂无可用预设」；刷新后当前目标被删除时，保留标注「不在列表中」的原名称。切换预设及「重新读取」读取对应内容，「刷新列表」保留已选预设、条目与草稿来源。
 11. 每条使用原生 `details` 展开正文，`summary` 显示为条目名称按钮；非标记条目可直接编辑，点击「保存条目」调用 `savePresetContent(identifier, content, expectedContent)`，不改动工作台草稿与版本。视图按预设、标识及同标识出现次数保留编辑器节点，切页、切换预设和状态通知不清空输入。保存一条只推进本条基线；明确重新读取成功后采用新原文基线并保留本地编辑。点击「载入草稿」使用核心已读取的内容并跳转工作台，之后可通过「保存到原条目」写回草稿。
 
@@ -111,6 +114,13 @@ ST-YaKit-preinstall/
 | 未打开角色或群组聊天、主 API 未连接 | 禁用试写或在请求时提示；已打开角色的新聊天可试写 |
 | 主 API 正在生成 | 拒绝并行主 API 请求；副 API 通过各自服务请求 |
 | 草稿与选中版本不同 | 阻止试写，要求先保存新版本 |
+| 提示词名称为空 | 新保存使用「未命名提示词」；对已有版本改名时拒绝空白名称 |
+| 同名提示词 | 允许保存多个独立版本，选择项与试写归属通过后置编号区分 |
+| 版本改名 | 只更新名称，保留 ID、编号、正文、时间及试写关联；输入期间普通状态刷新保留未提交名称 |
+| 删除提示词版本 | 同时删除关联试写与反馈；仅清空被删记录的选中 ID，保留当前草稿、预设来源及其他记录，不自动载入另一版本 |
+| 操作忙碌时改名或删除 | 界面禁用，核心拒绝；避免生成返回后产生找不到版本的试写 |
+| 删除最新或全部版本 | 编号计数器继续保存，新版本不复用已删编号 |
+| 旧版本没有编号 | 按原记录顺序补号，保留原名称、正文、ID、时间及试写关联；已有有效编号和计数器优先，新补编号从其后开始 |
 | 生成期间修改需求、草稿或选择版本 | 答复保留在讨论，避免覆盖期间编辑 |
 | 生成期间更新 API 设置 | 已开始请求继续使用开始时的设置快照 |
 | 配置名称为空或更新目标不存在 | 拒绝保存；地址与模型允许先留空，发起设计时再检查完整性 |
@@ -149,9 +159,9 @@ ST-YaKit-preinstall/
 
 独立演示使用 `localStorage['yakit.prompt-workbench.preview.v1']`，保留历史演示数据，与酒馆设置分开。通过本地静态服务打开 `preview.html`；该入口通过 `preview/preview.js` 复用 `app.js` 和 `shell-template.js`，只使用本地适配器。
 
-持久化内容包括设置、需求、草稿、讨论、版本、试写、反馈和选中记录。`profiles/mainApiLabel/contextLabel/canTrial/presets/selectedPresetName/presetEntries/presetSource/busy/error/notice` 不持久化。主题、导航样式、主副 API 与配置选择立即保存；API 编辑通过顶栏「保存」提交，提示词编辑通过「确认」提交。未提交的设计要求、试写要求、版本名称、反馈和预设条目编辑框属于视图临时内容；预设逐条编辑不进入工作记录持久化或导出。
+持久化内容包括设置、需求、草稿、讨论、版本、下次版本编号、试写、反馈和选中记录。`profiles/mainApiLabel/contextLabel/canTrial/presets/selectedPresetName/presetEntries/presetSource/busy/error/notice` 不持久化。主题、导航样式、主副 API 与配置选择立即保存；API 编辑通过顶栏「保存」提交，提示词编辑通过「确认」提交。未提交的设计要求、试写要求、提示词名称、反馈和预设条目编辑框属于视图临时内容；预设逐条编辑不进入工作记录持久化或导出。
 
-导出结构为 `{formatVersion: 1, ...savedState}`，其中排除副 API 密钥。预设条目通过独立按钮手动写回；未提供工作记录导入或删除入口。
+导出结构为 `{formatVersion: 1, ...savedState}`，其中排除副 API 密钥。预设条目通过独立按钮手动写回；版本可单独删除，未提供工作记录导入或整份记录清空入口。
 
 预设列表、条目和来源不进入工作记录；关闭后重开复用同一弹窗与工作台实例，重新加载页面才清除写回来源。普通设计可继续修改已载入条目的草稿，保存版本保留来源，选择已有版本则解除来源。预设读取不触发工作记录保存，加载工作记录失败时也不会因初始化读取预设而写回空记录。冲突检查基于当前酒馆内存；宿主保存接口不提供跨窗口事务校验。
 
@@ -172,6 +182,8 @@ ST-YaKit-preinstall/
 | `secondaryModel` | 空字符串；自定义模型名或酒馆连接的模型覆盖值 |
 | `secondaryKey` | 空字符串；随酒馆设置保存，导出时剔除 |
 | `goal` / `draft` | 空字符串；编辑和保存保留原始空白 |
+| `versions[].label` / `number` | 玩家填写的名称与稳定正整数编号；名称可改，编号在整个工作记录中递增 |
+| `nextVersionNumber` | 默认 `1`；下次保存使用的编号，删除版本不回退，恢复时至少高于所有现存编号 |
 | `profiles` | 环境提供的真实连接列表，条目为 `{id, name}` |
 | `presets` / `selectedPresetName` | 临时预设列表与选中名称；初始化采用酒馆当前聊天补全预设 |
 | `presetEntries` / `presetSource` | 临时条目列表与草稿来源 `{presetName, identifier, name, content}`；初始为空数组 / `null` |
@@ -237,6 +249,7 @@ Toast 根节点 `#yakit-wb-toast-root` 位于工作台弹窗或预览容器中�
 | `YaKitWorkbench.mountPresets(controller, root, {run, openPage})` | 绑定预设选择、明确重读与草稿写回控件，返回 `{render}` |
 | `YaKitWorkbench.mountPresetEntries(controller, root, {run, openPage})` | 绑定全部条目的编辑、逐条保存与草稿载入，返回 `{render, rebase}`；`rebase(state)` 在明确重读成功后更新原文基线 |
 | `YaKitWorkbench.mountNavigation(root, {onPageChange} = {})` | 返回 `{openPage}`，绑定五页常驻导航与快捷入口；切页回调用于清理设置草稿，从所属工作台容器读取读屏页名并管理焦点 |
+| `YaKitWorkbench.mountVersions(controller, root, {run})` | 返回 `{render, title}`，负责版本名称同步、选单、详情及同页删除确认，`title(version)` 返回名称和后置编号 |
 | `YaKitWorkbench.mountTheme(controller, container)` | 返回 `{sync, dispose}`；仅更新容器的 `data-theme`，酒馆主题变量直接继承，`dispose` 保留空操作契约 |
 | `YaKitWorkbench.state` / `.prompts` / `.settings` | 状态校验、保存快照、设计消息、答复解析、配置恢复与设置操作 |
 
@@ -257,8 +270,10 @@ Toast 根节点 `#yakit-wb-toast-root` 位于工作台弹窗或预览容器中�
 | `savePrompt(kind, text)` | 保存提示词原文；空白内置提示词恢复默认，破限提示词允许为空 |
 | `readApiProfile(profileId)` / `fetchApiModels(fields)` | 透传宿主配置读取和模型列表能力，返回值见下表；失败由设置编辑页显示 |
 | `design(instruction)` | 使用当前配置、需求、草稿和讨论生成提示词 |
-| `saveVersion(label)` | 保存草稿为独立版本；空名称自动编号 |
+| `saveVersion(label)` | 保存草稿为独立版本，生成稳定 `number` 并递增 `nextVersionNumber`；名称去除首尾空白，空名称使用「未命名提示词」 |
 | `selectVersion(id)` | 选择版本并恢复到草稿，解除此前预设来源绑定 |
+| `renameVersion(id, label)` | 只修改目标名称；空白名称、目标不存在或忙碌时拒绝 |
+| `deleteVersion(id)` | 删除目标及关联试写、反馈，清除被删除的选中 ID，保留草稿、预设来源和其他记录；目标不存在或忙碌时拒绝 |
 | `trial(input)` | 使用主 API 试写选定版本并保存关联 |
 | `selectTrial(id)` | 选择已有试写记录 |
 | `setFeedback(id, {status, note, excerpt})` | 校验并保存人工反馈 |
@@ -317,7 +332,7 @@ Toast 根节点 `#yakit-wb-toast-root` 位于工作台弹窗或预览容器中�
 const api = globalThis.YaKitWorkbench;
 const host = api.createSillyTavernHost(globalThis.YaKitWorkbenchHost.getContext);
 const saved = await host.loadState();
-console.table(api.state.initialState(saved).versions.map(({ id, label }) => ({ id, label })));
+console.table(api.state.initialState(saved).versions.map(({ id, label, number }) => ({ id, label, number })));
 const { selectedPresetName } = await host.listPresets();
 if (selectedPresetName) console.table((await host.readPreset(selectedPresetName)).entries);
 ```
@@ -334,10 +349,10 @@ if (selectedPresetName) console.table((await host.readPreset(selectedPresetName)
 | 正文试写 | 通过 `generateQuietPrompt` 使用当前聊天，`quietToLoud: false`、`skipWIAN: false` |
 | 试写条件 | 开始时记录连接、位置、聊天统计、作者注释及世界书选择，保存恢复和导出保持原快照 |
 | 独立演示 | 原有两版提示词及正文、独立 localStorage、反馈与取消；不调用真实模型 |
-| 版本与反馈 | 原文保存、不可变版本、正文引用、准确归因及按反馈修订 |
+| 版本与反馈 | 原文快照、自定义名称、稳定编号、改名与确认删除、正文引用、准确归因及按反馈修订 |
 | 预设条目 | 初始化读取当前聊天补全预设；「预设展示」列出全部条目，支持切换预设、逐条编辑保存、载入草稿与写回；独立演示不提供预设接口 |
 | 保存与导出 | 使用 `extensionSettings` 与 `saveSettingsDebounced`，支持复制及不含密钥的导出 |
-| 尚未接入 | 工作记录导入或删除、条目新增/删除/排序及名称/角色/开关编辑、其他类型预设；未提供独立的跨设备同步功能 |
+| 尚未接入 | 工作记录导入或整份记录清空、条目新增/删除/排序及名称/角色/开关编辑、其他类型预设；未提供独立的跨设备同步功能 |
 | 取消限制 | 主 API 无独立 AbortSignal 入口，不调用宿主全局停止接口；取消仅忽略结果，仍等待宿主完成 |
 | 兼容性 | 最低 SillyTavern 1.18.0；依赖上述生成与连接服务、宿主上下文，以及现代浏览器的 structuredClone、crypto.randomUUID、AbortController |
 | 验收状态 | 本地契约检查已覆盖核心和适配器；真实主副 API 调用及界面交互待用户人工验收 |
@@ -357,6 +372,8 @@ UI 代码位于 `ui/`、`styles/`、`style.css` 和页面模板；业务代码�
 | 脚本 | 覆盖内容 |
 | --- | --- |
 | `tests/core.test.mjs` | 版本、反馈归因、正文隔离、取消、格式错误、保存恢复、编辑保护、API 设置快照、密钥导出排除及历史恢复；6 项通过 |
+| `tests/versions-core.test.mjs` | 名称与编号分离、改名保持快照、删除关联清理与草稿保留、忙碌拒绝、旧数据补号、失败后的导出及删空重开 |
+| `tests/versions-ui.test.mjs` | 真实控制器与最小 DOM 检查名称输入保留、同名版本区分、改名、确认与取消、切换及忙碌撤销确认、删除后的空态与焦点 |
 | `tests/settings-core.test.mjs` | 旧配置迁移、多配置切换与编辑、默认提示词与下一次实际设计请求、全配置密钥导出排除 |
 | `tests/settings-ui.test.mjs` | 连接及模型结果过期、密钥解除引用、读取期间输入保留、提示词草稿与上下导航 |
 | `tests/api-profiles.mjs` | 连接与密钥回填、模型空值和错误、地址归一、模型覆盖、主连接不变及离线演示 |
@@ -406,5 +423,7 @@ v0.2.13 已通过下拉事件、原生下拉 Esc 和通知路由共 7 项本地�
 v0.2.14 已通过 35 项本地测试、API 配置与模型检查、弹窗动效及全部 JavaScript 语法检查；入口 25 个脚本和 87 个控件 ID 均已核对。新增检查覆盖设置迁移、全部配置密钥导出排除、提示词用于实际设计、二级草稿清理及异步回填。API 新建、切换、编辑、删除、真实模型列表、提示词确认与重置，以及上下导航和二级页动效仍由用户在酒馆人工验收。
 
 v0.2.15 已通过 36 项本地测试、API 配置与弹窗动效检查、全部 JavaScript 语法检查。检查覆盖原生弹窗单次挂载、失败重试、主题与样式作用范围、提示层、重开后环境刷新及离线演示；实际酒馆界面和内存差值待人工验证。
+
+v0.2.16 的独立提交快照已通过 13 项本地检查，覆盖版本编号、改名、确认与取消删除、关联清理、名称输入及草稿保留、旧记录恢复、通知路由和离线试写；相关 JavaScript 语法、组件导入、控件引用与版本一致性检查通过。实际酒馆界面继续由用户人工验收。
 
 SillyTavern 验收遵循本机 `AGENTS.md` 的人工流程。从扩展菜单打开工作台，在宽屏与窄屏检查五页尺寸随窗口调整、四周留白、滑动切页、独立滚动、关闭按钮和常驻导航；切换四种主题，核对窗口、控件、滚动条与选项弹层。检查长选项换行、键盘选择、关闭与重新打开保留输入，以及系统减少动态效果设置。在「预设展示」核对全部条目、折叠编辑、逐条保存及载入草稿。真实预设写回、模型调用和完整试写流程继续由用户人工验收。

@@ -22,6 +22,7 @@ import './ui/preset-entries-view.js';
 import './ui/preset-view.js';
 import './ui/toast.js';
 import './ui/select-view.js';
+import './ui/versions-view.js';
 import './ui/workbench-view.js';
 
 /** 在指定容器里挂载工作台，宿主和本地演示共用这一套组件。 */

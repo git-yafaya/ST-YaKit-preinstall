@@ -85,6 +85,7 @@
 .yakit-workbench .page-hint{font-size:12px;line-height:1.8;color:var(--muted);margin-top:16px}
 .yakit-workbench .version-empty{padding:48px 0;font-size:14px;line-height:1.8;color:var(--muted)}
 .yakit-workbench .version-details{margin-top:24px;padding-top:8px;border-top:1px solid var(--line)}
+.yakit-workbench .version-title{font-size:16px;font-weight:600;line-height:1.6;overflow-wrap:anywhere;margin:8px 0 16px}
 .yakit-workbench .version-content{font:inherit;font-size:14px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;margin:16px 0 8px}
 .yakit-workbench .settings-content{width:100%}
 .yakit-workbench .settings-content select{width:100%}

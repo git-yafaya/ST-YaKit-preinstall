@@ -32,7 +32,7 @@
           <div class="editor-footer"><span id="yakit-wb-draft-count">0 字</span></div>
           <div class="draft-save">
             ${workbench.presetSaveTemplate}
-            <div class="save-row"><label for="yakit-wb-version-label" class="sr-only">新版本名称</label><input id="yakit-wb-version-label" placeholder="版本名称（选填）" maxlength="80"><button type="button" id="yakit-wb-save-version" class="button button-secondary">保存为版本 <span aria-hidden="true">＋</span></button></div>
+            <div class="save-row"><label for="yakit-wb-version-label" class="sr-only">提示词名称（选填）</label><input id="yakit-wb-version-label" placeholder="提示词名称（选填）" maxlength="80"><button type="button" id="yakit-wb-save-version" class="button button-secondary">保存为版本 <span aria-hidden="true">＋</span></button></div>
             <div class="draft-links"><button type="button" class="button button-secondary" data-open-page="versions">查看版本记录</button><button type="button" class="button button-secondary" data-open-page="trial">前往试写 <span aria-hidden="true">→</span></button></div>
           </div>
         </section>

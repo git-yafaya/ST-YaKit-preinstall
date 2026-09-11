@@ -111,10 +111,33 @@ async function createWorkbench(host) {
             return change(() => {
                 required(state.draft, '提示词草稿');
                 const content = state.draft;
-                label = text(label, '版本名称') || `版本 ${state.versions.length + 1}`;
-                const version = { id: crypto.randomUUID(), label, content, createdAt: new Date().toISOString() };
+                label = text(label, '提示词名称') || '未命名提示词';
+                const version = { id: crypto.randomUUID(), label, number: state.nextVersionNumber++,
+                    content, createdAt: new Date().toISOString() };
                 state.versions.push(version); state.selectedVersionId = version.id;
                 revision++; state.notice = `已保存「${label}」。`;
+            });
+        },
+        renameVersion(id, label) {
+            return change(() => {
+                if (state.busy) throw new Error('请等待当前操作完成后再修改提示词名称。');
+                const version = find(state.versions, id, '提示词版本');
+                version.label = required(label, '提示词名称');
+                state.notice = `已改名为「${version.label}」。`;
+            });
+        },
+        deleteVersion(id) {
+            return change(() => {
+                if (state.busy) throw new Error('请等待当前操作完成后再删除版本。');
+                const version = find(state.versions, id, '提示词版本');
+                // 关联反馈随试写一起删除，保留当前草稿和预设绑定。
+                if (state.trials.some(item => item.versionId === version.id && item.id === state.selectedTrialId)) {
+                    state.selectedTrialId = '';
+                }
+                state.trials = state.trials.filter(item => item.versionId !== version.id);
+                state.versions = state.versions.filter(item => item.id !== version.id);
+                if (state.selectedVersionId === version.id) state.selectedVersionId = '';
+                state.notice = `已删除「${version.label}」及其关联试写和反馈。`;
             });
         },
         selectVersion(id) {

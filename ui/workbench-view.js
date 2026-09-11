@@ -6,13 +6,14 @@
     root.innerHTML = workbench.workbenchTemplate;
     const $ = id => root.querySelector(`#yakit-wb-${id}`);
     const statusNames = { pending: '待反馈', satisfied: '达到预期', revise: '还需修改' };
-    let messageKey = '', versionKey = '', trialKey = '', feedbackKey = '', selection = '';
+    let messageKey = '', trialKey = '', feedbackKey = '', selection = '';
     let lastNotice = '', lastError = '', shownError = '', errorCount = 0, noticeCount = 0;
     const toast = workbench.createToast(document, container);
     const selects = workbench.mountSelects(root);
     const settings = workbench.mountSettings(controller, root, { run, notify });
     const { openPage } = workbench.mountNavigation(root, { onPageChange: name => { if (name !== 'settings') settings.close(); } });
     const presets = workbench.mountPresets(controller, root, { run: action => run(action, true), openPage });
+    const versions = workbench.mountVersions(controller, root, { run: action => run(action, true) });
 
     function showNotice(state) {
       // 只提示新结果；错误存在时不让成功文案盖住它。
@@ -61,13 +62,13 @@
     function render(state) {
       settings.render(state);
       presets.render(state);
+      versions.render(state);
       setValue('goal', state.goal); setValue('draft', state.draft);
       const activeVersion = state.versions.find(item => item.id === state.selectedVersionId);
       const trial = currentTrial(state);
       $('draft-count').textContent = `${Array.from(state.draft).length} 字`;
-      $('draft-state').textContent = activeVersion?.content === state.draft ? `已保存 · ${activeVersion.label}` : '当前草稿 · 尚未保存为版本';
-      $('version-count').textContent = state.versions.length;
-      $('trial-version').textContent = activeVersion ? (activeVersion.content === state.draft ? `使用版本 · ${activeVersion.label}` : '草稿已修改，请先保存新版本') : '先保存一个提示词版本';
+      $('draft-state').textContent = activeVersion?.content === state.draft ? `已保存 · ${versions.title(activeVersion)}` : '当前草稿 · 尚未保存为版本';
+      $('trial-version').textContent = activeVersion ? (activeVersion.content === state.draft ? `使用 · ${versions.title(activeVersion)}` : '草稿已修改，请先保存新版本') : '先保存一个提示词版本';
       $('context-label').textContent = state.contextLabel || '当前聊天';
       $('busy-bar').hidden = !state.busy;
       $('busy-text').textContent = ({ trial: '正文 AI 正在试写…', 'preset-read': '正在读取预设…', 'preset-save': '正在保存预设条目…' })[state.busy] || '工作台 AI 正在生成…';
@@ -77,7 +78,6 @@
       $('trial-button').disabled = Boolean(state.busy) || !state.canTrial || !activeVersion || activeVersion.content !== state.draft;
       $('save-version').disabled = Boolean(state.busy) || !state.draft.trim();
       $('copy').disabled = !state.draft.trim();
-      $('versions').disabled = Boolean(state.busy) || !state.versions.length;
       $('trials').disabled = Boolean(state.busy) || !state.trials.length;
       $('save-feedback').disabled = Boolean(state.busy) || !trial;
       $('revise').disabled = Boolean(state.busy) || !trial;
@@ -110,17 +110,6 @@
         }));
         $('messages').scrollTop = $('messages').scrollHeight;
       }
-      const nextVersionKey = JSON.stringify([state.versions, state.selectedVersionId]);
-      if (versionKey !== nextVersionKey) {
-        versionKey = nextVersionKey;
-        setOptions('versions', state.versions.map(item => [item.id, item.label]), state.selectedVersionId, '尚未保存版本');
-        $('version-empty').hidden = Boolean(activeVersion);
-        $('version-details').hidden = !activeVersion;
-        // 版本页展示保存时的原文，编辑草稿不会覆盖这里。
-        $('version-content').textContent = activeVersion?.content || '';
-        const savedAt = new Date(activeVersion?.createdAt || '');
-        $('version-created-at').textContent = Number.isNaN(savedAt.getTime()) ? '未记录保存时间' : `保存于 ${savedAt.toLocaleString('zh-CN')}`;
-      }
       const nextTrialKey = JSON.stringify([state.trials.map(item => [item.id, item.feedback?.status]), state.selectedTrialId]);
       if (trialKey !== nextTrialKey) {
         trialKey = nextTrialKey;
@@ -129,7 +118,7 @@
       $('trial-empty').hidden = Boolean(trial);
       $('trial-output').hidden = !trial; $('feedback-section').hidden = !trial;
       const trialVersion = state.versions.find(item => item.id === trial?.versionId);
-      $('trial-context').textContent = trial ? `对应「${trialVersion?.label || '已保存版本'}」${trial.context?.explanation ? ` · ${trial.context.explanation}` : ''}` : '';
+      $('trial-context').textContent = trial ? `对应「${trialVersion ? versions.title(trialVersion) : '已保存版本'}」${trial.context?.explanation ? ` · ${trial.context.explanation}` : ''}` : '';
       $('trial-context').hidden = !trial;
       if ($('trial-output').textContent !== (trial?.content || '')) $('trial-output').textContent = trial?.content || '';
       const nextFeedbackKey = JSON.stringify([trial?.id, trial?.feedback]);
@@ -149,11 +138,6 @@
         if (!controller.getState().error) $('instruction').value = '';
       });
     });
-    $('save-version').addEventListener('click', () => run(async () => {
-      await controller.saveVersion($('version-label').value);
-      if (!controller.getState().error) $('version-label').value = '';
-    }, true));
-    $('versions').addEventListener('change', () => run(() => controller.selectVersion($('versions').value)));
     $('trial-button').addEventListener('click', () => run(() => controller.trial($('trial-input').value)));
     $('trials').addEventListener('change', () => run(() => controller.selectTrial($('trials').value)));
     $('cancel').addEventListener('click', () => run(() => controller.cancel()));
