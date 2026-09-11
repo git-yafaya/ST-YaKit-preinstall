@@ -26,13 +26,14 @@
       $('settings-primary').setAttribute('aria-hidden', String(!isPrimary));
       $('settings-secondary').inert = isPrimary;
       $('settings-secondary').setAttribute('aria-hidden', String(isPrimary));
-      // 复用原按钮和事件，API 页放到底栏，其他页面恢复顶栏顺序。
+      // 复用原按钮和事件，在 API 与提示词页的底栏之间移动。
       if (next === 'api') {
         $('settings-api-secondary-actions').append(header('settings-back'), header('settings-delete'));
         $('settings-api-footer').append(header('settings-save'));
         $('settings-api-fields').scrollTop = 0;
       } else {
         header('settings-actions').append(...['back', 'reset', 'delete', 'save'].map(name => header('settings-' + name)));
+        $('settings-prompt-fields').scrollTop = 0;
       }
       if (next === 'api') api.open(config); else api.close(isPrimary && previous === 'api');
       if (Object.hasOwn(workbench.promptTitles, next)) prompt.open(next); else prompt.close(isPrimary && previous !== 'primary' && previous !== 'api');

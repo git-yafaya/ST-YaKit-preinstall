@@ -40,9 +40,17 @@
               <div id="yakit-wb-settings-api-secondary-actions" class="settings-api-secondary-actions"></div>
             </div>
           </form>
-          <div id="yakit-wb-settings-prompt-page" class="panel panel-content settings-group settings-prompt-page" hidden>
-            <div class="field"><label id="yakit-wb-prompt-label" for="yakit-wb-prompt-text">提示词</label><textarea id="yakit-wb-prompt-text" rows="14" spellcheck="false"></textarea></div>
-            <p id="yakit-wb-prompt-help" class="page-hint"></p><p id="yakit-wb-prompt-status" class="page-hint" role="status"></p>
+          <div id="yakit-wb-settings-prompt-page" class="panel settings-prompt-page" hidden>
+            <div id="yakit-wb-settings-prompt-fields" class="panel-content settings-group settings-prompt-fields">
+              <div class="field"><label id="yakit-wb-prompt-label" for="yakit-wb-prompt-text">提示词</label><textarea id="yakit-wb-prompt-text" rows="14" spellcheck="false"></textarea></div>
+              <p id="yakit-wb-prompt-help" class="page-hint"></p><p id="yakit-wb-prompt-status" class="page-hint" role="status"></p>
+            </div>
+            <div id="yakit-wb-settings-actions" class="settings-api-footer" hidden>
+              <button id="yakit-wb-settings-back" class="button button-secondary" type="button">返回</button>
+              <button id="yakit-wb-settings-reset" class="button button-secondary" type="button" hidden>重置</button>
+              <button id="yakit-wb-settings-delete" class="button button-secondary" type="button" hidden>删除</button>
+              <button id="yakit-wb-settings-save" class="button button-primary" type="button">保存</button>
+            </div>
           </div>
         </div>
       </div>

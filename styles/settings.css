@@ -30,20 +30,15 @@
 .yakit-workbench .navigation-options input:checked+span{background:var(--selected);color:var(--accent)}
 .yakit-workbench .navigation-options input:focus-visible+span{outline:2px solid var(--focus);outline-offset:2px}
 .yakit-workbench #yakit-wb-api-fetch-models{align-self:flex-start}
-/* 表单内容独立滚动，底部返回、删除和保存始终可见。 */
-.yakit-workbench .settings-body:has(>.settings-api-page:not([hidden])){overflow:hidden}
-.yakit-workbench .settings-api-page{display:flex;flex-direction:column;height:100%;min-height:0}
-.yakit-workbench .settings-api-fields{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
+/* 编辑内容独立滚动，底部操作始终可见。 */
+.yakit-workbench .settings-body:has(>:is(.settings-api-page,.settings-prompt-page):not([hidden])){overflow:hidden}
+.yakit-workbench .settings-api-page,.yakit-workbench .settings-prompt-page{display:flex;flex-direction:column;height:100%;min-height:0}
+.yakit-workbench .settings-api-fields,.yakit-workbench .settings-prompt-fields{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
 .yakit-workbench .settings-api-footer{display:flex;flex-shrink:0;justify-content:space-between;align-items:center;gap:8px;padding:14px 16px;border-top:1px solid var(--line)}
 .yakit-workbench .settings-api-secondary-actions{display:flex;flex-wrap:wrap;gap:8px}
 .yakit-workbench .settings-api-footer>.button{flex-shrink:0}
-.yakit-workbench .settings-prompt-page{min-height:100%}
-.yakit-workbench .settings-prompt-page>.field{display:flex;flex:1;flex-direction:column;min-height:220px}
+.yakit-workbench .settings-prompt-fields>.field{display:flex;flex:1;flex-direction:column;min-height:220px}
 .yakit-workbench .settings-prompt-page textarea{flex:1;resize:vertical}
+.yakit-workbench #yakit-wb-settings-actions>#yakit-wb-settings-save{margin-left:auto}
 .yakit-workbench .prompt-modified{color:color-mix(in srgb,#C0392B 60%,var(--text))}
-.yakit-workbench #yakit-wb-settings-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
-.yakit-workbench .app-toolbar #yakit-wb-settings-actions .button{flex:0 0 auto;width:auto;padding:0 10px;font-size:12px}
-.yakit-workbench .app-toolbar:has(#yakit-wb-settings-actions:not([hidden])) #yakit-wb-workbench-close{margin-left:0}
-.yakit-workbench .app-toolbar:has(#yakit-wb-settings-actions:not([hidden])) .app-brand{font-size:14px}
-@media(max-width:600px){.yakit-workbench .app-toolbar:has(#yakit-wb-settings-actions:not([hidden])) .app-brand{display:none}}
-@media(max-width:480px){.yakit-workbench .settings-body{padding:14px}.yakit-workbench .settings-api-footer{padding:12px}.yakit-workbench .api-config-list{grid-template-columns:minmax(0,1fr)}.yakit-workbench #yakit-wb-settings-actions{gap:4px}.yakit-workbench .app-toolbar #yakit-wb-settings-actions .button{padding-inline:7px}}
+@media(max-width:480px){.yakit-workbench .settings-body{padding:14px}.yakit-workbench .settings-api-footer{padding:12px}.yakit-workbench .api-config-list{grid-template-columns:minmax(0,1fr)}}
