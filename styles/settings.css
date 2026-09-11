@@ -15,7 +15,9 @@
 .yakit-workbench .settings-group select{width:100%}
 .yakit-workbench .settings-group [role="status"]:empty{display:none}
 .yakit-workbench .api-config-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end}
-.yakit-workbench .api-config-toolbar>.button{min-height:40px}
+/* 移除选框下方的行内基线留白，让选框与配置按钮等高对齐。 */
+.yakit-workbench .api-config-toolbar>.field{display:flex;flex-direction:column;min-width:0}
+.yakit-workbench .api-config-toolbar select,.yakit-workbench .api-config-toolbar>.button{height:40px;min-height:40px}
 .yakit-workbench .api-config-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .yakit-workbench .settings-entry{display:flex;flex-direction:column;gap:6px;padding:12px 14px;color:var(--text);font:inherit;text-align:left;overflow-wrap:anywhere}
 .yakit-workbench .settings-entry:hover{background:var(--surface)}
