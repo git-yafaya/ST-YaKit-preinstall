@@ -91,15 +91,10 @@ function createActions({ state, host, run, change, persist, emit, fail, find, is
             return run('scenario', async operation => {
                 const result = await generateScenario(host, { goal, content, assistPrompts, settings,
                     signal: operation.controller.signal, isActive: () => isActive(operation),
-                    // 编写结果保留在讨论中，执行失败或取消后仍可阅读和导出。
-                    onPrompt: async prompt => {
-                        state.messages.push({ role: 'assistant', content: `本次需求：\n${goal}\n\n冲突场景生成提示词：\n${prompt}` });
-                        emit(); await persist();
-                    },
                 });
                 if (!result || !isActive(operation)) return;
                 if (getRevision() === revision) {
-                    state.scenarioPrompt = result.scenarioPrompt; state.scenarioText = result.scenario;
+                    state.scenarioPrompt = ''; state.scenarioText = result.scenario;
                     state.sceneSource = 'ai'; state.notice = '测试场景已生成，可编辑后开始测试。';
                 }
                 else state.notice = '生成期间需求、草稿或场景已修改，本次生成未覆盖当前输入。';
@@ -138,11 +133,9 @@ function createActions({ state, host, run, change, persist, emit, fail, find, is
                     if (!task.scenario) {
                         const generated = await generateScenario(host, { goal, content: version.content, assistPrompts,
                             settings: settings.scenario, signal: operation.controller.signal, isActive: () => isActive(operation),
-                            // 先保存编写结果，执行场景失败后仍能导出本次提示词。
-                            onPrompt: async prompt => { task.scenarioPrompt = prompt; await persist(); },
                         });
                         if (!generated || !isActive(operation)) return;
-                        task.scenarioPrompt = generated.scenarioPrompt; task.scenario = generated.scenario;
+                        task.scenario = generated.scenario;
                         if (getRevision() === revision) {
                             state.scenarioPrompt = task.scenarioPrompt; state.scenarioText = task.scenario;
                         }
