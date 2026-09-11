@@ -45,6 +45,15 @@ async function createWorkbench(host) {
         state.versions.push(version);
         return version;
     };
+    const addAutoVersion = (name, content = state.draft) => {
+        const version = addVersion('', content);
+        // 名称按保存时的本地日期生成，与记录时间保持同一瞬间。
+        const savedAt = new Date(version.createdAt);
+        const date = String(savedAt.getFullYear()).padStart(4, '0')
+            + [savedAt.getMonth() + 1, savedAt.getDate()].map(value => String(value).padStart(2, '0')).join('');
+        version.label = `${name}-${version.number}-${date}`;
+        return version;
+    };
     const run = async (kind, action) => {
         if (active) return fail(new Error(state.busy === 'preset-save'
             ? '请等待预设写回完成。' : '请等待当前操作完成，或先取消。'));
@@ -68,6 +77,8 @@ async function createWorkbench(host) {
     const design = async (instruction, sourceDraft) => {
         let messages, settings, count, goal, assistPrompts, combined = false;
         const forceRevise = sourceDraft !== undefined;
+        // 固定本轮条目名称，等待答复时切换版本也不会改名。
+        const presetEntryName = state.presetSource?.name.trim() || '提示词';
         try {
             // 历史反馈已有对应条目和意见，不受当前需求框是否为空影响。
             if (!forceRevise) required(state.goal, '需求');
@@ -98,7 +109,7 @@ async function createWorkbench(host) {
                 try {
                     const result = parseDesign(reply);
                     if (combined) required(result.scenarioPrompt, '合并答复中的场景生成提示词');
-                    const version = count > 1 ? addVersion(`生成提示词 ${state.nextVersionNumber}（第 ${index + 1} 份）`, result.prompt) : null;
+                    const version = count > 1 ? addAutoVersion(presetEntryName, result.prompt) : null;
                     results[index] = { ...result, version };
                 } finally {
                     // 格式错误的原始答复也保留，取消后不丢掉已经收到的内容。
@@ -113,7 +124,7 @@ async function createWorkbench(host) {
             if (result && unchanged) {
                 if (state.draft.trim() && state.draft !== result.prompt
                     && !state.versions.some(version => version.content === state.draft)) {
-                    addVersion(`自动保留 ${state.nextVersionNumber}`);
+                    addAutoVersion(presetEntryName);
                 }
                 if (!forceRevise && result.action !== 'revise') state.selectedVersionId = '';
                 // 反馈版本没有预设来源记录，不能沿用当前条目的写回目标。
