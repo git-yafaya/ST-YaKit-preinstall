@@ -78,7 +78,7 @@ async function createWorkbench(host) {
             if (combined) {
                 const scenarioSettings = scenarios.moduleSettings(state, 'scenario');
                 if (JSON.stringify(settings) !== JSON.stringify(scenarioSettings)) throw new Error('合并生成需要为提示词设计和场景选择同一个 API。');
-                messages = scenarios.combinedMessages(messages);
+                messages = scenarios.combinedMessages(messages, state.assistPrompts);
             }
         } catch (error) { return fail(error); }
         return run('design', async operation => {
@@ -193,7 +193,7 @@ async function createWorkbench(host) {
             try {
                 const trial = find(state.trials, id, '试写记录');
                 version = find(state.versions, trial.versionId, '试写关联版本');
-                instruction = feedbackInstruction(trial, version);
+                instruction = feedbackInstruction(trial, version, state.assistPrompts);
             } catch (error) { return fail(error); }
             return design(instruction, version.content);
         },

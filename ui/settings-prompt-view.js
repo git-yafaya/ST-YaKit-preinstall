@@ -1,6 +1,13 @@
 (() => {
   const workbench = globalThis.YaKitWorkbench ??= {};
-  workbench.promptTitles = { builtin: '内置提示词', custom: '破限提示词' };
+  const help = {
+    builtin: '引导工作台 AI 设计和修改提示词。',
+    custom: '随破限提示词一起发送给工作台 AI，可留空。',
+    scenario: '生成检验需求的冲突场景。',
+    judge: '拆解需求、检查样本并评分。',
+    feedback: '根据人工反馈引导下一版提示词的修订。',
+    chatScenario: '关闭空卡模式时，引导当前聊天生成试写。',
+  };
   workbench.mountSettingsPrompt = function(controller, root) {
     const $ = id => root.querySelector(`#yakit-wb-${id}`);
     let kind = '', revision = 0;
@@ -14,7 +21,7 @@
       open(next) {
         revision++; kind = next;
         $('prompt-text').value = controller.getPrompt(kind).text;
-        $('prompt-help').textContent = kind === 'builtin' ? '引导工作台 AI 设计和修改提示词。' : '与内置提示词一起发送给工作台 AI。';
+        $('prompt-help').textContent = help[kind];
         $('prompt-status').textContent = '';
         $('settings-prompt-page').hidden = false; refresh();
       },

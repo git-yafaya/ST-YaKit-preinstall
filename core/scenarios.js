@@ -6,10 +6,7 @@ const defaults = {
     sampleRequestMode: 'parallel', combineDesignScenario: false,
     moduleApis: { design: 'default', scenario: 'default', sample: 'main', judge: 'default' },
 };
-const SCENARIO_INSTRUCTION = `你是提示词压力测试场景设计员。只输出一个可直接作为 user 消息的完整测试场景，不输出答案、不续写聊天。
-从原始需求和候选提示词抽取可检验约束，设计有具体人物、动机、信息差和冲突诱因的极限场景。
-必须包含会诱发违反约束的明确请求或事件，角色不知道的信息与读者知道的信息要分清；涉及玩家决定时设置诱因，但把最终决定留给玩家。
-场景应足以区分是否遵守需求，避免泛泛的“继续故事”；所有样本将收到完全相同的场景。`;
+const { promptText } = globalThis.YaKitWorkbench;
 
 function settingValue(key, value) {
     if (!Object.hasOwn(defaults, key)) return undefined;
@@ -50,13 +47,13 @@ function moduleSettings(state, module) {
         secondaryProfileId: config.profileId, secondaryUrl: config.url, secondaryModel: config.model, secondaryKey: config.apiKey });
 }
 
-function messages(goal, content) {
-    return [{ role: 'system', content: SCENARIO_INSTRUCTION },
+function messages(goal, content, assistPrompts) {
+    return [{ role: 'system', content: promptText(assistPrompts, 'scenario') },
         { role: 'user', content: JSON.stringify({ goal: required(goal, '原始需求'), candidate: content }) }];
 }
 
-function combinedMessages(designMessages) {
-    return [...designMessages, { role: 'system', content: `${SCENARIO_INSTRUCTION}\n本次与提示词设计合并：仍只输出原设计 JSON，并额外增加 scenario 字段保存完整测试场景。` }];
+function combinedMessages(designMessages, assistPrompts) {
+    return [...designMessages, { role: 'system', content: `${promptText(assistPrompts, 'scenario')}\n本次与提示词设计合并：仍只输出原设计 JSON，并额外增加 scenario 字段保存完整测试场景。` }];
 }
 
 globalThis.YaKitWorkbench.scenarios = { defaults, settingValue, restore, moduleSettings, messages, combinedMessages };

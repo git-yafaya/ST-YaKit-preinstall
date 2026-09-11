@@ -3,6 +3,7 @@
 const { clone, required, text } = globalThis.YaKitWorkbench.state;
 const { moduleSettings, messages: scenarioMessages } = globalThis.YaKitWorkbench.scenarios;
 const judgement = globalThis.YaKitWorkbench.judgement;
+const { promptText } = globalThis.YaKitWorkbench;
 const snapshotSettings = state => ({ emptyCardMode: state.emptyCardMode, sampleCount: state.sampleCount,
     sampleRequestMode: state.sampleRequestMode, moduleApis: clone(state.moduleApis) });
 
@@ -44,14 +45,14 @@ function restore(state, saved) {
 }
 
 function createActions({ state, host, run, change, persist, emit, fail, find, isActive, getRevision }) {
-    const judge = async (task, operation, settings) => {
+    const judge = async (task, operation, settings, instruction) => {
         const trials = task.trialIds.map(id => find(state.trials, id, '测试样本'));
         if (!trials.length) throw new Error('这个测试任务还没有可评分的样本。');
         // 用随机键打乱顺序并分配新标签，发送内容不包含候选提示词、版本和设计记录。
         const anonymous = trials.map(trial => ({ trial, key: crypto.randomUUID() })).sort((a, b) => a.key.localeCompare(b.key))
             .map(({ trial }, index) => ({ trialId: trial.id, label: `样本${String.fromCharCode(65 + index)}`, content: trial.content }));
         task.status = 'judging'; task.error = ''; emit();
-        const reply = await host.design([{ role: 'system', content: judgement.instruction }, { role: 'user', content: JSON.stringify({
+        const reply = await host.design([{ role: 'system', content: instruction }, { role: 'user', content: JSON.stringify({
             goal: task.goal, scenario: task.scenario, samples: anonymous.map(({ label, content }) => ({ label, content })),
         }) }], { settings, purpose: 'judge', signal: operation.controller.signal });
         if (!isActive(operation)) return;
@@ -79,7 +80,7 @@ function createActions({ state, host, run, change, persist, emit, fail, find, is
     return {
         generateScenario() {
             let settings, messages;
-            try { settings = moduleSettings(state, 'scenario'); messages = scenarioMessages(state.goal, state.draft); }
+            try { settings = moduleSettings(state, 'scenario'); messages = scenarioMessages(state.goal, state.draft, state.assistPrompts); }
             catch (error) { return fail(error); }
             const revision = getRevision();
             return run('scenario', async operation => {
@@ -107,6 +108,9 @@ function createActions({ state, host, run, change, persist, emit, fail, find, is
                 }
             } catch (error) { return fail(error); }
             const runtime = snapshotSettings(state), sceneSource = state.sceneSource;
+            // 本任务沿用开始时保存的引导词，生成期间编辑设置不会改变后续请求。
+            const assistPrompts = Object.fromEntries(['scenario', 'judge', 'chatScenario']
+                .map(kind => [kind, promptText(state.assistPrompts, kind)]));
             const revision = getRevision();
             return run('trial', async operation => {
                 const task = { id: crypto.randomUUID(), versionId: version.id, versionLabel: version.label, versionNumber: version.number,
@@ -117,7 +121,7 @@ function createActions({ state, host, run, change, persist, emit, fail, find, is
                     await persist();
                     if (!isActive(operation)) return;
                     if (!task.scenario) {
-                        const generated = required(await host.design(scenarioMessages(goal, version.content), {
+                        const generated = required(await host.design(scenarioMessages(goal, version.content, assistPrompts), {
                             settings: settings.scenario, signal: operation.controller.signal, purpose: 'scenario',
                         }), '测试场景');
                         if (!isActive(operation)) return;
@@ -130,7 +134,8 @@ function createActions({ state, host, run, change, persist, emit, fail, find, is
                     if (!isActive(operation)) return;
                     const sample = async (count, index) => {
                         const result = await host.trial({ content: task.content, input: task.scenario, emptyCardMode: runtime.emptyCardMode,
-                            sampleCount: count, sampleRequestMode: runtime.sampleRequestMode },
+                            sampleCount: count, sampleRequestMode: runtime.sampleRequestMode,
+                            ...(runtime.emptyCardMode ? {} : { chatScenario: assistPrompts.chatScenario }) },
                         { settings: settings.sample, signal: operation.controller.signal });
                         if (!isActive(operation)) return;
                         const results = Array.isArray(result?.samples) ? result.samples : [result];
@@ -157,7 +162,7 @@ function createActions({ state, host, run, change, persist, emit, fail, find, is
                         if (failed) throw failed.reason;
                     }
                     if (!isActive(operation)) return;
-                    await judge(task, operation, settings.judge);
+                    await judge(task, operation, settings.judge, assistPrompts.judge);
                 });
             });
         },
@@ -171,10 +176,13 @@ function createActions({ state, host, run, change, persist, emit, fail, find, is
             });
         },
         judgeTestTask(id) {
-            let task, settings;
-            try { task = find(state.testTasks, id, '测试任务'); settings = moduleSettings(state, 'judge'); }
+            let task, settings, instruction;
+            try {
+                task = find(state.testTasks, id, '测试任务'); settings = moduleSettings(state, 'judge');
+                instruction = promptText(state.assistPrompts, 'judge');
+            }
             catch (error) { return fail(error); }
-            return run('judge', operation => track(task, operation, () => judge(task, operation, settings)));
+            return run('judge', operation => track(task, operation, () => judge(task, operation, settings, instruction)));
         },
         preferTrial(id) {
             return change(() => {

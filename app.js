@@ -1,4 +1,5 @@
 import './core/state.js';
+import './core/prompt-defaults.js';
 import './core/prompts.js';
 import './core/settings.js';
 import './core/presets.js';

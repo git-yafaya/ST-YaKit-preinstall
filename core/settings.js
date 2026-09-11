@@ -2,6 +2,7 @@
 'use strict';
 const { rawText, required, text } = globalThis.YaKitWorkbench.state;
 const { INSTRUCTION, LEGACY_INSTRUCTION } = globalThis.YaKitWorkbench.prompts;
+const { promptDefaults, promptText } = globalThis.YaKitWorkbench;
 
 function configFields(fields) {
     if (!fields || typeof fields !== 'object' || Array.isArray(fields)) throw new Error('API 配置格式不正确。');
@@ -22,10 +23,7 @@ function syncSelection(state, selected) {
 }
 
 function getPrompt(state, kind) {
-    if (!['builtin', 'custom'].includes(kind)) throw new Error('提示词类型不正确。');
-    const defaultText = kind === 'builtin' ? INSTRUCTION : '';
-    const saved = state.assistPrompts?.[kind];
-    return { text: typeof saved === 'string' && (kind === 'custom' || saved.trim()) ? saved : defaultText, defaultText };
+    return { text: promptText(state.assistPrompts, kind), defaultText: promptDefaults[kind] };
 }
 
 function syncLegacyFields(state, fields) {
@@ -66,7 +64,7 @@ function restoreSettings(state, saved) {
         state.secondaryApiConfigs.push(config);
         state.activeSecondaryApiId = config.id;
     }
-    state.assistPrompts = Object.fromEntries(['builtin', 'custom'].map(kind => [kind, getPrompt(saved || {}, kind).text]));
+    state.assistPrompts = Object.fromEntries(Object.keys(promptDefaults).map(kind => [kind, getPrompt(saved || {}, kind).text]));
     // 仅迁移逐字相同的旧默认文案，保留用户编辑过的提示词。
     if (state.assistPrompts.builtin === LEGACY_INSTRUCTION) state.assistPrompts.builtin = INSTRUCTION;
 }
@@ -112,9 +110,8 @@ function createSettingsActions({ state, host, change }) {
         getPrompt: kind => getPrompt(state, kind),
         savePrompt(kind, value) {
             return change(() => {
-                const { defaultText } = getPrompt(state, kind);
                 const prompt = rawText(value, '提示词');
-                state.assistPrompts[kind] = kind === 'builtin' && !prompt.trim() ? defaultText : prompt;
+                state.assistPrompts[kind] = promptText({ [kind]: prompt }, kind);
                 state.notice = '提示词已保存。';
             });
         },

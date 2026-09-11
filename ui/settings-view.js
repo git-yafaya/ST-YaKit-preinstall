@@ -35,7 +35,7 @@
         header('settings-actions').append(...['back', 'reset', 'delete', 'save'].map(name => header('settings-' + name)));
       }
       if (next === 'api') api.open(config); else api.close(isPrimary && previous === 'api');
-      if (next === 'builtin' || next === 'custom') prompt.open(next); else prompt.close(isPrimary && previous !== 'primary' && previous !== 'api');
+      if (Object.hasOwn(workbench.promptTitles, next)) prompt.open(next); else prompt.close(isPrimary && previous !== 'primary' && previous !== 'api');
       if (!isPrimary) { returnButton = button; $('settings-secondary').scrollTop = 0; }
       syncActions();
       if (!isPrimary) header('settings-back').focus({ preventScroll: true });

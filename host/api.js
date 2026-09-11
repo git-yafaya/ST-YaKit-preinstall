@@ -65,6 +65,7 @@
                     if (mode === 'single' && count > 1) throw new Error('当前聊天模式不支持单次多样本，请改用独立请求。');
                 }
                 checkAbort(signal);
+                const chatScenario = emptyCardMode ? '' : globalThis.YaKitWorkbench.promptText({ chatScenario: request.chatScenario }, 'chatScenario');
                 if (emptyCardMode && !preparedTrials.has(settings)) settings = prepareTrialSettings(settings);
                 const prepared = preparedTrials.get(settings);
                 const messages = [{ role: 'system', content }, { role: 'user', content: input }];
@@ -77,7 +78,7 @@
                         return values.map(value => ({ content: value, context: structuredClone(captured) }));
                     }
                     const options = {
-                        quietPrompt: `${content}\n\n本次试写以以下场景为准；已有背景与之冲突时采用本次场景：\n${input}`,
+                        quietPrompt: `${content}\n\n${chatScenario}\n${input}`,
                         quietToLoud: false, skipWIAN: false,
                     };
                     const captured = globalThis.YaKitWorkbench.captureTrialContext(context, options, input);

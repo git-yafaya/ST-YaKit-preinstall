@@ -1,5 +1,6 @@
 (() => {
   const workbench = globalThis.YaKitWorkbench ??= {};
+  workbench.promptTitles = { builtin: '破限提示词', custom: '补充提示词', scenario: '场景生成提示词', judge: '裁判提示词', feedback: '反馈修订提示词', chatScenario: '聊天试写提示词' };
   workbench.settingsTemplate = `
     <section id="yakit-wb-settings-page" class="page settings-panel" aria-label="设置" tabindex="-1" hidden>
       <div class="settings-track">
@@ -19,9 +20,8 @@
             <label class="test-toggle"><input id="yakit-wb-combine-design-scenario" type="checkbox"><span>生成提示词时，一次请求同时生成冲突场景</span></label>
             <p class="page-hint">需在试写页选择 AI 场景，并为提示词与场景指定同一个 API。</p>
           </div></details>
-          <details class="panel settings-card"><summary class="button">提示词</summary><div class="panel-content settings-group">
-            <button id="yakit-wb-prompt-builtin" type="button" class="panel settings-entry" aria-controls="yakit-wb-settings-prompt-page">内置提示词</button>
-            <button id="yakit-wb-prompt-custom" type="button" class="panel settings-entry" aria-controls="yakit-wb-settings-prompt-page">破限提示词</button>
+          <details class="panel settings-card"><summary class="button">内置提示词</summary><div class="panel-content settings-group">
+            ${Object.entries(workbench.promptTitles).map(([kind, title]) => `<button id="yakit-wb-prompt-${kind}" type="button" class="panel settings-entry" aria-controls="yakit-wb-settings-prompt-page">${title}</button>`).join('')}
           </div></details>
         </div>
         <div id="yakit-wb-settings-secondary" class="settings-body" inert aria-hidden="true">
