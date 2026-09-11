@@ -5,7 +5,6 @@
     const title = version => `${version.label} · 版本 ${version.number}`;
     let versionKey = '', selectedId = '', selectedLabel = '', pendingDeleteId = '';
 
-    $('save-version').addEventListener('click', () => run(() => controller.saveVersion($('version-label').value)));
     $('versions').addEventListener('change', () => run(() => controller.selectVersion($('versions').value)));
     $('rename-version').addEventListener('click', () => run(() => controller.renameVersion(controller.getState().selectedVersionId, $('saved-version-label').value)));
     $('delete-version').addEventListener('click', () => {
@@ -45,7 +44,6 @@
 
       // 普通重绘保留正在输入的名称；切换版本时才载入对应名称。
       if (selectedId !== (version?.id || '') || selectedLabel !== (version?.label || '')) {
-        if (version && (selectedId !== version.id || $('version-label').value === selectedLabel)) $('version-label').value = version.label;
         $('saved-version-label').value = version?.label || '';
         selectedId = version?.id || ''; selectedLabel = version?.label || '';
       }

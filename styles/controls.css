@@ -76,8 +76,9 @@
 .yakit-workbench .button>span[aria-hidden="true"]{font-size:15px;font-weight:400}
 .yakit-workbench summary.button{list-style:none;white-space:normal;overflow-wrap:anywhere}
 .yakit-workbench summary.button::-webkit-details-marker{display:none}
-.yakit-workbench summary.button::after{content:"";flex:0 0 6px;width:6px;height:6px;margin-left:4px;border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:rotate(45deg);transition:transform .15s ease}
-.yakit-workbench details[open]>summary.button::after{transform:rotate(225deg)}
+/* 查看提示词按钮沿用折叠控件的箭头和展开动效。 */
+.yakit-workbench summary.button::after,.yakit-workbench .message-prompt-toggle::after{content:"";flex:0 0 6px;width:6px;height:6px;margin-left:4px;border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:rotate(45deg);transition:transform .15s ease}
+.yakit-workbench details[open]>summary.button::after,.yakit-workbench .message-prompt-toggle[aria-expanded="true"]::after{transform:rotate(225deg)}
 .yakit-workbench .busy-bar{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;max-width:calc(100% - 28px);width:max-content;padding:10px 18px;border-radius:12px;border:1px solid var(--line);background:var(--paper);box-shadow:0 6px 24px #0000001f;font-size:13px;z-index:5}
 .yakit-workbench .busy-bar .button{margin-left:8px;flex-shrink:0}
 .yakit-workbench .spinner{width:13px;height:13px;flex-shrink:0;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:yakit-wb-spin 1s linear infinite}

@@ -1,17 +1,20 @@
 .yakit-workbench .status-dot{width:5px;height:5px;display:inline-block;border-radius:50%;background:var(--accent)}
-.yakit-workbench .workbench{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}
+.yakit-workbench .workbench{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr));gap:14px;align-items:stretch;height:100%;min-height:0}
 .yakit-workbench .panel{background:var(--paper);border:1px solid var(--line);border-radius:12px;min-width:0;overflow:hidden}
+/* 需求与讨论分别滚动，始终沿用工作台的可用高度。 */
+.yakit-workbench .workbench>.panel{min-height:0;max-height:100%;overflow:auto}
 .yakit-workbench .subtle-badge{font-size:12px;color:var(--muted);background:var(--selected);padding:2px 10px;border-radius:999px;white-space:nowrap}
 .yakit-workbench .panel-content{padding:14px 16px}
 .yakit-workbench .field>label{display:block;margin-bottom:8px}
-.yakit-workbench .conversation-label{display:flex;justify-content:space-between;gap:10px;margin:16px 0 10px;font-size:12px;color:var(--muted)}
-.yakit-workbench .messages{max-height:320px;overflow:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:4px}
+.yakit-workbench .conversation-label{display:flex;justify-content:space-between;gap:10px;margin:0 0 10px;font-size:12px;color:var(--muted)}
+.yakit-workbench .messages{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:4px}
 .yakit-workbench .message{font-size:14px;line-height:1.6;padding:12px;border-radius:8px;white-space:pre-wrap;overflow-wrap:anywhere}
 .yakit-workbench .message-assistant{background:var(--surface);color:var(--text)}
 .yakit-workbench .message-user{background:var(--selected);color:var(--text);margin-left:16px}
 .yakit-workbench .message-role{display:block;font-size:11px;margin-bottom:7px;color:var(--muted);font-weight:600}
-.yakit-workbench .design-panel{display:flex;flex-direction:column}
+.yakit-workbench .design-panel,.yakit-workbench .discussion-panel{display:flex;flex-direction:column}
 .yakit-workbench .design-content{flex:1}
+.yakit-workbench .discussion-content{display:flex;flex-direction:column;flex:1;min-height:0}
 .yakit-workbench .composer{margin:14px 0 0;border:1px solid var(--line);border-radius:8px;background:var(--field);overflow:hidden}
 .yakit-workbench .composer textarea{border:0;border-radius:0;min-height:80px}
 .yakit-workbench .composer:focus-within{border-color:var(--focus)}
@@ -20,10 +23,8 @@
 .yakit-workbench .design-count input{width:76px}
 .yakit-workbench .design-count input:disabled{opacity:.5;cursor:not-allowed}
 .yakit-workbench .composer-actions>.page-hint{flex-basis:100%;margin-top:0}
-.yakit-workbench .draft-panel{display:flex;flex-direction:column}
 .yakit-workbench .preset-picker{border-bottom:1px solid var(--line);flex-shrink:0}
 .yakit-workbench .preset-picker select{flex:1 1 140px;width:0}
-.yakit-workbench .preset-save .page-hint{margin-top:0}
 .yakit-workbench .preset-entries{display:flex;flex-direction:column;gap:14px}
 .yakit-workbench .preset-entry-row{position:relative}
 .yakit-workbench .preset-entry{border-radius:14px;min-width:0}
@@ -36,11 +37,6 @@
 .yakit-workbench .preset-entry-body .page-hint{margin:10px 0}
 .yakit-workbench .preset-prompt-picker{margin-bottom:14px}
 .yakit-workbench .preset-prompt-picker select{flex:1 1 140px;width:0}
-.yakit-workbench .preset-save{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-.yakit-workbench .preset-save .page-hint{flex:1 1 160px;overflow-wrap:anywhere}
-.yakit-workbench .draft-toolbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;padding:12px 16px;color:var(--muted);font-size:12px}
-.yakit-workbench .draft-editor{width:calc(100% - 32px);margin:0 16px 14px;min-height:240px;flex:1}
-.yakit-workbench .editor-footer{display:flex;justify-content:space-between;padding:10px 16px;font-size:12px;color:var(--muted);border-top:1px solid var(--line)}
 .yakit-workbench .section-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .yakit-workbench .section-row h3{font-size:13px;font-weight:600}
 .yakit-workbench .section-row h3 span{margin-left:5px;color:var(--muted);font-size:11px;font-weight:400}
@@ -79,7 +75,6 @@
 .yakit-workbench .feedback-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
 .yakit-workbench .feedback-state{margin-top:10px;font-size:11px;color:var(--muted);text-align:right}
 
-.yakit-workbench .draft-save{border-top:1px solid var(--line);padding:14px 16px;background:var(--paper)}
 .yakit-workbench .trial-reading{display:grid;grid-template-columns:minmax(0,1fr);border-top:1px solid var(--line);align-items:start}
 .yakit-workbench .trial-reading:has(.feedback-section[hidden]){grid-template-columns:1fr}
 .yakit-workbench .trial-result{min-width:0}
@@ -102,22 +97,19 @@
 .yakit-workbench .message-prompt{margin-top:10px}
 .yakit-workbench .message-prompt summary{max-width:100%;line-height:normal}
 .yakit-workbench .message-prompt>div{padding-top:8px}
+.yakit-workbench .message-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;white-space:normal}
+.yakit-workbench .message-prompt-body{padding-top:8px;white-space:pre-wrap}
 @media(min-width:960px){
-  .yakit-workbench .workbench{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;height:100%;min-height:0}
-  .yakit-workbench .workbench>.panel{max-height:100%;overflow:auto}
-  .yakit-workbench .design-content{display:grid;grid-template-rows:1fr auto auto auto}
+  .yakit-workbench .workbench{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr)}
+  .yakit-workbench .design-content{display:grid;grid-template-rows:1fr auto}
   .yakit-workbench .design-content>.field{display:flex;flex-direction:column}
   .yakit-workbench .design-content>.field>textarea{flex:1;resize:none}
-  .yakit-workbench .draft-toolbar,.yakit-workbench .editor-footer,.yakit-workbench .draft-save{flex-shrink:0}
-  .yakit-workbench .draft-editor{min-height:160px;resize:none}
   .yakit-workbench .trial-reading{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
   .yakit-workbench .trial-reading .feedback-section{border-top:0;border-left:1px solid var(--line)}
   .yakit-workbench .version-toolbar{align-items:flex-end;flex-direction:row;gap:20px}
 }
 @media(max-width:480px){
-  .yakit-workbench .panel-content,.yakit-workbench .trial-controls,.yakit-workbench .feedback-section,.yakit-workbench .draft-save{padding:12px}
-  .yakit-workbench .draft-toolbar,.yakit-workbench .editor-footer{padding:10px 12px}
-  .yakit-workbench .draft-editor{width:calc(100% - 24px);margin-inline:12px}
+  .yakit-workbench .panel-content,.yakit-workbench .trial-controls,.yakit-workbench .feedback-section{padding:12px}
   .yakit-workbench .output-heading{padding:12px 12px 0}
   .yakit-workbench .trial-context{padding:12px 12px 0}
   .yakit-workbench .trial-output{padding:12px}

@@ -5,7 +5,6 @@
     const container = root.closest('.yakit-workbench');
     root.innerHTML = workbench.workbenchTemplate;
     const $ = id => root.querySelector(`#yakit-wb-${id}`);
-    let messageKey = '';
     let designCountEditing = false, designSubmitting = false;
     let lastNotice = '', lastError = '', shownError = '', errorCount = 0, noticeCount = 0;
     const toast = workbench.createToast(document, container);
@@ -15,6 +14,7 @@
     const presets = workbench.mountPresets(controller, root, { run: action => run(action, true), openPage });
     const versions = workbench.mountVersions(controller, root, { run: action => run(action, true) });
     const trials = workbench.mountTrials(controller, root, { run, notify, versionTitle: version => versions.title(version) });
+    const messages = workbench.mountWorkbenchMessages(controller, root, { run: action => run(action, true), notify });
 
     function showNotice(state) {
       if (state.error && state.error !== lastError) notify(state.error, 'error');
@@ -50,52 +50,20 @@
       presets.render(state);
       versions.render(state);
       trials.render(state);
-      setValue('goal', state.goal); setValue('draft', state.draft);
+      messages.render(state);
+      setValue('goal', state.goal);
       // 保留尚未填完的数量，清空重输时不会被订阅刷新覆盖。
       if (!designCountEditing) setValue('design-count', String(state.designCount));
-      const activeVersion = state.versions.find(item => item.id === state.selectedVersionId);
-      $('draft-count').textContent = `${Array.from(state.draft).length} 字`;
-      $('draft-state').textContent = activeVersion?.content === state.draft ? `已保存 · ${versions.title(activeVersion)}` : '当前草稿 · 尚未保存为版本';
       $('busy-bar').hidden = !state.busy;
       $('busy-text').textContent = ({ trial: '测试任务正在生成样本并进行 AI 盲评…', scenario: '正在生成冲突场景…', judge: '正在进行 AI 盲评…', 'preset-read': '正在读取预设…', 'preset-save': '正在保存预设…' })[state.busy] || '工作台 AI 正在生成…';
       $('cancel').hidden = state.busy === 'preset-save' || state.busy === 'preset-read';
       $('design-button').disabled = designSubmitting || Boolean(state.busy) || !state.goal.trim();
       $('design-count').disabled = designSubmitting || Boolean(state.busy);
       $('design-button').firstChild.textContent = state.busy === 'design' ? '正在生成 ' : state.messages.length > 1 ? '修改提示词 ' : '生成提示词 ';
-      $('save-version').disabled = Boolean(state.busy) || !state.draft.trim();
-      $('copy').disabled = !state.draft.trim();
       showNotice(state);
-
-      const nextMessageKey = JSON.stringify(state.messages);
-      if (messageKey !== nextMessageKey) {
-        messageKey = nextMessageKey;
-        const messages = state.messages;
-        $('messages').replaceChildren(...messages.map(message => {
-          const item = document.createElement('div');
-          item.className = `message message-${message.role === 'user' ? 'user' : 'assistant'}`;
-          const role = document.createElement('span'); role.className = 'message-role'; role.textContent = message.role === 'user' ? '你' : '工作台 AI';
-          const content = document.createElement('span');
-          let readable = message.content, candidate = null;
-          if (message.role !== 'user') {
-            try { candidate = workbench.prompts.parseDesign(readable); readable = candidate.explanation; } catch { /* 普通文字按原样展示。 */ }
-          }
-          content.textContent = readable;
-          item.append(role, content);
-          if (candidate) {
-            const details = document.createElement('details');
-            details.className = 'message-prompt';
-            const summary = document.createElement('summary'); summary.className = 'button button-secondary'; summary.textContent = '查看提示词';
-            const prompt = document.createElement('div'); prompt.textContent = candidate.prompt;
-            details.append(summary, prompt); item.append(details);
-          }
-          return item;
-        }));
-        $('messages').scrollTop = $('messages').scrollHeight;
-      }
-
     }
 
-    ['goal', 'draft'].forEach(id => $(id).addEventListener('input', () => run(() => controller.update({ [id]: $(id).value }))));
+    $('goal').addEventListener('input', () => run(() => controller.update({ goal: $('goal').value })));
     $('design-count').addEventListener('input', () => { designCountEditing = true; });
     $('design-count').addEventListener('change', () => {
       if (!$('design-count').checkValidity()) return;
@@ -120,17 +88,6 @@
       });
     });
     $('cancel').addEventListener('click', () => run(() => controller.cancel()));
-    $('copy').addEventListener('click', () => run(async () => {
-      const content = controller.getState().draft;
-      try { await document.defaultView.navigator.clipboard.writeText(content); }
-      catch {
-        const field = document.createElement('textarea'); field.value = content; field.style.cssText = 'position:fixed;left:-9999px';
-        container.append(field); field.select();
-        const copied = document.execCommand('copy'); field.remove();
-        if (!copied) throw new Error('浏览器未允许复制，请选中草稿后手动复制。');
-      }
-      notify('提示词已复制。');
-    }));
     $('export').addEventListener('click', () => run(async () => {
       const data = await controller.exportData();
       const url = URL.createObjectURL(new Blob([data], { type: 'application/json;charset=utf-8' }));

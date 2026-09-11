@@ -14,10 +14,4 @@
       </section>
     </div>
   `;
-  workbench.presetSaveTemplate = `
-    <div class="preset-save">
-      <p id="yakit-wb-preset-source" class="page-hint" aria-live="polite">尚未载入预设条目</p>
-      <button type="button" id="yakit-wb-save-preset-entry" class="button button-secondary">保存到原条目</button>
-    </div>
-  `;
 })();

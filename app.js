@@ -32,6 +32,7 @@ import './ui/select-view.js';
 import './ui/versions-view.js';
 import './ui/judgement-view.js';
 import './ui/trial-view.js';
+import './ui/workbench-messages-view.js';
 import './ui/workbench-view.js';
 
 export async function mountApp(container, host) {
