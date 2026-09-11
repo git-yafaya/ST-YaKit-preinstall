@@ -1,0 +1,9 @@
+{
+  "display_name": "YaKit-提示词工作台",
+  "loading_order": 100,
+  "requires": [],
+  "js": "index.js",
+  "author": "yafaya",
+  "version": "0.2.0",
+  "minimum_client_version": "1.18.0"
+}

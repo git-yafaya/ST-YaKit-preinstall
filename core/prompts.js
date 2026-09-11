@@ -1,6 +1,6 @@
 (() => {
 'use strict';
-const { required } = globalThis.YaKitPreview.state;
+const { required } = globalThis.YaKitWorkbench.state;
 
 const INSTRUCTION = `你是提示词设计助手。根据用户需求、提示词草稿和设计讨论生成或修改提示词。
 根据用户对正文的评价与修改要求调整提示词，由用户阅读试写结果并决定是否采用。
@@ -40,5 +40,5 @@ function feedbackInstruction(trial, version) {
         + (feedback.excerpt || trial.content);
 }
 
-globalThis.YaKitPreview.prompts = { designMessages, parseDesign, feedbackInstruction };
+globalThis.YaKitWorkbench.prompts = { designMessages, parseDesign, feedbackInstruction };
 })();

@@ -1,7 +1,7 @@
 (() => {
 'use strict';
-const { clone, initialState, rawText, required, savedState, text } = globalThis.YaKitPreview.state;
-const { designMessages, feedbackInstruction, parseDesign } = globalThis.YaKitPreview.prompts;
+const { clone, designSettings, initialState, rawText, required, savedState, settingValue, text } = globalThis.YaKitWorkbench.state;
+const { designMessages, feedbackInstruction, parseDesign } = globalThis.YaKitWorkbench.prompts;
 
 async function createWorkbench(host) {
     let loaded;
@@ -51,16 +51,16 @@ async function createWorkbench(host) {
         if (error) throw error;
     };
     const design = async (instruction, sourceDraft) => {
-        let messages;
+        let messages, settings;
         try {
             required(state.goal, '需求');
             instruction = required(instruction, '设计要求');
-            find(state.profiles, state.profileId, '工作台连接');
+            settings = designSettings(state);
             messages = designMessages(state, instruction, sourceDraft);
         } catch (error) { return fail(error); }
         return run('design', async operation => {
             state.messages.push({ role: 'user', content: instruction }); emit();
-            const reply = await host.design(messages, { profileId: state.profileId, signal: operation.controller.signal });
+            const reply = await host.design(messages, { settings, signal: operation.controller.signal });
             if (active !== operation) return;
             state.messages.push({ role: 'assistant', content: text(reply, '模型答复') });
             const result = parseDesign(reply);
@@ -78,15 +78,12 @@ async function createWorkbench(host) {
         async refreshEnvironment() {
             try {
                 const environment = await host.getEnvironment();
-                for (const key of ['profiles', 'promptTargets']) {
-                    state[key] = (Array.isArray(environment[key]) ? environment[key] : [])
-                        .filter(item => item && typeof item.id === 'string' && typeof item.name === 'string')
-                        .map(({ id, name }) => ({ id: id.trim(), name: name.trim() }));
-                }
+                state.profiles = (Array.isArray(environment.profiles) ? environment.profiles : [])
+                    .filter(item => item && typeof item.id === 'string' && item.id.trim() && typeof item.name === 'string')
+                    .map(({ id, name }) => ({ id: id.trim(), name: name.trim() }));
+                state.mainApiLabel = text(environment.mainApiLabel || '', '主 API');
                 state.contextLabel = text(environment.contextLabel || '', '写作背景');
                 state.canTrial = environment.canTrial === true;
-                if (!state.profiles.some(item => item.id === state.profileId)) state.profileId = state.profiles[0]?.id || '';
-                if (!state.promptTargets.some(item => item.id === state.targetPromptId)) state.targetPromptId = state.promptTargets[0]?.id || '';
                 emit();
             } catch (error) { return fail(error); }
         },
@@ -97,11 +94,7 @@ async function createWorkbench(host) {
                 for (const [key, value] of Object.entries(fields)) {
                     // 编辑时保留空格和换行，提交动作只检查内容是否为空。
                     if (['goal', 'draft'].includes(key)) next[key] = rawText(value, key);
-                    else if (['profileId', 'targetPromptId'].includes(key)) next[key] = text(value, key);
-                    else if (key === 'injectionMode' && ['append', 'replace'].includes(value)) next[key] = value;
-                    else if (key === 'depth' && Number.isInteger(Number(value)) && Number(value) >= 0
-                        && (typeof value === 'number' || typeof value === 'string' && value.trim())) next[key] = Number(value);
-                    else throw new Error(`不能更新字段：${key}。`);
+                    else next[key] = settingValue(key, value);
                 }
                 if ('draft' in next || 'goal' in next) revision++;
                 Object.assign(state, next); state.notice = '';
@@ -130,17 +123,14 @@ async function createWorkbench(host) {
                 version = find(state.versions, state.selectedVersionId, '已保存版本，请先保存草稿');
                 if (state.draft !== version.content) throw new Error('草稿已有修改，请先保存为新版本，再试写。');
                 if (!state.canTrial) throw new Error('当前没有可用的试写背景。');
-                if (state.injectionMode === 'replace') find(state.promptTargets, state.targetPromptId, '使用位置');
-                request = { content: version.content, input: required(input, '试写要求'), mode: state.injectionMode,
-                    promptId: state.targetPromptId, depth: state.depth };
+                request = { content: version.content, input: required(input, '试写要求') };
             } catch (error) { return fail(error); }
             return run('trial', async operation => {
                 const result = await host.trial(request, { signal: operation.controller.signal });
                 if (active !== operation) return;
                 const record = { id: crypto.randomUUID(), versionId: version.id,
                     content: required(result?.content, '试写答复'), input: request.input, createdAt: new Date().toISOString(),
-                    context: { ...(result.context && typeof result.context === 'object' ? clone(result.context) : {}),
-                        mode: request.mode, promptId: request.promptId, depth: request.depth },
+                    context: result.context && typeof result.context === 'object' ? clone(result.context) : {},
                     feedback: { status: 'pending', note: '', excerpt: '' } };
                 state.trials.push(record); state.selectedTrialId = record.id;
                 state.notice = `「${version.label}」试写完成，请阅读并反馈。`;
@@ -172,11 +162,15 @@ async function createWorkbench(host) {
             state.busy = null; state.notice = '已取消，已有草稿和记录已保留。'; emit();
             await persist();
         },
-        exportData: () => JSON.stringify({ formatVersion: 1, ...savedState(state) }, null, 2),
+        exportData() {
+            // 密钥只用于连接和本地设置，不放进导出的工作记录。
+            const { secondaryKey, ...data } = savedState(state);
+            return JSON.stringify({ formatVersion: 1, ...data }, null, 2);
+        },
     };
     try { await controller.refreshEnvironment(); } catch { /* 环境读取失败时仍允许编辑和导出。 */ }
     return controller;
 }
 
-globalThis.YaKitPreview.createWorkbench = createWorkbench;
+globalThis.YaKitWorkbench.createWorkbench = createWorkbench;
 })();

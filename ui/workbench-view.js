@@ -1,11 +1,21 @@
 (() => {
-  const preview = globalThis.YaKitPreview ??= {};
-  preview.mountWorkbench = function mountWorkbench(controller, root = document.getElementById('app')) {
-    root.innerHTML = preview.workbenchTemplate;
+  const workbench = globalThis.YaKitWorkbench ??= {};
+  workbench.mountWorkbench = function mountWorkbench(controller, root = document.getElementById('app')) {
+    root.innerHTML = workbench.workbenchTemplate;
     const $ = id => root.querySelector(`#${id}`);
     const statusNames = { pending: '待反馈', satisfied: '达到预期', revise: '还需修改' };
     let messageKey = '', versionKey = '', trialKey = '', feedbackKey = '', selection = '', localNotice = '';
     let localError = false;
+    const settings = workbench.mountSettings(controller, root, { run, notify });
+    root.querySelectorAll('[data-page]').forEach(button => button.addEventListener('click', () => {
+      root.querySelectorAll('[data-page]').forEach(item => {
+        item.classList.toggle('active', item === button);
+        if (item === button) item.setAttribute('aria-current', 'page');
+        else item.removeAttribute('aria-current');
+      });
+      $('workbench-page').hidden = button.dataset.page !== 'workbench';
+      $('settings-page').hidden = button.dataset.page !== 'settings';
+    }));
 
     function showNotice(state) {
       $('notice').textContent = localNotice || state.error || state.notice || '';
@@ -40,6 +50,7 @@
       return { status, note: $('feedback-note').value, excerpt: $('excerpt').value };
     }
     function render(state) {
+      settings.render(state);
       setValue('goal', state.goal); setValue('draft', state.draft);
       const activeVersion = state.versions.find(item => item.id === state.selectedVersionId);
       const trial = currentTrial(state);
@@ -47,11 +58,11 @@
       $('draft-state').textContent = activeVersion?.content === state.draft ? `已保存 · ${activeVersion.label}` : '当前草稿 · 尚未保存为版本';
       $('version-count').textContent = state.versions.length;
       $('trial-version').textContent = activeVersion ? (activeVersion.content === state.draft ? `使用版本 · ${activeVersion.label}` : '草稿已修改，请先保存新版本') : '先保存一个提示词版本';
-      $('context-label').textContent = state.contextLabel || 'NPC 认知边界 · 示例场景';
+      $('context-label').textContent = state.contextLabel || '当前聊天';
       $('busy-bar').hidden = !state.busy;
-      $('busy-text').textContent = state.busy === 'trial' ? '正在展示试写示例…' : '正在准备提示词示例…';
+      $('busy-text').textContent = state.busy === 'trial' ? '正文 AI 正在试写…' : '工作台 AI 正在生成…';
       $('design-button').disabled = Boolean(state.busy) || !state.goal.trim();
-      $('design-button').firstChild.textContent = state.busy === 'design' ? '准备示例中 ' : state.messages.length > 1 ? '修改示例提示词 ' : '生成示例提示词 ';
+      $('design-button').firstChild.textContent = state.busy === 'design' ? '正在生成 ' : state.messages.length > 1 ? '修改提示词 ' : '生成提示词 ';
       $('trial-button').disabled = Boolean(state.busy) || !state.canTrial || !activeVersion || activeVersion.content !== state.draft;
       $('save-version').disabled = Boolean(state.busy) || !state.draft.trim();
       $('copy').disabled = !state.draft.trim();
@@ -64,19 +75,27 @@
       const nextMessageKey = JSON.stringify(state.messages);
       if (messageKey !== nextMessageKey) {
         messageKey = nextMessageKey;
-        const messages = state.messages.length ? state.messages : [{ role: 'assistant', content: '填写需求后，点击「生成示例提示词」。\n\n保存草稿，再阅读预置正文，体验评价与修改流程。' }];
+        const messages = state.messages;
         $('messages').replaceChildren(...messages.map(message => {
           const item = document.createElement('div');
           item.className = `message message-${message.role === 'user' ? 'user' : 'assistant'}`;
-          const role = document.createElement('span'); role.className = 'message-role'; role.textContent = message.role === 'user' ? '你' : '工作台 · 示例回复';
+          const role = document.createElement('span'); role.className = 'message-role'; role.textContent = message.role === 'user' ? '你' : '工作台 AI';
           const content = document.createElement('span');
-          let readable = message.content;
+          let readable = message.content, candidate = null;
           if (message.role !== 'user') {
-            // 结构化答复只展示可读说明，完整提示词已经进入草稿区。
-            try { const reply = JSON.parse(readable); if (typeof reply.explanation === 'string') readable = reply.explanation; } catch { /* 普通文字按原样展示。 */ }
+            // 结构化答复先展示说明，候选提示词可以展开查看。
+            try { candidate = workbench.prompts.parseDesign(readable); readable = candidate.explanation; } catch { /* 普通文字按原样展示。 */ }
           }
           content.textContent = readable;
-          item.append(role, content); return item;
+          item.append(role, content);
+          if (candidate) {
+            const details = document.createElement('details');
+            details.className = 'message-prompt';
+            const summary = document.createElement('summary'); summary.textContent = '查看提示词';
+            const prompt = document.createElement('div'); prompt.textContent = candidate.prompt;
+            details.append(summary, prompt); item.append(details);
+          }
+          return item;
         }));
         $('messages').scrollTop = $('messages').scrollHeight;
       }
@@ -93,7 +112,7 @@
       $('trial-empty').hidden = Boolean(trial);
       $('trial-output').hidden = !trial; $('feedback-section').hidden = !trial;
       const trialVersion = state.versions.find(item => item.id === trial?.versionId);
-      $('trial-context').textContent = trial ? `对应「${trialVersion?.label || '已保存版本'}」 · ${trial.context?.explanation || '请根据本次正文提交人工反馈。'}` : '';
+      $('trial-context').textContent = trial ? `对应「${trialVersion?.label || '已保存版本'}」${trial.context?.explanation ? ` · ${trial.context.explanation}` : ''}` : '';
       $('trial-context').hidden = !trial;
       if ($('trial-output').textContent !== (trial?.content || '')) $('trial-output').textContent = trial?.content || '';
       const nextFeedbackKey = JSON.stringify([trial?.id, trial?.feedback]);
@@ -145,7 +164,7 @@
       const content = controller.getState().draft;
       try { await navigator.clipboard.writeText(content); }
       catch {
-        // 本地文件可能不开放剪贴板接口，使用浏览器的原生复制后备能力。
+        // 剪贴板接口不可用时，尝试浏览器的原生复制。
         const field = document.createElement('textarea'); field.value = content; field.style.cssText = 'position:fixed;left:-9999px';
         document.body.append(field); field.select();
         const copied = document.execCommand('copy'); field.remove();
@@ -160,8 +179,8 @@
       document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
       notify('工作记录已导出。');
     }));
-    if (preview.examples?.scene) setValue('trial-input', preview.examples.scene);
     render(controller.getState());
-    return controller.subscribe(render);
+    const unsubscribe = controller.subscribe(render);
+    return () => { unsubscribe(); settings.dispose(); };
   };
 })();
