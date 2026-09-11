@@ -73,19 +73,22 @@
                 // 在请求开始时保存候选和条件，等待期间的编辑不会改写本次记录。
                 const revised = request.content.includes('把线索与结论分开');
                 const legacy = !['emptyCardMode', 'sampleCount', 'sampleRequestMode'].some(key => Object.hasOwn(request, key));
+                const emptyCardMode = request.emptyCardMode ?? !legacy;
+                const builtin = globalThis.YaKitWorkbench.promptText({ builtin: request.builtinPrompt }, 'builtin');
+                const chatScenario = emptyCardMode ? '' : globalThis.YaKitWorkbench.promptText({ chatScenario: request.chatScenario }, 'chatScenario');
                 const count = request.sampleCount ?? (legacy ? 1 : 3);
                 if (!Number.isInteger(count) || count < 1 || count > 6) throw new Error('样本数量须为 1—6 份。');
                 const result = {
                     content: revised ? examples.revisedStory : examples.firstStory,
                     context: {
                         source: 'local-preview',
-                        emptyCardMode: request.emptyCardMode ?? !legacy,
+                        emptyCardMode,
                         sampleRequestMode: request.sampleRequestMode || 'parallel', sampleCount: count,
                         capturedAt: new Date().toISOString(),
                         connection: { api: 'local-preview', model: '本地预置正文' },
                         injection: { entryPoint: 'local-preview', placement: 'local-preview', role: null,
                             depth: null, quietToLoud: false, skipWIAN: false,
-                            prompt: `${request.content}\n\n${request.input}` },
+                            prompt: `${builtin}\n\n${request.content}\n\n${emptyCardMode ? '' : `${chatScenario}\n`}${request.input}` },
                         chat: { context: examples.scene, character: '伊恩', messageCount: 0 },
                         model: '本地预置正文',
                         scenario: examples.scene,

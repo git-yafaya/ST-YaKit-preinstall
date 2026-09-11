@@ -50,7 +50,7 @@ function moduleSettings(state, module) {
 }
 
 function messages(goal, content, assistPrompts) {
-    return [{ role: 'system', content: promptText(assistPrompts, 'scenario') },
+    return [{ role: 'system', content: `${promptText(assistPrompts, 'builtin')}\n\n${promptText(assistPrompts, 'scenario')}` },
         { role: 'user', content: JSON.stringify({ goal: required(goal, '原始需求'), candidate: content }) }];
 }
 

@@ -54,6 +54,8 @@
                 const context = getContext();
                 const content = required(request?.content, '候选提示词', false);
                 const input = required(request?.input, '试写场景');
+                const builtin = globalThis.YaKitWorkbench.promptText({ builtin: request.builtinPrompt }, 'builtin');
+                const prompt = `${builtin}\n\n${content}`;
                 // 旧调用保留单次聊天试写；新调用默认为空卡、三份独立样本。
                 const legacy = !['emptyCardMode', 'sampleCount', 'sampleRequestMode'].some(key => Object.hasOwn(request, key));
                 const emptyCardMode = request.emptyCardMode ?? !legacy;
@@ -72,7 +74,7 @@
                 const chatScenario = emptyCardMode ? '' : globalThis.YaKitWorkbench.promptText({ chatScenario: request.chatScenario }, 'chatScenario');
                 if (emptyCardMode && !preparedTrials.has(settings)) settings = prepareTrialSettings(settings);
                 const prepared = preparedTrials.get(settings);
-                const messages = [{ role: 'system', content }, { role: 'user', content: input }];
+                const messages = [{ role: 'system', content: prompt }, { role: 'user', content: input }];
                 const snapshot = () => globalThis.YaKitWorkbench.captureIsolatedContext(context, settings, messages, mode, count, prepared?.connection);
                 const run = async () => {
                     checkAbort(signal);
@@ -82,7 +84,7 @@
                         return values.map(value => ({ content: value, context: structuredClone(captured) }));
                     }
                     const options = {
-                        quietPrompt: `${content}\n\n${chatScenario}\n${input}`,
+                        quietPrompt: `${prompt}\n\n${chatScenario}\n${input}`,
                         quietToLoud: false, skipWIAN: false,
                     };
                     const captured = globalThis.YaKitWorkbench.captureTrialContext(context, options, input);
