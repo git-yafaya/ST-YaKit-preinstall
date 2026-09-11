@@ -53,7 +53,7 @@ function initialState(saved) {
     const state = {
         goal: '', draft: '', ...settingDefaults,
         messages: [], versions: [], nextVersionNumber: 1, selectedVersionId: '', trials: [], selectedTrialId: '',
-        profiles: [], mainApiLabel: '', contextLabel: '', canTrial: false,
+        profiles: [], canGenerate: false, mainApiLabel: '', contextLabel: '', canTrial: false,
         presets: [], selectedPresetName: '', presetEntries: [], presetSource: null, presetOrderCharacterId: null,
         presetPromptOverrides: [],
         busy: null, error: '', notice: '',
@@ -115,7 +115,7 @@ function initialState(saved) {
 
 function savedState(state) {
     // 预设目标只在当前页面有效，重新加载页面后须重新读取并选择条目。
-    const { profiles, mainApiLabel, contextLabel, canTrial, presets, selectedPresetName,
+    const { profiles, mainApiLabel, contextLabel, canTrial, canGenerate, presets, selectedPresetName,
         presetEntries, presetSource, presetOrderCharacterId, busy, error, notice, ...data } = state;
     return clone(data);
 }

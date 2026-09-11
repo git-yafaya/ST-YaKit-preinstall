@@ -98,5 +98,28 @@
         });
     }
 
-    Object.assign(globalThis.YaKitWorkbench ||= {}, { captureConnection, captureTrialContext });
+    function captureIsolatedContext(host, settings, messages, mode, count) {
+        const main = (settings.designApi || 'main') === 'main';
+        const profiles = host.extensionSettings?.connectionManager?.profiles || [];
+        const profile = profiles.find(item => item.id === settings.secondaryProfileId);
+        const connection = main ? captureConnection(host) : {
+            api: 'secondary', source: settings.secondarySource,
+            model: settings.secondaryModel || profile?.model || '',
+            profile: settings.secondarySource === 'profile' && profile ? pick(profile, ['id', 'name']) : null,
+            endpoint: settings.secondarySource === 'custom' ? endpointLabel(settings.secondaryUrl) : null,
+        };
+        // 仅连接来源可以沿用宿主；空卡记录不读取角色、世界书或聊天元数据。
+        if (main) connection.preset = null;
+        return structuredClone({
+            source: 'sillytavern', capturedAt: new Date().toISOString(), connection,
+            emptyCardMode: true, scenario: messages[1].content,
+            sampleRequestMode: mode, sampleCount: count,
+            injection: { entryPoint: 'isolatedRequest', placement: 'messages', role: 'system',
+                prompt: messages[0].content, messages },
+            chat: { messageCount: 0, textLength: 0 },
+            explanation: `${[connection.api, connection.source, connection.model].filter(Boolean).join(' · ')}；空卡独立消息；${mode === 'single' ? '单次请求' : main ? '独立串行请求' : '独立请求'}。`,
+        });
+    }
+
+    Object.assign(globalThis.YaKitWorkbench ||= {}, { captureConnection, captureTrialContext, captureIsolatedContext });
 })();

@@ -12,7 +12,13 @@
             <div class="field"><label for="yakit-wb-design-api">工作台 AI</label><select id="yakit-wb-design-api"><option value="main">主 API</option><option value="secondary">副 API</option></select></div>
             <div class="api-config-toolbar"><div class="field"><label for="yakit-wb-api-config">使用配置</label><select id="yakit-wb-api-config"></select></div><button id="yakit-wb-api-add" type="button" class="button button-primary" aria-controls="yakit-wb-settings-api-form">配置 API</button></div>
             <div id="yakit-wb-api-config-list" class="api-config-list" role="group" aria-label="已保存的副 API"></div>
-            <div class="settings-summary"><span>正文 AI</span><strong id="yakit-wb-main-api-label">当前主 API</strong></div>
+            <div class="settings-summary"><span>酒馆主 API</span><strong id="yakit-wb-main-api-label">当前主 API</strong></div>
+          </div></details>
+          <details class="panel settings-card"><summary class="button">模块 API</summary><div class="panel-content settings-group">
+            <p class="page-hint">各环节可以使用不同连接；选择「沿用工作台 AI」时，使用上方工作台 AI 的设置。</p>
+            ${[['design', '提示词生成与修改'], ['scenario', '冲突场景生成'], ['sample', '正文样本生成'], ['judge', 'AI 盲评']].map(([key, label]) => `<div class="field"><label for="yakit-wb-module-api-${key}">${label}</label><select id="yakit-wb-module-api-${key}"></select></div>`).join('')}
+            <label class="test-toggle"><input id="yakit-wb-combine-design-scenario" type="checkbox"><span>生成提示词时，一次请求同时生成冲突场景</span></label>
+            <p class="page-hint">先在试写页选择 AI 场景，并为提示词与场景指定同一个 API；开启后，一次请求同时返回提示词和场景。</p>
           </div></details>
           <details class="panel settings-card"><summary class="button">提示词</summary><div class="panel-content settings-group">
             <button id="yakit-wb-prompt-builtin" type="button" class="panel settings-entry" aria-controls="yakit-wb-settings-prompt-page">内置提示词</button>

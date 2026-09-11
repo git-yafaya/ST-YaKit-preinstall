@@ -5,8 +5,7 @@
     const container = root.closest('.yakit-workbench');
     root.innerHTML = workbench.workbenchTemplate;
     const $ = id => root.querySelector(`#yakit-wb-${id}`);
-    const statusNames = { pending: '待反馈', satisfied: '达到预期', revise: '还需修改' };
-    let messageKey = '', trialKey = '', feedbackKey = '', selection = '';
+    let messageKey = '';
     let lastNotice = '', lastError = '', shownError = '', errorCount = 0, noticeCount = 0;
     const toast = workbench.createToast(document, container);
     const selects = workbench.mountSelects(root);
@@ -14,6 +13,7 @@
     const { openPage } = workbench.mountNavigation(root, { onPageChange: name => { if (name !== 'settings') settings.close(); } });
     const presets = workbench.mountPresets(controller, root, { run: action => run(action, true), openPage });
     const versions = workbench.mountVersions(controller, root, { run: action => run(action, true) });
+    const trials = workbench.mountTrials(controller, root, { run, notify, versionTitle: version => versions.title(version) });
 
     function showNotice(state) {
       // 只提示新结果；错误存在时不让成功文案盖住它。
@@ -45,42 +45,22 @@
       // 只在值确实变化时赋值，逐字输入不会重建编辑器或跳动光标。
       if ($(id).value !== (value ?? '')) $(id).value = value ?? '';
     }
-    function setOptions(id, entries, selected, empty) {
-      const options = entries.map(([value, label]) => new Option(label, value));
-      if (!options.length) options.push(new Option(empty, ''));
-      $(id).replaceChildren(...options);
-      $(id).value = selected || '';
-    }
-    function currentTrial(state = controller.getState()) {
-      return state.trials.find(item => item.id === state.selectedTrialId);
-    }
-    function feedback() {
-      const status = root.querySelector('input[name="yakit-wb-feedback-status"]:checked')?.value;
-      if (!status) throw new Error('先选择「达到预期」或「还需修改」，再提交反馈。');
-      return { status, note: $('feedback-note').value, excerpt: $('excerpt').value };
-    }
     function render(state) {
       settings.render(state);
       presets.render(state);
       versions.render(state);
+      trials.render(state);
       setValue('goal', state.goal); setValue('draft', state.draft);
       const activeVersion = state.versions.find(item => item.id === state.selectedVersionId);
-      const trial = currentTrial(state);
       $('draft-count').textContent = `${Array.from(state.draft).length} 字`;
       $('draft-state').textContent = activeVersion?.content === state.draft ? `已保存 · ${versions.title(activeVersion)}` : '当前草稿 · 尚未保存为版本';
-      $('trial-version').textContent = activeVersion ? (activeVersion.content === state.draft ? `使用 · ${versions.title(activeVersion)}` : '草稿已修改，请先保存新版本') : '先保存一个提示词版本';
-      $('context-label').textContent = state.contextLabel || '当前聊天';
       $('busy-bar').hidden = !state.busy;
-      $('busy-text').textContent = ({ trial: '正文 AI 正在试写…', 'preset-read': '正在读取预设…', 'preset-save': '正在保存预设条目…' })[state.busy] || '工作台 AI 正在生成…';
+      $('busy-text').textContent = ({ trial: '测试任务正在生成样本并进行 AI 盲评…', scenario: '正在生成冲突场景…', judge: '正在进行 AI 盲评…', 'preset-read': '正在读取预设…', 'preset-save': '正在保存预设条目…' })[state.busy] || '工作台 AI 正在生成…';
       $('cancel').hidden = state.busy === 'preset-save' || state.busy === 'preset-read';
       $('design-button').disabled = Boolean(state.busy) || !state.goal.trim();
       $('design-button').firstChild.textContent = state.busy === 'design' ? '正在生成 ' : state.messages.length > 1 ? '修改提示词 ' : '生成提示词 ';
-      $('trial-button').disabled = Boolean(state.busy) || !state.canTrial || !activeVersion || activeVersion.content !== state.draft;
       $('save-version').disabled = Boolean(state.busy) || !state.draft.trim();
       $('copy').disabled = !state.draft.trim();
-      $('trials').disabled = Boolean(state.busy) || !state.trials.length;
-      $('save-feedback').disabled = Boolean(state.busy) || !trial;
-      $('revise').disabled = Boolean(state.busy) || !trial;
       showNotice(state);
 
       const nextMessageKey = JSON.stringify(state.messages);
@@ -110,24 +90,7 @@
         }));
         $('messages').scrollTop = $('messages').scrollHeight;
       }
-      const nextTrialKey = JSON.stringify([state.trials.map(item => [item.id, item.feedback?.status]), state.selectedTrialId]);
-      if (trialKey !== nextTrialKey) {
-        trialKey = nextTrialKey;
-        setOptions('trials', state.trials.map((item, index) => [item.id, `第 ${index + 1} 次试写 · ${statusNames[item.feedback?.status] || '待反馈'}`]), state.selectedTrialId, '暂无试写');
-      }
-      $('trial-empty').hidden = Boolean(trial);
-      $('trial-output').hidden = !trial; $('feedback-section').hidden = !trial;
-      const trialVersion = state.versions.find(item => item.id === trial?.versionId);
-      $('trial-context').textContent = trial ? `对应「${trialVersion ? versions.title(trialVersion) : '已保存版本'}」${trial.context?.explanation ? ` · ${trial.context.explanation}` : ''}` : '';
-      $('trial-context').hidden = !trial;
-      if ($('trial-output').textContent !== (trial?.content || '')) $('trial-output').textContent = trial?.content || '';
-      const nextFeedbackKey = JSON.stringify([trial?.id, trial?.feedback]);
-      if (feedbackKey !== nextFeedbackKey) {
-        feedbackKey = nextFeedbackKey; selection = '';
-        setValue('excerpt', trial?.feedback?.excerpt); setValue('feedback-note', trial?.feedback?.note);
-        root.querySelectorAll('input[name="yakit-wb-feedback-status"]').forEach(input => { input.checked = input.value === trial?.feedback?.status; });
-      }
-      $('feedback-state').textContent = trial?.feedback?.status && trial.feedback.status !== 'pending' ? `已保存评价 · ${statusNames[trial.feedback.status]}` : '尚未提交评价';
+
     }
 
     ['goal', 'draft'].forEach(id => $(id).addEventListener('input', () => run(() => controller.update({ [id]: $(id).value }))));
@@ -138,29 +101,7 @@
         if (!controller.getState().error) $('instruction').value = '';
       });
     });
-    $('trial-button').addEventListener('click', () => run(() => controller.trial($('trial-input').value)));
-    $('trials').addEventListener('change', () => run(() => controller.selectTrial($('trials').value)));
     $('cancel').addEventListener('click', () => run(() => controller.cancel()));
-    $('save-feedback').addEventListener('click', () => run(() => controller.setFeedback(currentTrial().id, feedback())));
-    $('revise').addEventListener('click', () => run(async () => {
-      const trial = currentTrial();
-      await controller.setFeedback(trial.id, feedback());
-      if (controller.getState().error) return;
-      await controller.reviseFromFeedback(trial.id);
-    }));
-    // 只引用正文区域里的选区，点击按钮后仍保留最后一次选中的片段。
-    function rememberSelection() {
-      const selected = document.defaultView.getSelection();
-      if (selected?.rangeCount && $('trial-output').contains(selected.anchorNode) && $('trial-output').contains(selected.focusNode)) selection = selected.toString();
-    }
-    $('trial-output').addEventListener('mouseup', rememberSelection);
-    $('trial-output').addEventListener('keyup', rememberSelection);
-    $('trial-output').addEventListener('touchend', rememberSelection);
-    $('quote-selection').addEventListener('click', () => {
-      rememberSelection();
-      if (!selection.trim()) { notify('先在试写正文中选中要反馈的句子；也可以直接填写问题片段。', 'warning'); return; }
-      $('excerpt').value = selection; $('feedback-note').focus();
-    });
     $('copy').addEventListener('click', () => run(async () => {
       const content = controller.getState().draft;
       try { await document.defaultView.navigator.clipboard.writeText(content); }

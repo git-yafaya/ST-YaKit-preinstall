@@ -8,7 +8,7 @@
     const theme = workbench.mountTheme(controller, container);
     const prompt = workbench.mountSettingsPrompt(controller, root);
     const api = workbench.mountSettingsApi(controller, root, syncActions);
-    let page = 'primary', editing = null, returnButton = null, listKey = '', saving = false;
+    let page = 'primary', editing = null, returnButton = null, listKey = '', moduleKey = '', saving = false;
     function syncActions() {
       header('settings-actions').hidden = page === 'primary';
       header('settings-reset').hidden = page === 'primary' || page === 'api';
@@ -46,6 +46,9 @@
     $('theme').addEventListener('change', () => run(() => controller.update({ theme: $('theme').value })));
     $('design-api').addEventListener('change', () => run(() => controller.update({ designApi: $('design-api').value })));
     $('api-config').addEventListener('change', () => run(() => controller.selectApiConfig($('api-config').value)));
+    for (const key of ['design', 'scenario', 'sample', 'judge']) $('module-api-' + key).addEventListener('change', () => run(() => controller.update({ moduleApis: { ...controller.getState().moduleApis, [key]: $('module-api-' + key).value } })));
+    $('combine-design-scenario').addEventListener('change', () => run(() => controller.update({ combineDesignScenario: $('combine-design-scenario').checked })));
+
     root.querySelectorAll('input[name="yakit-wb-navigation-style"]').forEach(input => input.addEventListener('change', () => {
       if (input.checked) run(() => controller.update({ navigationStyle: input.value }));
     }));
@@ -89,6 +92,18 @@
       }
       $('api-config').value = state.activeSecondaryApiId || '';
       $('api-config').disabled = !configs.length || Boolean(state.busy);
+      const nextModuleKey = JSON.stringify(configs.map(config => [config.id, config.name]));
+      if (moduleKey !== nextModuleKey) {
+        moduleKey = nextModuleKey;
+        for (const key of ['design', 'scenario', 'sample', 'judge']) $('module-api-' + key).replaceChildren(new Option('沿用工作台 AI', 'default'), new Option('主 API', 'main'), ...configs.map(config => new Option(config.name, config.id)));
+      }
+      for (const key of ['design', 'scenario', 'sample', 'judge']) {
+        $('module-api-' + key).value = state.moduleApis?.[key] || (key === 'sample' ? 'main' : 'default');
+        $('module-api-' + key).disabled = Boolean(state.busy);
+      }
+      $('combine-design-scenario').checked = Boolean(state.combineDesignScenario);
+      $('combine-design-scenario').disabled = Boolean(state.busy);
+
       for (const [kind, title] of Object.entries(workbench.promptTitles)) {
         const saved = controller.getPrompt(kind), modified = saved.text !== saved.defaultText;
         $('prompt-' + kind).textContent = `${title}${modified ? '（已修改）' : ''} ›`;

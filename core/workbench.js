@@ -1,8 +1,10 @@
 (() => {
 'use strict';
-const { clone, designSettings, initialState, rawText, required, savedState, settingValue, text } = globalThis.YaKitWorkbench.state;
+const { clone, initialState, rawText, required, savedState, settingValue, text } = globalThis.YaKitWorkbench.state;
 const { designMessages, feedbackInstruction, parseDesign } = globalThis.YaKitWorkbench.prompts;
 const { restoreSettings, syncLegacyFields, createSettingsActions } = globalThis.YaKitWorkbench.settings;
+const scenarios = globalThis.YaKitWorkbench.scenarios;
+const testTasks = globalThis.YaKitWorkbench.testTasks;
 
 async function createWorkbench(host) {
     let loaded;
@@ -10,6 +12,8 @@ async function createWorkbench(host) {
     try { loaded = await host.loadState(); } catch { loadError = '读取保存内容失败，可以继续编辑并导出当前内容。'; }
     const state = initialState(loaded);
     restoreSettings(state, loaded);
+    scenarios.restore(state, loaded);
+    testTasks.restore(state, loaded);
     state.error = loadError;
     const listeners = new Set();
     let active = null;
@@ -63,20 +67,27 @@ async function createWorkbench(host) {
         if (error) throw error;
     };
     const design = async (instruction, sourceDraft) => {
-        let messages, settings;
+        let messages, settings, combined = false;
         const forceRevise = sourceDraft !== undefined;
         try {
             required(state.goal, '需求');
             instruction = required(instruction, '设计要求');
-            settings = designSettings(state);
+            settings = scenarios.moduleSettings(state, 'design');
             messages = designMessages(state, instruction, sourceDraft, forceRevise);
+            combined = state.combineDesignScenario && state.sceneSource === 'ai';
+            if (combined) {
+                const scenarioSettings = scenarios.moduleSettings(state, 'scenario');
+                if (JSON.stringify(settings) !== JSON.stringify(scenarioSettings)) throw new Error('合并生成需要为提示词设计和场景选择同一个 API。');
+                messages = scenarios.combinedMessages(messages);
+            }
         } catch (error) { return fail(error); }
         return run('design', async operation => {
             state.messages.push({ role: 'user', content: instruction }); emit();
-            const reply = await host.design(messages, { settings, signal: operation.controller.signal });
+            const reply = await host.design(messages, { settings, signal: operation.controller.signal, purpose: 'design' });
             if (active !== operation) return;
             state.messages.push({ role: 'assistant', content: text(reply, '模型答复') });
             const result = parseDesign(reply);
+            if (combined) required(result.scenario, '合并答复中的测试场景');
             if (revision === operation.revision) {
                 // 替换前逐字留存未保存的草稿，已保存过的内容不重复插入。
                 if (state.draft.trim() && state.draft !== result.prompt
@@ -86,7 +97,9 @@ async function createWorkbench(host) {
                 if (!forceRevise && result.action !== 'revise') state.selectedVersionId = '';
                 // 反馈版本没有预设来源记录，不能沿用当前条目的写回目标。
                 if (forceRevise || result.action !== 'revise') state.presetSource = null;
-                state.draft = result.prompt; revision++;
+                state.draft = result.prompt;
+                if (combined) state.scenarioText = result.scenario;
+                revision++;
                 state.notice = result.explanation || '草稿已更新，请保存为新版本后试写。';
             } else {
                 state.notice = '生成期间草稿或版本已改变；本次答复保留在讨论中，请查看后采用。';
@@ -105,6 +118,7 @@ async function createWorkbench(host) {
                 state.mainApiLabel = text(environment.mainApiLabel || '', '主 API');
                 state.contextLabel = text(environment.contextLabel || '', '写作背景');
                 state.canTrial = environment.canTrial === true;
+                state.canGenerate = environment.canGenerate === true;
                 emit();
             } catch (error) { return fail(error); }
         },
@@ -115,9 +129,10 @@ async function createWorkbench(host) {
                 for (const [key, value] of Object.entries(fields)) {
                     // 编辑时保留空格和换行，提交动作只检查内容是否为空。
                     if (['goal', 'draft'].includes(key)) next[key] = rawText(value, key);
+                    else if (Object.hasOwn(scenarios.defaults, key)) next[key] = scenarios.settingValue(key, value);
                     else next[key] = settingValue(key, value);
                 }
-                if ('draft' in next || 'goal' in next) revision++;
+                if (['draft', 'goal', 'scenarioText', 'sceneSource'].some(key => key in next)) revision++;
                 Object.assign(state, next); syncLegacyFields(state, next); state.notice = '';
             });
         },
@@ -147,6 +162,8 @@ async function createWorkbench(host) {
                     state.selectedTrialId = '';
                 }
                 state.trials = state.trials.filter(item => item.versionId !== version.id);
+                state.testTasks = state.testTasks.filter(item => item.versionId !== version.id);
+                if (!state.testTasks.some(item => item.id === state.selectedTestTaskId)) state.selectedTestTaskId = '';
                 state.versions = state.versions.filter(item => item.id !== version.id);
                 if (state.selectedVersionId === version.id) state.selectedVersionId = '';
                 state.notice = `已删除「${version.label}」及其关联试写和反馈。`;
@@ -159,26 +176,10 @@ async function createWorkbench(host) {
                 state.presetSource = null;
             });
         },
-        async trial(input) {
-            let version, request;
-            try {
-                version = find(state.versions, state.selectedVersionId, '已保存版本，请先保存草稿');
-                if (state.draft !== version.content) throw new Error('草稿已有修改，请先保存为新版本，再试写。');
-                if (!state.canTrial) throw new Error('当前没有可用的试写背景。');
-                request = { content: version.content, input: required(input, '试写要求') };
-            } catch (error) { return fail(error); }
-            return run('trial', async operation => {
-                const result = await host.trial(request, { signal: operation.controller.signal });
-                if (active !== operation) return;
-                const record = { id: crypto.randomUUID(), versionId: version.id,
-                    content: required(result?.content, '试写答复'), input: request.input, createdAt: new Date().toISOString(),
-                    context: result.context && typeof result.context === 'object' ? clone(result.context) : {},
-                    feedback: { status: 'pending', note: '', excerpt: '' } };
-                state.trials.push(record); state.selectedTrialId = record.id;
-                state.notice = `「${version.label}」试写完成，请阅读并反馈。`;
-            });
-        },
-        selectTrial(id) { return change(() => { state.selectedTrialId = find(state.trials, id, '试写记录').id; }); },
+        selectTrial(id) { return change(() => {
+            const trial = find(state.trials, id, '试写记录'); state.selectedTrialId = trial.id;
+            state.selectedTestTaskId = trial.taskId || '';
+        }); },
         setFeedback(id, feedback) {
             return change(() => {
                 const trial = find(state.trials, id, '试写记录');
@@ -202,6 +203,7 @@ async function createWorkbench(host) {
             // 预设写入已经交给酒馆，不能把取消显示成写入已撤销。
             if (!active || state.busy === 'preset-save') return;
             const operation = active; active = null; operation.controller.abort();
+            if (operation.task) { operation.task.status = 'cancelled'; operation.task.error = '已取消，已有样本已保留。'; }
             state.busy = null; state.notice = '已取消，已有草稿和记录已保留。'; emit();
             if (operation.kind !== 'preset-read') await persist();
         },
@@ -213,6 +215,8 @@ async function createWorkbench(host) {
         },
     };
     Object.assign(controller, createSettingsActions({ state, host, change }));
+    Object.assign(controller, testTasks.createActions({ state, host, run, change, persist, emit, fail, find,
+        isActive: operation => active === operation, getRevision: () => revision }));
     if (globalThis.YaKitWorkbench.createPresetActions) {
         Object.assign(controller, globalThis.YaKitWorkbench.createPresetActions({
             state, host, run, change, isActive: operation => active === operation,

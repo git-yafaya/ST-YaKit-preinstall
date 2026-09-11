@@ -40,6 +40,8 @@
                 return {
                     profiles, promptTargets: [], mainApiLabel: host.mainApi || '未选择',
                     contextLabel: hasChat ? `${name} · ${host.chatId || '新聊天'}` : '请先打开角色或群组聊天',
+                    canGenerate: Boolean(host.ChatCompletionService?.processRequest || host.TextCompletionService?.processRequest
+                        || host.ConnectionManagerRequestService?.sendRequest),
                     canTrial: hasChat && typeof host.generateQuietPrompt === 'function'
                         && host.onlineStatus !== 'no_connection',
                 };

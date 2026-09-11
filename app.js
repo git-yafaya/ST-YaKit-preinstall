@@ -2,7 +2,10 @@ import './core/state.js';
 import './core/prompts.js';
 import './core/settings.js';
 import './core/presets.js';
+import './core/scenarios.js';
+import './core/test-tasks.js';
 import './core/workbench.js';
+import './host/requests.js';
 import './host/api.js';
 import './host/api-profiles.js';
 import './host/preset-order.js';
@@ -25,6 +28,7 @@ import './ui/preset-view.js';
 import './ui/toast.js';
 import './ui/select-view.js';
 import './ui/versions-view.js';
+import './ui/trial-view.js';
 import './ui/workbench-view.js';
 
 /** 在指定容器里挂载工作台，宿主和本地演示共用这一套组件。 */

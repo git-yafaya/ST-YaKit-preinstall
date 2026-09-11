@@ -124,3 +124,22 @@
   .yakit-workbench .trial-actions{align-items:flex-start;flex-direction:column;gap:12px}
   .yakit-workbench .trial-actions>span{max-width:100%;white-space:normal}
 }
+/* 测试任务沿用主界面的卡片、控件与留白，不另设窗口尺寸。 */
+.yakit-workbench .test-options{display:flex;flex-wrap:wrap;align-items:end;gap:12px;margin-bottom:12px}
+.yakit-workbench .test-options>.field{flex:1 1 150px;min-width:0}
+.yakit-workbench .test-options select,.yakit-workbench .test-task-bar select{width:100%}
+.yakit-workbench .test-toggle{display:flex;align-items:center;gap:8px;font-weight:500;line-height:1.6;cursor:pointer}
+.yakit-workbench .test-options>.test-toggle{flex:1 0 100%}
+.yakit-workbench .test-toggle input{appearance:auto;width:16px;height:16px;flex:0 0 16px;padding:0;accent-color:var(--accent)}
+.yakit-workbench .trial-controls>.page-hint{margin:0 0 14px}
+.yakit-workbench .test-task-bar{padding:14px 16px;border-top:1px solid var(--line)}
+.yakit-workbench .test-task-bar>.page-hint{margin-top:10px}
+.yakit-workbench .test-task-bar>.test-options{margin:14px 0 0}
+.yakit-workbench .test-task-bar .test-options>.test-toggle{flex:1 1 180px}
+.yakit-workbench .test-snapshot-text{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.6;padding:8px 0 12px}
+.yakit-workbench .sample-score{padding:12px;margin:14px 16px 0;border-radius:8px;background:var(--field);font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+.yakit-workbench .sample-score strong{color:var(--accent)}
+.yakit-workbench .sample-score p{white-space:pre-wrap;margin-top:6px}
+.yakit-workbench .sample-score ul{padding-left:20px;margin:6px 0 0}
+.yakit-workbench #yakit-wb-prefer-trial[aria-pressed="true"]{color:var(--accent);background:var(--selected)}
+@media(max-width:480px){.yakit-workbench .test-task-bar{padding:12px}.yakit-workbench .sample-score{margin-inline:12px}.yakit-workbench .feedback-section>.section-row{flex-wrap:wrap}}

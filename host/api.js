@@ -1,16 +1,8 @@
 (() => {
     'use strict';
 
-    const required = (value, name, trim = true) => {
-        if (typeof value !== 'string' || !value.trim()) throw new Error(`请先填写${name}。`);
-        return trim ? value.trim() : value;
-    };
-    const checkAbort = signal => {
-        if (signal?.aborted) throw new DOMException('操作已取消', 'AbortError');
-    };
-    const replyText = result => required(typeof result === 'string' ? result : result?.content, '模型答复');
-
     function createApi(getContext) {
+        const { required, checkAbort, replyText, isolatedRequest } = globalThis.YaKitWorkbench;
         let primaryBusy = false;
 
         async function primaryRequest(context, signal, request) {
@@ -20,77 +12,72 @@
             if (context.onlineStatus === 'no_connection') throw new Error('请先连接酒馆主 API。');
             primaryBusy = true;
             try {
-                // 宿主的这两个入口不接收独立取消信号；等待结束再释放占用，避免误停其他生成。
                 const result = await request();
                 checkAbort(signal);
-                return replyText(result);
+                return result;
             } finally {
                 primaryBusy = false;
             }
         }
 
         return {
-            async design(messages, { settings = {}, signal } = {}) {
-                checkAbort(signal);
-                if (!Array.isArray(messages) || !messages.length || messages.some(message =>
-                    !message || !['system', 'user', 'assistant'].includes(message.role)
-                    || typeof message.content !== 'string')) throw new Error('设计消息格式不正确。');
-                // generateRaw 会改写传入的消息，复制后再交给宿主。
-                const prompt = messages.map(({ role, content }) => ({ role, content }));
+            async design(messages, { settings = {}, signal, purpose = 'design' } = {}) {
                 const context = getContext();
-                if ((settings.designApi || 'main') === 'main') {
-                    if (typeof context.generateRaw !== 'function') throw new Error('当前酒馆不支持主 API 独立设计。');
-                    return primaryRequest(context, signal, () => context.generateRaw({
-                        prompt, instructOverride: true, trimNames: false,
-                    }));
-                }
-                if (settings.designApi !== 'secondary') throw new Error('请选择有效的设计 API。');
-                let result;
-                if (settings.secondarySource === 'profile') {
-                    const service = context.ConnectionManagerRequestService;
-                    if (!service?.sendRequest) throw new Error('当前酒馆不支持连接配置请求。');
-                    const profileId = required(settings.secondaryProfileId, '副 API 连接配置');
-                    if (!service.getSupportedProfiles().some(profile => profile.id === profileId)) {
-                        throw new Error('副 API 连接配置已失效，请重新选择。');
-                    }
-                    result = await service.sendRequest(profileId, prompt, 4096, {
-                        stream: false, signal, extractData: true, includePreset: true, includeInstruct: true,
-                    }, settings.secondaryModel?.trim() ? { model: settings.secondaryModel.trim() } : {});
-                } else if (settings.secondarySource === 'custom') {
-                    if (!context.ChatCompletionService?.processRequest) throw new Error('当前酒馆不支持自定义副 API。');
-                    const url = globalThis.YaKitWorkbench.normalizeApiUrl(settings.secondaryUrl);
-                    const key = typeof settings.secondaryKey === 'string' ? settings.secondaryKey.trim() : '';
-                    if (/[\r\n]/.test(key)) throw new Error('副 API 密钥不能包含换行。');
-                    result = await context.ChatCompletionService.processRequest({
-                        stream: false, messages: prompt, max_tokens: 4096,
-                        model: required(settings.secondaryModel, '副 API 模型'),
-                        chat_completion_source: 'custom', custom_url: url,
-                        // JSON 也是有效 YAML；显式覆盖认证头，空密钥也不借用酒馆已有密钥。
-                        custom_include_headers: JSON.stringify({ Authorization: key ? `Bearer ${key}` : '' }),
-                    }, {}, true, signal);
-                } else {
-                    throw new Error('请选择副 API 的配置方式。');
-                }
-                checkAbort(signal);
-                return replyText(result);
+                // 设计、场景和盲评共用独立消息通道，purpose 只供调用方标识用途。
+                const request = () => isolatedRequest(context, messages, settings, signal);
+                const results = (settings.designApi || 'main') === 'main'
+                    ? await primaryRequest(context, signal, request) : await request();
+                return results[0];
             },
 
-            async trial(request, { signal } = {}) {
+            async trial(request, { settings = {}, signal } = {}) {
                 const context = getContext();
-                if (typeof context.generateQuietPrompt !== 'function') throw new Error('当前酒馆不支持正文试写。');
                 const content = required(request?.content, '候选提示词', false);
-                const input = required(request?.input, '试写要求');
-                if (context.characterId == null && !context.groupId) throw new Error('请先打开一个角色或群组聊天。');
-                const options = {
-                    // 这里只传候选提示词和本次试写要求；当前聊天背景由酒馆组装。
-                    quietPrompt: `${content}\n\n${input}`, quietToLoud: false, skipWIAN: false,
+                const input = required(request?.input, '试写场景');
+                // 旧调用保留单次聊天试写；新调用默认为空卡、三份独立样本。
+                const legacy = !['emptyCardMode', 'sampleCount', 'sampleRequestMode'].some(key => Object.hasOwn(request, key));
+                const emptyCardMode = request.emptyCardMode ?? !legacy;
+                const count = request.sampleCount ?? (legacy ? 1 : 3);
+                const mode = request.sampleRequestMode ?? 'parallel';
+                if (typeof emptyCardMode !== 'boolean' || !Number.isInteger(count) || count < 1 || count > 6
+                    || !['parallel', 'single'].includes(mode)) throw new Error('试写模式或样本数量无效（须为 1—6 份）。');
+                const main = (settings.designApi || 'main') === 'main';
+                if (!emptyCardMode) {
+                    if (!main) throw new Error('当前聊天试写仅支持主 API；副 API 请启用空卡模式。');
+                    if (context.characterId == null && !context.groupId) throw new Error('请先打开一个角色或群组聊天。');
+                    if (typeof context.generateQuietPrompt !== 'function') throw new Error('当前酒馆不支持正文试写。');
+                    if (mode === 'single' && count > 1) throw new Error('当前聊天模式不支持单次多样本，请改用独立请求。');
+                }
+                const messages = [{ role: 'system', content }, { role: 'user', content: input }];
+                const snapshot = () => globalThis.YaKitWorkbench.captureIsolatedContext(context, settings, messages, mode, count);
+                const run = async () => {
+                    checkAbort(signal);
+                    if (emptyCardMode) {
+                        const captured = snapshot();
+                        const values = await isolatedRequest(context, messages, settings, signal, mode === 'single' ? count : 1);
+                        return values.map(value => ({ content: value, context: structuredClone(captured) }));
+                    }
+                    const options = {
+                        // 明确本次场景优先；聊天模式仍由宿主注入预设和背景。
+                        quietPrompt: `${content}\n\n本次试写以以下场景为准；已有背景与之冲突时采用本次场景：\n${input}`,
+                        quietToLoud: false, skipWIAN: false,
+                    };
+                    const captured = globalThis.YaKitWorkbench.captureTrialContext(context, options, input);
+                    return [{ content: replyText(await context.generateQuietPrompt(options)), context: captured }];
                 };
-                let snapshot;
-                const result = await primaryRequest(context, signal, () => {
-                    snapshot = globalThis.YaKitWorkbench.captureTrialContext(context, options, input);
-                    return context.generateQuietPrompt(options);
-                });
-                return { content: result, context: snapshot };
+                let samples;
+                if (main) {
+                    samples = await primaryRequest(context, signal, async () => {
+                        const results = [];
+                        // 宿主主通道串行执行；已生成正文不会加入下一次消息。
+                        for (let index = 0; index < (mode === 'single' ? 1 : count); index++) results.push(...await run());
+                        return results;
+                    });
+                } else {
+                    samples = (await Promise.all(Array.from({ length: mode === 'single' ? 1 : count }, run))).flat();
+                }
+                checkAbort(signal);
+                return { ...samples[0], samples };
             },
         };
     }
