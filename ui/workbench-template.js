@@ -18,7 +18,7 @@
       <div id="yakit-wb-workbench-page" class="page workbench" tabindex="-1">
         <section id="yakit-wb-design-panel" class="panel design-panel" aria-label="需求与修改">
           <div class="panel-content design-content">
-            <div class="field"><label for="yakit-wb-goal">你希望改善什么？</label><textarea id="yakit-wb-goal" rows="3" placeholder="描述想要的写作效果，例如：NPC 只能知道亲眼见过或被告知的事情。"></textarea></div>
+            <div class="field"><label for="yakit-wb-goal">你想要什么？</label><textarea id="yakit-wb-goal" rows="3" placeholder="描述想要的写作效果，例如：NPC 只能知道亲眼见过或被告知的事情。"></textarea></div>
             <form id="yakit-wb-design-form" class="composer">
               <label for="yakit-wb-instruction" class="sr-only">补充要求或修改意见</label><textarea id="yakit-wb-instruction" rows="2" placeholder="继续补充要求，或告诉工作台哪里需要修改…"></textarea>
               <div class="composer-actions">
