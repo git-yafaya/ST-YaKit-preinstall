@@ -1,7 +1,7 @@
 (() => {
 'use strict';
 const { clone, required, text } = globalThis.YaKitWorkbench.state;
-const { moduleSettings, messages: scenarioMessages } = globalThis.YaKitWorkbench.scenarios;
+const { moduleSettings, generate: generateScenario } = globalThis.YaKitWorkbench.scenarios;
 const judgement = globalThis.YaKitWorkbench.judgement;
 const { promptText } = globalThis.YaKitWorkbench;
 const snapshotSettings = state => ({ emptyCardMode: state.emptyCardMode, sampleCount: state.sampleCount,
@@ -21,7 +21,8 @@ function restore(state, saved) {
         const version = state.versions.find(version => version.id === item.versionId);
         const task = { id: item.id, versionId: item.versionId, versionLabel: item.versionLabel || version.label,
             versionNumber: item.versionNumber || version.number, content: typeof item.content === 'string' ? item.content : version.content,
-            goal: item.goal, scenario: item.scenario, sceneSource: item.sceneSource === 'ai' ? 'ai' : 'manual', settings,
+            goal: item.goal, scenario: item.scenario, scenarioPrompt: typeof item.scenarioPrompt === 'string' ? item.scenarioPrompt : '',
+            sceneSource: item.sceneSource === 'ai' ? 'ai' : 'manual', settings,
             createdAt: typeof item.createdAt === 'string' ? item.createdAt : '', status: item.status,
             error: typeof item.error === 'string' ? item.error : '',
             generationError: typeof item.generationError === 'string' ? item.generationError : '',
@@ -80,15 +81,27 @@ function createActions({ state, host, run, change, persist, emit, fail, find, is
     };
     return {
         generateScenario() {
-            let settings, messages;
-            try { settings = moduleSettings(state, 'scenario'); messages = scenarioMessages(state.goal, state.draft, state.assistPrompts); }
+            let settings, goal, content, assistPrompts;
+            try {
+                settings = moduleSettings(state, 'scenario'); goal = required(state.goal, '原始需求'); content = state.draft;
+                assistPrompts = clone(state.assistPrompts);
+            }
             catch (error) { return fail(error); }
             const revision = getRevision();
             return run('scenario', async operation => {
-                const reply = await host.design(messages, { settings, signal: operation.controller.signal, purpose: 'scenario' });
-                if (!isActive(operation)) return;
-                const scenario = required(reply, '测试场景');
-                if (getRevision() === revision) { state.scenarioText = scenario; state.sceneSource = 'ai'; state.notice = '测试场景已生成，可编辑后开始测试。'; }
+                const result = await generateScenario(host, { goal, content, assistPrompts, settings,
+                    signal: operation.controller.signal, isActive: () => isActive(operation),
+                    // 编写结果保留在讨论中，执行失败或取消后仍可阅读和导出。
+                    onPrompt: async prompt => {
+                        state.messages.push({ role: 'assistant', content: `本次需求：\n${goal}\n\n冲突场景生成提示词：\n${prompt}` });
+                        emit(); await persist();
+                    },
+                });
+                if (!result || !isActive(operation)) return;
+                if (getRevision() === revision) {
+                    state.scenarioPrompt = result.scenarioPrompt; state.scenarioText = result.scenario;
+                    state.sceneSource = 'ai'; state.notice = '测试场景已生成，可编辑后开始测试。';
+                }
                 else state.notice = '生成期间需求、草稿或场景已修改，本次生成未覆盖当前输入。';
             });
         },
@@ -109,25 +122,30 @@ function createActions({ state, host, run, change, persist, emit, fail, find, is
                 }
             } catch (error) { return fail(error); }
             const runtime = snapshotSettings(state), sceneSource = state.sceneSource;
+            const scenarioPrompt = scenario && state.scenarioText === input ? state.scenarioPrompt : '';
             // 本任务沿用开始时保存的引导词，生成期间编辑设置不会改变后续请求。
             const assistPrompts = Object.fromEntries(['builtin', 'scenario', 'judge', 'chatScenario']
                 .map(kind => [kind, promptText(state.assistPrompts, kind)]));
             const revision = getRevision();
             return run('trial', async operation => {
                 const task = { id: crypto.randomUUID(), versionId: version.id, versionLabel: version.label, versionNumber: version.number,
-                    content: version.content, goal, scenario, sceneSource, settings: runtime, createdAt: new Date().toISOString(),
+                    content: version.content, goal, scenario, scenarioPrompt, sceneSource, settings: runtime, createdAt: new Date().toISOString(),
                     status: scenario ? 'generating' : 'scenario', error: '', generationError: '', trialIds: [], preferredTrialId: '', judgement: null };
                 state.testTasks.push(task); state.selectedTestTaskId = task.id; state.selectedTrialId = ''; emit();
                 await track(task, operation, async () => {
                     await persist();
                     if (!isActive(operation)) return;
                     if (!task.scenario) {
-                        const generated = required(await host.design(scenarioMessages(goal, version.content, assistPrompts), {
-                            settings: settings.scenario, signal: operation.controller.signal, purpose: 'scenario',
-                        }), '测试场景');
-                        if (!isActive(operation)) return;
-                        task.scenario = generated;
-                        if (getRevision() === revision) state.scenarioText = task.scenario;
+                        const generated = await generateScenario(host, { goal, content: version.content, assistPrompts,
+                            settings: settings.scenario, signal: operation.controller.signal, isActive: () => isActive(operation),
+                            // 先保存编写结果，执行场景失败后仍能导出本次提示词。
+                            onPrompt: async prompt => { task.scenarioPrompt = prompt; await persist(); },
+                        });
+                        if (!generated || !isActive(operation)) return;
+                        task.scenarioPrompt = generated.scenarioPrompt; task.scenario = generated.scenario;
+                        if (getRevision() === revision) {
+                            state.scenarioPrompt = task.scenarioPrompt; state.scenarioText = task.scenario;
+                        }
                     }
                     task.status = 'generating'; emit();
                     // 固定场景先落盘，刷新后仍能看到本次样本实际使用的场景。

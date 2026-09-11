@@ -45,6 +45,7 @@ function parseDesign(reply) {
         throw new Error('答复操作不正确，action 必须是 create 或 revise，原始答复已保留在讨论中，草稿未改动。');
     }
     return { action, prompt: data.prompt.trim(), explanation: data.explanation.trim(),
+        ...(typeof data.scenarioPrompt === 'string' ? { scenarioPrompt: data.scenarioPrompt.trim() } : {}),
         ...(typeof data.scenario === 'string' ? { scenario: data.scenario.trim() } : {}) };
 }
 

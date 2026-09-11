@@ -48,6 +48,8 @@
             },
             async design(messages, { signal, purpose = 'design' } = {}) {
                 await pause(signal);
+                const scenarioPrompt = '1. 设置伊恩无法亲眼看到钥匙被藏起的条件。\n2. 让另一角色催促伊恩直接说出钥匙位置。\n3. 保留伊恩可以追问或调查的线索。\n4. 场景在伊恩回应前结束。';
+                if (purpose === 'scenario-prompt') return scenarioPrompt;
                 if (purpose === 'scenario') return examples.scene;
                 if (purpose === 'judge') {
                     const data = JSON.parse(messages.at(-1).content);
@@ -61,7 +63,7 @@
                 return JSON.stringify({
                     action: revised ? 'revise' : 'create',
                     prompt: revised ? examples.revisedPrompt : examples.firstPrompt,
-                    scenario: examples.scene,
+                    scenarioPrompt,
                     explanation: (revised
                         ? '已载入预置第二版示例。保存后试写，对比正文并留下反馈。'
                         : '已载入预置第一版示例。保存后试写，再由你决定是否修改。')

@@ -66,7 +66,7 @@ async function createWorkbench(host) {
         if (error) throw error;
     };
     const design = async (instruction, sourceDraft) => {
-        let messages, settings, count, combined = false;
+        let messages, settings, count, goal, assistPrompts, combined = false;
         const forceRevise = sourceDraft !== undefined;
         try {
             // 历史反馈已有对应条目和意见，不受当前需求框是否为空影响。
@@ -75,6 +75,8 @@ async function createWorkbench(host) {
             count = forceRevise ? 1 : settingValue('designCount', state.designCount);
             settings = scenarios.moduleSettings(state, 'design');
             messages = designMessages(state, instruction, sourceDraft, forceRevise);
+            goal = forceRevise ? instruction : state.goal;
+            assistPrompts = clone(state.assistPrompts);
             combined = state.combineDesignScenario && state.sceneSource === 'ai';
             if (combined) {
                 const scenarioSettings = scenarios.moduleSettings(state, 'scenario');
@@ -95,7 +97,7 @@ async function createWorkbench(host) {
                 state.messages.push({ role: 'assistant', content: text(reply, '模型答复') });
                 try {
                     const result = parseDesign(reply);
-                    if (combined) required(result.scenario, '合并答复中的测试场景');
+                    if (combined) required(result.scenarioPrompt, '合并答复中的场景生成提示词');
                     const version = count > 1 ? addVersion(`生成提示词 ${state.nextVersionNumber}（第 ${index + 1} 份）`, result.prompt) : null;
                     results[index] = { ...result, version };
                 } finally {
@@ -117,13 +119,26 @@ async function createWorkbench(host) {
                 // 反馈版本没有预设来源记录，不能沿用当前条目的写回目标。
                 if (forceRevise || result.action !== 'revise') state.presetSource = null;
                 state.draft = result.prompt;
-                if (combined) state.scenarioText = result.scenario;
+                state.scenarioPrompt = combined ? result.scenarioPrompt : '';
+                if (combined) state.scenarioText = '';
                 revision++;
                 if (result.version) state.selectedVersionId = result.version.id;
                 state.notice = count > 1 ? `已生成 ${valid.length} 份提示词并分别保存，可切换版本查看。`
                     : result.explanation || '草稿已更新，请保存为新版本后试写。';
             } else if (result) {
                 state.notice = '生成期间草稿或版本已改变；本次答复保留在讨论中，请查看后采用。';
+            }
+            if (result && unchanged && combined) {
+                // 先保留条目和专用提示词，全部设计请求结束后再执行场景生成。
+                const scenarioRevision = revision;
+                emit(); await persist();
+                if (active !== operation) return;
+                const generated = await scenarios.generate(host, { goal, content: result.prompt, assistPrompts,
+                    settings, signal: operation.controller.signal, scenarioPrompt: result.scenarioPrompt,
+                    isActive: () => active === operation });
+                if (!generated || active !== operation) return;
+                if (revision === scenarioRevision) state.scenarioText = generated.scenario;
+                else state.notice = '生成期间需求、草稿或场景已修改，本次生成未覆盖当前输入。';
             }
             if (errors.length) {
                 if (count === 1) throw errors[0];
@@ -159,7 +174,10 @@ async function createWorkbench(host) {
                     else if (Object.hasOwn(scenarios.defaults, key)) next[key] = scenarios.settingValue(key, value);
                     else next[key] = settingValue(key, value);
                 }
-                if (['draft', 'goal', 'scenarioText', 'sceneSource'].some(key => key in next)) revision++;
+                if (['draft', 'goal', 'scenarioText', 'sceneSource'].some(key => key in next)) {
+                    revision++;
+                    if (['draft', 'goal', 'scenarioText', 'sceneSource'].some(key => key in next && next[key] !== state[key])) state.scenarioPrompt = '';
+                }
                 Object.assign(state, next); syncLegacyFields(state, next); state.notice = '';
             });
         },
@@ -199,6 +217,7 @@ async function createWorkbench(host) {
             return change(() => {
                 const version = find(state.versions, id, '提示词版本');
                 state.selectedVersionId = version.id; state.draft = version.content; revision++; state.notice = '';
+                state.scenarioPrompt = '';
                 state.presetSource = null;
             });
         },
@@ -246,7 +265,7 @@ async function createWorkbench(host) {
     if (globalThis.YaKitWorkbench.createPresetActions) {
         Object.assign(controller, globalThis.YaKitWorkbench.createPresetActions({
             state, host, run, change, isActive: operation => active === operation,
-            draftChanged: () => { revision++; },
+            draftChanged: () => { revision++; state.scenarioPrompt = ''; },
         }));
     }
     try { await controller.refreshEnvironment(); } catch { /* 环境读取失败时仍允许编辑和导出。 */ }
