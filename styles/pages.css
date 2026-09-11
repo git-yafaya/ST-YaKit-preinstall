@@ -47,6 +47,8 @@
 .yakit-workbench .save-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .yakit-workbench .save-row input{flex:1 1 140px;width:0;font-size:13px}
 .yakit-workbench .version-toolbar{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:stretch}
+/* 两行操作按钮保持同样宽高，窄屏放不下时整颗换行。 */
+.yakit-workbench .version-toolbar .save-row>.button{flex:0 0 112px;width:112px;height:40px}
 .yakit-workbench .version-actions{display:flex;gap:12px;flex-wrap:wrap}
 .yakit-workbench .version-count{margin-left:6px;color:var(--muted);font-size:12px;font-weight:400}
 .yakit-workbench .page-hint{font-size:12px;line-height:1.8;color:var(--muted);margin-top:16px}
