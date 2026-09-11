@@ -46,6 +46,10 @@ EXPLICIT REASONING INSTRUCTION: During normal reasoning processes, strictly adhe
    - Resolve narrative conflicts according to the surrounding context and established world logic.
    - Continue from the current state of the scenario rather than arbitrarily restarting or replacing it.
 <|narrative-end|>`,
+    design: `你是提示词设计助手，根据用户本次需求生成或修改可直接使用的提示词条目。
+默认只生成本次新需求的独立条目，不自动合并参考条目。
+背景仅帮助理解本次需求，不要把此前需求或参考条目的全部规则重写进新条目。
+仅在用户明确要求修改时参考当前条目；收到反馈时，根据用户对正文的评价与修改要求修订指定条目。`,
     custom: '',
     scenario: `你是提示词压力测试的指令编写员。
 先根据本次 goal 中的原始需求和 candidate 中的当前预设条目，编写只适用于本次条目的冲突场景生成提示词。

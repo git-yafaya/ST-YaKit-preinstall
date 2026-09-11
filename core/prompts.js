@@ -16,12 +16,12 @@ function designMessages(state, instruction, draft = state.draft, forceRevise = f
     const custom = promptText(state.assistPrompts, 'custom');
     return [
         { role: 'system', content: builtin + (custom ? `\n\n${custom}` : '') },
-        { role: 'system', content: '本次结果契约：只输出 JSON 对象，包含 action、prompt、explanation。'
+        { role: 'system', content: `${promptText(state.assistPrompts, 'design')}\n\n`
+            + '本次结果契约：只输出 JSON 对象，包含 action、prompt、explanation。'
             + 'action 只能是 create 或 revise，prompt 是可单独复制使用的单个条目的完整提示词，explanation 是简要说明。\n'
             + (forceRevise
                 ? '本次操作：revise。仅根据本次反馈修订下面指定的条目，必须返回 action: "revise"。'
-                : '默认返回 action: "create"，只生成本次新需求的独立条目，不自动合并参考条目。'
-                    + '只有本次需求明确要求修改当前参考条目时才返回 action: "revise"。背景仅帮助理解本次需求，不要把此前需求或参考条目的全部规则重写进新条目。') },
+                : '默认返回 action: "create"，只有本次需求明确要求修改当前参考条目时才返回 action: "revise"。') },
         { role: 'user', content: forceRevise
             ? `本次反馈对应的条目：\n${draft || '尚无草稿'}`
             : `本次需求背景：\n${state.goal}\n\n当前可参考条目（仅在明确修订时使用）：\n${draft || '尚无草稿'}` },

@@ -1,7 +1,8 @@
 (() => {
   const workbench = globalThis.YaKitWorkbench ??= {};
   const help = {
-    builtin: '引导工作台 AI 设计和修改提示词。',
+    builtin: '随所有模型生成请求发送的通用引导。',
+    design: '根据本次需求生成提示词，并指导后续修改。',
     custom: '随破限提示词一起发送给工作台 AI，可留空。',
     scenario: '生成检验需求的冲突场景。',
     judge: '拆解需求、检查样本并评分。',

@@ -1,6 +1,6 @@
 (() => {
   const workbench = globalThis.YaKitWorkbench ??= {};
-  workbench.promptTitles = { builtin: '破限提示词', custom: '补充提示词', scenario: '场景生成提示词', judge: '裁判提示词', feedback: '反馈修订提示词', chatScenario: '聊天试写提示词' };
+  workbench.promptTitles = { builtin: '破限提示词', design: '提示词生成与修改提示词', custom: '补充提示词', scenario: '场景生成提示词', judge: '裁判提示词', feedback: '反馈修订提示词', chatScenario: '聊天试写提示词' };
   workbench.settingsTemplate = `
     <section id="yakit-wb-settings-page" class="page settings-panel" aria-label="设置" tabindex="-1" hidden>
       <div class="settings-track">
