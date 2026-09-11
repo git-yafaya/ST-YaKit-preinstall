@@ -4,14 +4,15 @@
     <div id="yakit-wb-app-shell" class="app-shell">
       <nav id="yakit-wb-sidebar" class="sidebar" role="tablist" aria-label="页面导航">
         <span class="nav-indicator" aria-hidden="true"></span>
-        <button type="button" class="nav-item active" data-page="workbench" aria-current="page"><span class="nav-icon" aria-hidden="true">✦</span><span class="nav-label">工作台</span></button>
         <button type="button" class="nav-item" data-page="presets"><span class="nav-icon" aria-hidden="true">☷</span><span class="nav-label">预设预览</span></button>
+        <button type="button" class="nav-item active" data-page="workbench" aria-current="page"><span class="nav-icon" aria-hidden="true">✦</span><span class="nav-label">工作台</span></button>
         <button type="button" class="nav-item" data-page="trial"><span class="nav-icon" aria-hidden="true">✎</span><span class="nav-label">试写与反馈</span></button>
         <button type="button" class="nav-item" data-page="versions"><span class="nav-icon" aria-hidden="true">◷</span><span class="nav-label">版本记录</span></button>
         <button type="button" class="nav-item" data-page="settings"><span class="nav-icon" aria-hidden="true">⚙</span><span class="nav-label">设置</span></button>
       </nav>
       <main>
       <div class="page-viewport"><div class="page-track">
+      <div class="page-frame">${workbench.presetTemplate}</div>
       <div class="page-frame">
       <div id="yakit-wb-workbench-page" class="page workbench" tabindex="-1">
         <section id="yakit-wb-design-panel" class="panel design-panel" aria-label="需求与修改">
@@ -37,7 +38,6 @@
 
       </div>
       </div>
-      <div class="page-frame">${workbench.presetTemplate}</div>
       <div class="page-frame">${workbench.trialTemplate}</div>
       <div class="page-frame">${workbench.versionsTemplate}</div>
       <div class="page-frame">${workbench.settingsTemplate}</div>
