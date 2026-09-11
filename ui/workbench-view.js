@@ -99,7 +99,7 @@
           if (candidate) {
             const details = document.createElement('details');
             details.className = 'message-prompt';
-            const summary = document.createElement('summary'); summary.textContent = '查看提示词';
+            const summary = document.createElement('summary'); summary.className = 'button button-secondary'; summary.textContent = '查看提示词';
             const prompt = document.createElement('div'); prompt.textContent = candidate.prompt;
             details.append(summary, prompt); item.append(details);
           }

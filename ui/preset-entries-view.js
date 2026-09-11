@@ -13,7 +13,7 @@
     }
     function createEditor(entry) {
       const node = element('details', 'preset-entry');
-      const summary = element('summary', 'preset-entry-summary');
+      const summary = element('summary', 'preset-entry-summary button button-secondary');
       const name = element('span', 'preset-entry-name');
       const role = element('span', 'subtle-badge');
       summary.append(name, role);
@@ -23,7 +23,7 @@
       const hint = element('p', 'page-hint');
       const actions = element('div', 'save-row');
       const save = element('button', 'button button-secondary', '保存条目');
-      const load = element('button', 'text-button', '载入草稿');
+      const load = element('button', 'button button-secondary', '载入草稿');
       save.type = load.type = 'button';
       actions.append(save, load); body.append(input, hint, actions); node.append(summary, body);
       const editor = { node, name, role, input, hint, actions, save, load, content: entry.content, marker: entry.marker, edited: false };
