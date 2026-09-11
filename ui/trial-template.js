@@ -30,6 +30,11 @@
             <p id="yakit-wb-task-status" class="page-hint" role="status"></p>
           </div>
           <div class="trial-preview-content">
+            <section id="yakit-wb-trial-comparison" class="trial-comparison" aria-labelledby="yakit-wb-comparison-title">
+              <h3 id="yakit-wb-comparison-title" class="comparison-heading">样本对比</h3>
+              <p id="yakit-wb-comparison-hint" class="comparison-hint"></p>
+              <div id="yakit-wb-comparison-grid" class="sample-comparison-grid"></div>
+            </section>
             <div class="trial-task-details">
               <details id="yakit-wb-task-snapshot" class="message-prompt" hidden><summary class="button button-secondary">查看本次原始需求与固定场景</summary><div><h3>原始需求</h3><p id="yakit-wb-task-goal" class="test-snapshot-text"></p><h3>固定场景</h3><p id="yakit-wb-task-scene" class="test-snapshot-text"></p></div></details>
               <div id="yakit-wb-judge-actions" class="test-options" hidden><label class="test-toggle"><input id="yakit-wb-score-order" type="checkbox" checked><span>按 AI 分数排序（允许并列）</span></label><button type="button" id="yakit-wb-judge-task" class="button button-secondary">重新盲评现有样本</button></div>

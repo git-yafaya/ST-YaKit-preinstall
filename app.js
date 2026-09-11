@@ -31,6 +31,7 @@ import './ui/toast.js';
 import './ui/select-view.js';
 import './ui/versions-view.js';
 import './ui/judgement-view.js';
+import './ui/trial-comparison-view.js';
 import './ui/trial-view.js';
 import './ui/workbench-messages-view.js';
 import './ui/workbench-view.js';

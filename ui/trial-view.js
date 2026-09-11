@@ -5,6 +5,7 @@
     const $ = id => root.querySelector(`#yakit-wb-${id}`);
     const judgementView = workbench.mountJudgement(controller, root, { run });
     const statusNames = { pending: '待反馈', satisfied: '达到预期', revise: '还需修改' };
+    const comparisonView = workbench.mountTrialComparison(controller, root, { run, statusNames });
     const taskStatuses = { scenario: '正在生成场景', generating: '正在生成样本', judging: '正在 AI 盲评', completed: '已完成', partial: '部分样本已评分', error: '未完成', cancelled: '已取消' };
     let taskKey = '', trialKey = '', feedbackKey = '', selection = '';
     const currentTrial = (state = controller.getState()) => state.trials.find(item => item.id === state.selectedTrialId);
@@ -65,6 +66,7 @@
       const scores = task?.judgement?.results || [];
       const visibleTrials = state.trials.filter(item => task ? item.taskId === task.id : !item.taskId);
       const ranks = judgementView.render(task, trial, visibleTrials, busy);
+      comparisonView.render(state, task, visibleTrials, ranks);
       if ($('score-order').checked) visibleTrials.sort((a, b) => (scores.find(item => item.trialId === b.id)?.score ?? -1) - (scores.find(item => item.trialId === a.id)?.score ?? -1));
       const nextTrialKey = JSON.stringify([visibleTrials.map(item => [item.id, item.feedback?.status]), state.selectedTrialId, scores, task?.preferredTrialId]);
       if (trialKey !== nextTrialKey) {

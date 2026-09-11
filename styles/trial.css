@@ -55,6 +55,19 @@
 .yakit-workbench #yakit-wb-judge-actions[hidden]+.page-hint{display:none}
 .yakit-workbench .test-snapshot-text{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.6;padding:8px 0 12px}
 .yakit-workbench .trial-reading{display:grid;flex:1 0 auto;gap:20px;min-width:0}
+/* 对比卡按结果区宽度自动换列，每张正文单独滚动，不撑大工作台。 */
+.yakit-workbench .trial-comparison{display:grid;flex-shrink:0;gap:12px;min-width:0;margin-bottom:20px}
+.yakit-workbench .comparison-heading{font-size:13px;font-weight:600}
+.yakit-workbench .comparison-hint,.yakit-workbench .comparison-card-meta{color:var(--muted);font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+.yakit-workbench .sample-comparison-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px;min-width:0}
+.yakit-workbench .sample-comparison-card{display:flex;flex-direction:column;gap:8px;min-width:0;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--paper);transition:background .15s ease,border-color .15s ease}
+.yakit-workbench .sample-comparison-card[aria-current="true"]{border-color:var(--accent);background:var(--selected)}
+.yakit-workbench .comparison-card-heading{font-size:13px;font-weight:600;overflow-wrap:anywhere}
+.yakit-workbench .comparison-card-body{height:240px;flex:0 0 240px;overflow:auto;overscroll-behavior:contain;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.8;color:var(--text)}
+.yakit-workbench .comparison-card-body::selection{background:var(--selected)}
+.yakit-workbench .comparison-card-body:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.yakit-workbench .comparison-card-empty{display:flex;align-items:center;justify-content:center;height:240px;flex:0 0 240px;color:var(--muted);font-size:12px;line-height:1.6;text-align:center;overflow-wrap:anywhere}
+.yakit-workbench .comparison-card-select{align-self:flex-start;max-width:100%;white-space:normal;overflow-wrap:anywhere}
 .yakit-workbench .trial-result,.yakit-workbench .feedback-section{min-width:0;background:var(--paper);border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .yakit-workbench .trial-result{display:flex;flex-direction:column}
 .yakit-workbench .trial-result>*{flex-shrink:0}
