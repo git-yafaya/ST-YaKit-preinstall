@@ -80,7 +80,6 @@
 .yakit-workbench .feedback-state{margin-top:10px;font-size:11px;color:var(--muted);text-align:right}
 
 .yakit-workbench .draft-save{border-top:1px solid var(--line);padding:14px 16px;background:var(--paper)}
-.yakit-workbench .draft-links{display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px;margin-top:14px}
 .yakit-workbench .trial-reading{display:grid;grid-template-columns:minmax(0,1fr);border-top:1px solid var(--line);align-items:start}
 .yakit-workbench .trial-reading:has(.feedback-section[hidden]){grid-template-columns:1fr}
 .yakit-workbench .trial-result{min-width:0}

@@ -39,7 +39,7 @@
             <div class="quote-heading"><label for="yakit-wb-excerpt">问题片段 <span>选填</span></label><button type="button" id="yakit-wb-quote-selection" class="button button-secondary">引用选中正文 ↙</button></div>
             <textarea id="yakit-wb-excerpt" rows="2" placeholder="在正文中选中一句话后点击引用，也可以直接粘贴。"></textarea>
             <label for="yakit-wb-feedback-note" class="sr-only">反馈与期望表现</label><textarea id="yakit-wb-feedback-note" rows="3" placeholder="哪里符合预期，哪里还不对？你希望下一版如何表现？"></textarea>
-            <div class="feedback-actions"><button type="button" class="button button-secondary" data-open-page="workbench">返回编辑</button><button type="button" id="yakit-wb-save-feedback" class="button button-secondary">保存反馈</button><button type="button" id="yakit-wb-revise" class="button button-primary">按反馈修改 <span aria-hidden="true">↗</span></button></div>
+            <div class="feedback-actions"><button type="button" id="yakit-wb-save-feedback" class="button button-secondary">保存反馈</button><button type="button" id="yakit-wb-revise" class="button button-primary">按反馈修改 <span aria-hidden="true">↗</span></button></div>
             <p id="yakit-wb-feedback-state" class="feedback-state">尚未提交评价</p>
             </section>
           </div>

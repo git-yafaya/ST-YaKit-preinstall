@@ -26,14 +26,12 @@
           </div>
         </section>
         <section class="panel draft-panel" aria-label="提示词草稿">
-          <div class="panel-content preset-picker"><button type="button" class="button button-secondary" data-open-page="presets">打开预设预览 <span aria-hidden="true">→</span></button></div>
           <div class="draft-toolbar"><span id="yakit-wb-draft-state">当前草稿</span><button type="button" id="yakit-wb-copy" class="button button-secondary">复制提示词 <span aria-hidden="true">⧉</span></button></div>
           <label for="yakit-wb-draft" class="sr-only">提示词草稿</label><textarea id="yakit-wb-draft" class="draft-editor" spellcheck="false" placeholder="先在左侧描述需求，生成第一版提示词。你也可以在这里直接开始写。"></textarea>
           <div class="editor-footer"><span id="yakit-wb-draft-count">0 字</span></div>
           <div class="draft-save">
             ${workbench.presetSaveTemplate}
             <div class="save-row"><label for="yakit-wb-version-label" class="sr-only">提示词名称（选填）</label><input id="yakit-wb-version-label" placeholder="提示词名称（选填）" maxlength="80"><button type="button" id="yakit-wb-save-version" class="button button-secondary">保存为版本 <span aria-hidden="true">＋</span></button></div>
-            <div class="draft-links"><button type="button" class="button button-secondary" data-open-page="versions">查看版本记录</button><button type="button" class="button button-secondary" data-open-page="trial">前往试写 <span aria-hidden="true">→</span></button></div>
           </div>
         </section>
 

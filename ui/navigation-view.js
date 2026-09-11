@@ -58,7 +58,6 @@
         openPage(buttons[next].dataset.page, 'tab');
       });
     });
-    root.querySelectorAll('[data-open-page]').forEach(button => button.addEventListener('click', () => openPage(button.dataset.openPage)));
     openPage('workbench', false);
     return { openPage };
   };

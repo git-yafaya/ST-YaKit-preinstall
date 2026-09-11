@@ -45,7 +45,7 @@ ST-YaKit-preinstall/
 ├── ui/
 │   ├── dialog-motion.js            # 统一关闭动画与重新打开状态
 │   ├── launcher.js                 # 扩展菜单、唯一弹窗与首次按需加载
-│   ├── navigation-view.js          # 五页切换、快捷入口与键盘焦点
+│   ├── navigation-view.js          # 五页常驻导航、程序切页与键盘焦点
 │   ├── preset-entries-view.js      # 条目编辑、开关、逐条保存与输入保留
 │   ├── preset-prompt-view.js       # 原版及测试版本选择、只读预览与应用
 │   ├── preset-template.js          # 预设预览、复制按钮与草稿来源保存控件
@@ -264,7 +264,7 @@ API 和提示词编辑共用二级滑动轨道与顶栏操作，使用主页的 
 | 顶栏与卡片 | 顶栏高 56px，关闭按钮为 32px；窗口圆角 20px，卡片圆角 12px |
 | 页面分区 | 五页省去重复的分区标题行，通过 `aria-label` 保留区域名称；预设条目数和版本数显示在选择框标签中，「版本记录」工具栏提供「导出工作记录」，通过常驻导航进入「工作台」编辑或「试写与反馈」试写 |
 | 工作台双栏 | 视口宽度 ≥960px 时，两栏使用 `repeat(2,minmax(0,1fr))` 等宽铺开并拉伸至页面可用高度；左侧需求框填充剩余空间，补充要求与操作保持自然高度，讨论区最多 320px 并可滚动；内容超高时卡片内滚动。小于 960px 时上下排列 |
-| 操作按钮 | 复制、引用、刷新、跳转、导出及取消共用次按钮；主操作沿用主按钮，关闭按钮显示主题底色和边框 |
+| 操作按钮 | 复制、引用、刷新、导出及取消共用次按钮；主操作沿用主按钮，关闭按钮显示主题底色和边框；五页通过常驻导航切换 |
 | 复选框 | 「空卡模式」「按 AI 推荐顺序」及设置中的「合并生成」共用 `styles/pages.css` 的 `.test-toggle input` 原生样式；重置宿主自绘伪元素、网格、变换与滤镜，保持 16px 尺寸、主题强调色、原生键盘操作、焦点及禁用状态 |
 | 展开与反馈 | 原生 `summary` 与单选项共用按钮外观；折叠标题保持尺寸稳定，使用悬停颜色与展开箭头反馈，箭头跟随 `details[open]`；设置标题始终预留 1px 下边框，展开只切换边框颜色；反馈选中态跟随 `input:checked`，键盘焦点清晰可见 |
 | 页面留白 | 默认上下 20px、左右 24px；浏览器视口不超过 480px 时为 14px |
@@ -273,7 +273,7 @@ API 和提示词编辑共用二级滑动轨道与顶栏操作，使用主页的 
 | Toast | 底部居中，距底部 24px，间隔 8px；内边距 10px / 18px，圆角 12px，字号 13px；停留 2300ms 后淡出，300ms 后移除 |
 | 减少动态效果 | 停用过渡与动画，关闭直接完成 |
 
-顶栏固定留在正文上方，显示入口图标、「预设工作台」标题和关闭按钮；另保留仅供读屏的当前页面名称。设置二级页顶栏增加返回、保存或确认，以及对应的删除或重置；窄屏进入编辑页时让标题为操作区留出空间。导航常驻于设置选择的上方或下方，上方长页签显示省略号，下方图标保留读屏名称和 `title`。切页通过 `inert` 和 `aria-hidden` 隔离非当前页，不重建工作内容并保留滚动位置，设置编辑草稿按上文规则清理。页签支持左右方向键、Home、End；快捷入口聚焦目标页。当前页只保留在本次工作台实例，重新加载后回到工作台。Esc 尊重控件已取消的事件，展开的原生下拉优先关闭选项；旧浏览器无法判断下拉展开状态时，焦点位于下拉框内由系统处理 Esc。遮罩关闭要求按下与松开均位于窗口外，退出期间再次打开会清除待关闭状态。
+顶栏固定留在正文上方，显示入口图标、「预设工作台」标题和关闭按钮；另保留仅供读屏的当前页面名称。设置二级页顶栏增加返回、保存或确认，以及对应的删除或重置；窄屏进入编辑页时让标题为操作区留出空间。导航常驻于设置选择的上方或下方，上方长页签显示省略号，下方图标保留读屏名称和 `title`。切页通过 `inert` 和 `aria-hidden` 隔离非当前页，不重建工作内容并保留滚动位置，设置编辑草稿按上文规则清理。页签支持左右方向键、Home、End；程序切页聚焦目标页。当前页只保留在本次工作台实例，重新加载后回到工作台。Esc 尊重控件已取消的事件，展开的原生下拉优先关闭选项；旧浏览器无法判断下拉展开状态时，焦点位于下拉框内由系统处理 Esc。遮罩关闭要求按下与松开均位于窗口外，退出期间再次打开会清除待关闭状态。
 
 主题由所属 `.yakit-workbench` 容器的 `data-theme` 控制；`st` 模式直接继承酒馆的 `--SmartThemeBodyColor`、`--SmartThemeBlurTintColor`、`--SmartThemeChatTintColor`、`--SmartThemeBorderColor`、`--SmartThemeQuoteColor`、`--SmartThemeEmColor` 和 `--mainFontFamily`。主题切换只更新工作台容器，不修改酒馆根元素，也不创建主题监听器。林系风、浅色与纪实一致，深色使用黑灰背景及浅灰强调色。全部页面与控件选择器限定在 `.yakit-workbench` 内，菜单入口使用独立 ID；控件 ID、标签关联及单选组名统一带 `yakit-wb-` 前缀，避免和酒馆或其他插件共用标识。
 
@@ -308,7 +308,7 @@ Toast 根节点 `#yakit-wb-toast-root` 位于工作台弹窗或预览容器中�
 | `YaKitWorkbench.createToast(document, container = document.body)` | 在指定容器创建轻提示，工作台传入自己的弹窗，返回 `{show, dispose}`；`show(message, {type, durationMs})` 默认 `success` / 2300ms，另支持 `warning` 和 `error`，卸载后调用不再显示 |
 | `YaKitWorkbench.mountPresets(controller, root, {run, openPage})` | 绑定预设选择、复制、明确重读与草稿写回控件，返回 `{render}` |
 | `YaKitWorkbench.mountPresetEntries(controller, root, {run, openPage})` | 绑定全部条目的编辑、逐条保存与草稿载入，返回 `{render, rebase}`；`rebase(state)` 在明确重读成功后更新原文基线 |
-| `YaKitWorkbench.mountNavigation(root, {onPageChange} = {})` | 返回 `{openPage}`，绑定五页常驻导航与快捷入口；切页回调用于清理设置草稿，从所属工作台容器读取读屏页名并管理焦点 |
+| `YaKitWorkbench.mountNavigation(root, {onPageChange} = {})` | 返回 `{openPage}`，绑定五页常驻导航；切页回调用于清理设置草稿，从所属工作台容器读取读屏页名并管理焦点 |
 | `YaKitWorkbench.mountVersions(controller, root, {run})` | 返回 `{render, title}`，负责版本名称同步、选单、详情及同页删除确认，`title(version)` 返回名称和后置编号 |
 | `YaKitWorkbench.mountTheme(controller, container)` | 返回 `{sync, dispose}`；仅更新容器的 `data-theme`，酒馆主题变量直接继承，`dispose` 保留空操作契约 |
 | `YaKitWorkbench.mountTrials(controller, root, {run, notify, versionTitle})` | 返回 `{render}`；绑定场景、任务、评分、人工偏好和原有反馈控件 |
@@ -478,7 +478,7 @@ UI 代码位于 `ui/`、`styles/`、`style.css` 和页面模板；业务代码�
 | `tests/trial-ui.test.mjs` | 任务/样本切换、评分排序与偏好显示、原始场景和 API 控件 |
 | `tests/preview-host.test.mjs` | 显式宿主挂载、焦点与重开环境刷新及清理、离线两版流程、旧存储恢复、请求快照和取消 |
 | `tests/theme.test.mjs` | 容器主题各自生效，宿主根主题保持不变 |
-| `tests/navigation.test.mjs` | 页签键盘操作、快捷入口、隐藏页隔离与草稿和滚动保留 |
+| `tests/navigation.test.mjs` | 页签键盘操作、程序切页、隐藏页隔离与草稿和滚动保留 |
 | `tests/launcher.test.mjs` | 唯一弹窗、并发打开只挂载一次、关闭期间加载完成、失败重试、Esc/cancel 与遮罩 |
 | `tests/native-styles.test.mjs` | 样式局部化、原生弹窗关闭隐藏、四主题、窗口尺寸与提示层 |
 | `tests/select-toggle.test.mjs` | 触屏首次与再次点击的事件处理、鼠标与键盘、选项冒泡、系统选单、禁用、不支持增强和卸载；不模拟浏览器原生弹层 |
