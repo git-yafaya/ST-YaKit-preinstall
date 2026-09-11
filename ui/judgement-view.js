@@ -39,7 +39,7 @@
         $('judge-ranking').replaceChildren(...ranked.map(result => {
           const sample = trials.find(item => item.id === result.trialId);
           const row = node('li', '');
-          const button = node('button', `${ranks.get(result.trialId)} · 样本 ${sample.sampleIndex}${result.label ? `（盲评 ${result.label}）` : ''} · ${result.score} 分`, 'button button-secondary');
+          const button = node('button', `${ranks.get(result.trialId)} · 样本 ${sample.sampleIndex}${task?.candidates?.length ? ` · ${workbench.trialSourceTitle(task, sample)}` : ''}${result.label ? `（盲评 ${result.label}）` : ''} · ${result.score} 分`, 'button button-secondary');
           button.type = 'button'; button.disabled = busy;
           button.setAttribute('aria-current', String(result.trialId === trial?.id));
           button.addEventListener('click', () => run(() => controller.selectTrial(result.trialId)));

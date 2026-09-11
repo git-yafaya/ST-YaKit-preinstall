@@ -16,7 +16,7 @@
           </div></details>
           <details class="panel settings-card"><summary class="button">模块 API</summary><div class="panel-content settings-group">
             ${[['design', '提示词生成与修改'], ['scenario', '冲突场景生成'], ['sample', '正文样本生成'], ['judge', 'AI 盲评']].map(([key, label]) => `<div class="field"><label for="yakit-wb-module-api-${key}">${label}</label><select id="yakit-wb-module-api-${key}"></select></div>`).join('')}
-            <label class="test-toggle"><input id="yakit-wb-combine-design-scenario" type="checkbox" aria-labelledby="yakit-wb-combine-design-scenario-label" aria-describedby="yakit-wb-combine-design-scenario-hint"><span class="test-toggle-content"><span id="yakit-wb-combine-design-scenario-label">生成提示词时，一次请求同时生成冲突场景</span><span id="yakit-wb-combine-design-scenario-hint" class="page-hint">需在试写页选择 AI 场景，并为提示词与场景指定同一个 API。</span></span></label>
+            <label class="test-toggle"><input id="yakit-wb-combine-design-scenario" type="checkbox" aria-labelledby="yakit-wb-combine-design-scenario-label" aria-describedby="yakit-wb-combine-design-scenario-hint"><span class="test-toggle-content"><span id="yakit-wb-combine-design-scenario-label">生成提示词后准备共用场景</span><span id="yakit-wb-combine-design-scenario-hint" class="page-hint">需在试写页选择 AI 场景；场景为空时单独生成一次，已有场景会沿用。各模块沿用上方 API 配置。</span></span></label>
           </div></details>
           <details class="panel settings-card"><summary class="button">内置提示词</summary><div class="panel-content settings-group">
             ${Object.entries(workbench.promptTitles).map(([kind, title]) => `<button id="yakit-wb-prompt-${kind}" type="button" class="panel settings-entry" aria-controls="yakit-wb-settings-prompt-page">${title}</button>`).join('')}

@@ -6,22 +6,34 @@
         <div class="trial-controls">
           <div class="trial-parameters">
             <div class="environment"><span class="status-dot"></span><span id="yakit-wb-context-label">空卡测试</span><span id="yakit-wb-sample-api-label">酒馆当前 API</span></div>
-            <div class="test-options">
-              <label class="test-toggle"><input id="yakit-wb-empty-card" type="checkbox" checked><span>空卡模式：仅使用提示词和场景</span></label>
-              <div class="field"><label for="yakit-wb-scene-source">场景来源</label><select id="yakit-wb-scene-source"><option value="manual">手动填写</option><option value="ai">AI 生成冲突场景</option></select></div>
-              <div class="field"><label for="yakit-wb-sample-count">独立样本数</label><select id="yakit-wb-sample-count">${[1, 2, 3, 4, 5, 6].map(count => `<option value="${count}" ${count === 3 ? 'selected' : ''}>${count} 个样本</option>`).join('')}</select></div>
-              <div class="field"><label for="yakit-wb-sample-mode">样本请求方式</label><select id="yakit-wb-sample-mode" aria-describedby="yakit-wb-sample-mode-hint"><option value="parallel">独立请求</option><option value="single">单次请求返回 n 个样本</option></select><p id="yakit-wb-sample-mode-hint" class="page-hint">各样本同时发起独立请求。</p></div>
-            </div>
-            <div class="trial-scenario">
-              <div class="quote-heading"><label for="yakit-wb-trial-input">固定测试场景</label><button type="button" id="yakit-wb-generate-scenario" class="button button-secondary">生成冲突场景</button></div>
-              <textarea id="yakit-wb-trial-input" rows="3" placeholder="填写能检验要求的冲突场景。"></textarea>
-              <p id="yakit-wb-scenario-hint" class="page-hint" hidden>留空时自动生成；已有场景会沿用。</p>
-            </div>
+            <section class="trial-step" aria-labelledby="yakit-wb-select-title">
+              <h3 id="yakit-wb-select-title" class="comparison-heading">1 · 选提示词</h3>
+              <div id="yakit-wb-test-versions" class="test-version-list" role="group" aria-labelledby="yakit-wb-select-title" aria-describedby="yakit-wb-test-versions-hint"></div>
+              <p id="yakit-wb-test-versions-hint" class="page-hint"></p>
+            </section>
+            <section class="trial-step trial-scenario" aria-labelledby="yakit-wb-scene-title">
+              <h3 id="yakit-wb-scene-title" class="comparison-heading">2 · 共用场景</h3>
+              <div class="test-options">
+                <label class="test-toggle"><input id="yakit-wb-empty-card" type="checkbox" checked><span>空卡模式：仅使用提示词和场景</span></label>
+                <div class="field"><label for="yakit-wb-scene-source">场景来源</label><select id="yakit-wb-scene-source"><option value="manual">手动填写</option><option value="ai">AI 生成冲突场景</option></select></div>
+              </div>
+              <div class="quote-heading"><label for="yakit-wb-trial-input">所有提示词共用的场景</label><button type="button" id="yakit-wb-generate-scenario" class="button button-secondary">生成共用场景</button></div>
+              <textarea id="yakit-wb-trial-input" rows="3" placeholder="填写能检验原始需求的冲突场景。"></textarea>
+              <p class="page-hint">场景会直接用作所有候选的测试输入，并在本次任务中固定。</p>
+              <p id="yakit-wb-scenario-hint" class="page-hint" hidden>留空时独立请求一次场景；已有场景会沿用。</p>
+            </section>
+            <section class="trial-step" aria-labelledby="yakit-wb-generate-title">
+              <h3 id="yakit-wb-generate-title" class="comparison-heading">3 · 生成并比较</h3>
+              <div class="test-options">
+                <div class="field"><label for="yakit-wb-sample-count">每份提示词生成正文数</label><select id="yakit-wb-sample-count">${[1, 2, 3, 4, 5, 6].map(count => `<option value="${count}" ${count === 1 ? 'selected' : ''}>${count} 份正文</option>`).join('')}</select></div>
+                <div class="field"><label for="yakit-wb-sample-mode">正文请求方式</label><select id="yakit-wb-sample-mode" aria-describedby="yakit-wb-sample-mode-hint"><option value="parallel">独立请求</option><option value="single">每份提示词单次请求返回 n 份正文</option></select><p id="yakit-wb-sample-mode-hint" class="page-hint">各样本同时发起独立请求。</p></div>
+              </div>
+            </section>
           </div>
           <div class="trial-actions">
-            <span id="yakit-wb-trial-version">先保存一个提示词版本</span>
-            <button type="button" id="yakit-wb-trial-button" class="button button-primary">创建测试任务 <span aria-hidden="true">↗</span></button>
-            <p class="page-hint">创建后自动生成样本并进行盲评。</p>
+            <span id="yakit-wb-trial-version">先选择已保存的提示词</span>
+            <button type="button" id="yakit-wb-trial-button" class="button button-primary">生成正文并比较 <span aria-hidden="true">↗</span></button>
+            <p class="page-hint">所有候选生成完成后，统一匿名评分。</p>
           </div>
         </div>
         <div class="trial-preview">
@@ -31,7 +43,7 @@
           </div>
           <div class="trial-preview-content">
             <section id="yakit-wb-trial-comparison" class="trial-comparison" aria-labelledby="yakit-wb-comparison-title">
-              <h3 id="yakit-wb-comparison-title" class="comparison-heading">样本对比</h3>
+              <h3 id="yakit-wb-comparison-title" class="comparison-heading">正文与评分对比</h3>
               <p id="yakit-wb-comparison-hint" class="comparison-hint"></p>
               <div id="yakit-wb-comparison-grid" class="sample-comparison-grid"></div>
             </section>
@@ -45,6 +57,7 @@
                 <ol id="yakit-wb-judge-ranking" class="judge-ranking"></ol><p id="yakit-wb-judge-ranking-empty" class="page-hint">暂无评分结果。</p>
               </section>
             </div>
+            ${workbench.trialReviewTemplate}
             <div class="trial-reading">
               <section class="trial-result" aria-label="试写结果">
                 <div class="output-heading"><h3>样本正文</h3><label for="yakit-wb-trials" class="sr-only">选择样本</label><select id="yakit-wb-trials" aria-label="选择样本"><option value="">暂无试写</option></select></div>

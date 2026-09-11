@@ -17,6 +17,11 @@
 .yakit-workbench .trial-preview-content{display:flex;flex-direction:column;padding:20px 0 0 24px}
 .yakit-workbench .environment{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-bottom:20px;color:var(--muted);font-size:12px}
 .yakit-workbench .environment>span:last-child{margin-left:auto;max-width:100%;overflow-wrap:anywhere}
+.yakit-workbench .trial-step+.trial-step{margin-top:20px;padding-top:20px;border-top:1px solid var(--line)}
+.yakit-workbench .trial-step>.comparison-heading{margin-bottom:12px}
+.yakit-workbench .test-version-list{display:grid;gap:8px}
+.yakit-workbench .test-version-list .test-toggle{min-width:0;overflow-wrap:anywhere}
+.yakit-workbench .test-version-list .test-toggle>span{min-width:0}
 .yakit-workbench .status-dot{width:5px;height:5px;flex-shrink:0;border-radius:50%;background:var(--accent)}
 .yakit-workbench #yakit-wb-trial-page label{font-weight:500}
 .yakit-workbench #yakit-wb-trial-page .field>label{margin-bottom:8px}
@@ -55,6 +60,7 @@
 .yakit-workbench #yakit-wb-judge-actions[hidden]+.page-hint{display:none}
 .yakit-workbench .test-snapshot-text{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.6;padding:8px 0 12px}
 .yakit-workbench .trial-reading{display:grid;flex:1 0 auto;gap:20px;min-width:0}
+.yakit-workbench #yakit-wb-review-section{flex-shrink:0;margin-bottom:20px}
 /* 对比卡按结果区宽度自动换列，每张正文单独滚动，不撑大工作台。 */
 .yakit-workbench .trial-comparison{display:grid;flex-shrink:0;gap:12px;min-width:0;margin-bottom:20px}
 .yakit-workbench .comparison-heading{font-size:13px;font-weight:600}

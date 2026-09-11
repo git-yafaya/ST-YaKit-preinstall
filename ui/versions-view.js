@@ -39,8 +39,9 @@
       $('version-count').textContent = state.versions.length;
       ['saved-version-label', 'rename-version', 'delete-version', 'confirm-delete-version'].forEach(id => { $(id).disabled = busy || !version; });
       $('version-delete-confirmation').hidden = !pendingDeleteId;
-      const relatedTrials = pendingDeleteId ? state.trials.filter(item => item.versionId === pendingDeleteId).length : 0;
-      $('version-delete-message').textContent = pendingDeleteId ? `删除「${title(version)}」？将同时删除 ${relatedTrials} 条试写及其反馈；当前草稿会保留。` : '';
+      const relatedTasks = pendingDeleteId ? (state.testTasks || []).filter(item => item.versionId === pendingDeleteId || item.candidates?.some(candidate => candidate.versionId === pendingDeleteId)) : [];
+      const relatedTrials = pendingDeleteId ? state.trials.filter(item => item.versionId === pendingDeleteId || relatedTasks.some(task => task.id === item.taskId)).length : 0;
+      $('version-delete-message').textContent = pendingDeleteId ? `删除「${title(version)}」？将同时删除 ${relatedTasks.length} 组关联测试任务、${relatedTrials} 条试写及其反馈（含同组其他提示词的正文与评分）；当前草稿会保留。` : '';
 
       // 普通重绘保留正在输入的名称；切换版本时才载入对应名称。
       if (selectedId !== (version?.id || '') || selectedLabel !== (version?.label || '')) {

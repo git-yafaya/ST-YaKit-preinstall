@@ -2,7 +2,7 @@
 'use strict';
 const { clone, designSettings, rawText, required } = globalThis.YaKitWorkbench.state;
 const defaults = {
-    scenarioText: '', scenarioPrompt: '', sceneSource: 'manual', emptyCardMode: true, sampleCount: 3,
+    scenarioText: '', scenarioPrompt: '', sceneSource: 'manual', emptyCardMode: true, sampleCount: 1, testVersionIds: [],
     sampleRequestMode: 'parallel', combineDesignScenario: false,
     moduleApis: { design: 'default', scenario: 'default', sample: 'default', judge: 'default' },
 };
@@ -18,6 +18,12 @@ function settingValue(key, value) {
     if (key === 'sampleCount') {
         if (!Number.isInteger(Number(value)) || Number(value) < 1 || Number(value) > 6) throw new Error('样本数量必须是 1 至 6 的整数。');
         return Number(value);
+    }
+    if (key === 'testVersionIds') {
+        if (!Array.isArray(value)) throw new Error('参测版本必须是数组。');
+        const ids = value.map(id => required(id, '参测版本标识'));
+        if (new Set(ids).size !== ids.length) throw new Error('参测版本不能重复。');
+        return ids;
     }
     if (key === 'moduleApis') {
         if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('模块 API 配置格式不正确。');
@@ -35,6 +41,7 @@ function restore(state, saved) {
         state[key] = clone(value);
         try { if (saved && Object.hasOwn(saved, key)) state[key] = settingValue(key, saved[key]); } catch { /* 损坏设置恢复默认值。 */ }
     }
+    state.testVersionIds = state.testVersionIds.filter(id => state.versions.some(version => version.id === id));
 }
 
 function moduleSettings(state, module) {
@@ -50,15 +57,10 @@ function moduleSettings(state, module) {
 }
 
 function messages(goal, content, assistPrompts) {
+    // 所有候选共享原需求生成的场景，旧调用的候选参数不再发送。
     return [{ role: 'system', content: promptText(assistPrompts, 'builtin') },
         { role: 'system', content: promptText(assistPrompts, 'scenario') },
-        { role: 'user', content: JSON.stringify({ goal: required(goal, '原始需求'), candidate: rawText(content, '候选提示词') }) }];
-}
-
-function combinedMessages(designMessages, assistPrompts) {
-    return [...designMessages, { role: 'system', content: `${promptText(assistPrompts, 'scenario')}\n\n`
-        + '本次根据用户需求和即将输出的 prompt 生成对应测试场景。'
-        + '仍只输出原设计 JSON，并增加 scenario 字段保存完整场景。' }];
+        { role: 'user', content: JSON.stringify({ goal: required(goal, '原始需求') }) }];
 }
 
 async function generate(host, { goal, content, assistPrompts, settings, signal, isActive = () => !signal?.aborted }) {
@@ -76,5 +78,5 @@ async function generate(host, { goal, content, assistPrompts, settings, signal, 
     }
 }
 
-globalThis.YaKitWorkbench.scenarios = { defaults, settingValue, restore, moduleSettings, messages, combinedMessages, generate };
+globalThis.YaKitWorkbench.scenarios = { defaults, settingValue, restore, moduleSettings, messages, generate };
 })();

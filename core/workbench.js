@@ -63,8 +63,8 @@ async function createWorkbench(host) {
         // 读取临时预设不会修复工作记录，继续保留原来的加载失败提示。
         if (kind !== 'preset-read' || state.error !== loadError) state.error = '';
         state.notice = ''; emit();
-        let error;
-        try { await action(operation); } catch (caught) {
+        let error, result;
+        try { result = await action(operation); } catch (caught) {
             if (active === operation) error = caught;
         }
         if (active !== operation) return;
@@ -73,9 +73,10 @@ async function createWorkbench(host) {
         emit();
         if (kind !== 'preset-read') await persist();
         if (error) throw error;
+        return result;
     };
     const design = async (instruction, sourceDraft) => {
-        let messages, settings, count, combined = false;
+        let messages, settings, count, sceneSettings, sceneGoal, scenePrompts;
         const forceRevise = sourceDraft !== undefined;
         // 固定本轮条目名称，等待答复时切换版本也不会改名。
         const presetEntryName = state.presetSource?.name.trim() || '提示词';
@@ -86,11 +87,10 @@ async function createWorkbench(host) {
             count = forceRevise ? 1 : settingValue('designCount', state.designCount);
             settings = scenarios.moduleSettings(state, 'design');
             messages = designMessages(state, instruction, sourceDraft, forceRevise);
-            combined = state.combineDesignScenario && state.sceneSource === 'ai';
-            if (combined) {
-                const scenarioSettings = scenarios.moduleSettings(state, 'scenario');
-                if (JSON.stringify(settings) !== JSON.stringify(scenarioSettings)) throw new Error('合并生成需要为提示词设计和场景选择同一个 API。');
-                messages = scenarios.combinedMessages(messages, state.assistPrompts);
+            // 一批提示词只准备一个共用场景，已有场景继续沿用。
+            if (!forceRevise && state.combineDesignScenario && state.sceneSource === 'ai' && !state.scenarioText.trim()) {
+                sceneSettings = scenarios.moduleSettings(state, 'scenario');
+                sceneGoal = state.goal; scenePrompts = clone(state.assistPrompts);
             }
         } catch (error) { return fail(error); }
         return run('design', async operation => {
@@ -106,7 +106,6 @@ async function createWorkbench(host) {
                 state.messages.push({ role: 'assistant', content: text(reply, '模型答复') });
                 try {
                     const result = parseDesign(reply);
-                    if (combined) required(result.scenario, '合并答复中的测试场景');
                     const version = count > 1 ? addAutoVersion(presetEntryName, result.prompt) : null;
                     results[index] = { ...result, version };
                 } finally {
@@ -129,13 +128,18 @@ async function createWorkbench(host) {
                 if (forceRevise || result.action !== 'revise') state.presetSource = null;
                 state.draft = result.prompt;
                 state.scenarioPrompt = '';
-                if (combined) state.scenarioText = result.scenario;
                 revision++;
                 if (result.version) state.selectedVersionId = result.version.id;
                 state.notice = count > 1 ? `已生成 ${valid.length} 份提示词并分别保存，可切换版本查看。`
                     : result.explanation || '草稿已更新，请保存为新版本后试写。';
             } else if (result) {
                 state.notice = '生成期间草稿或版本已改变；本次答复保留在讨论中，请查看后采用。';
+            }
+            if (result && unchanged && sceneSettings) {
+                const sceneRevision = revision;
+                const generated = await scenarios.generate(host, { goal: sceneGoal, assistPrompts: scenePrompts,
+                    settings: sceneSettings, signal: operation.controller.signal, isActive: () => active === operation });
+                if (generated && active === operation && revision === sceneRevision) state.scenarioText = generated.scenario;
             }
             if (errors.length) {
                 if (count === 1) throw errors[0];
@@ -171,6 +175,9 @@ async function createWorkbench(host) {
                     else if (Object.hasOwn(scenarios.defaults, key)) next[key] = scenarios.settingValue(key, value);
                     else next[key] = settingValue(key, value);
                 }
+                if (next.testVersionIds?.some(id => !state.versions.some(version => version.id === id))) {
+                    throw new Error('所选提示词已不存在，请重新选择。');
+                }
                 if (['draft', 'goal', 'scenarioText', 'sceneSource'].some(key => key in next)) {
                     revision++;
                     if (['draft', 'goal', 'scenarioText', 'sceneSource'].some(key => key in next && next[key] !== state[key])) state.scenarioPrompt = '';
@@ -199,13 +206,15 @@ async function createWorkbench(host) {
             return change(() => {
                 if (state.busy) throw new Error('请等待当前操作完成后再删除版本。');
                 const version = find(state.versions, id, '提示词版本');
-                if (state.trials.some(item => item.versionId === version.id && item.id === state.selectedTrialId)) {
-                    state.selectedTrialId = '';
-                }
-                state.trials = state.trials.filter(item => item.versionId !== version.id);
-                state.testTasks = state.testTasks.filter(item => item.versionId !== version.id);
+                // 一组比较的正文和评分一起清理，避免留下缺少候选的排名。
+                const taskIds = new Set(state.testTasks.filter(item => item.versionId === version.id
+                    || item.candidates?.some(candidate => candidate.versionId === version.id)).map(item => item.id));
+                state.trials = state.trials.filter(item => item.versionId !== version.id && !taskIds.has(item.taskId));
+                state.testTasks = state.testTasks.filter(item => !taskIds.has(item.id));
+                if (!state.trials.some(item => item.id === state.selectedTrialId)) state.selectedTrialId = '';
                 if (!state.testTasks.some(item => item.id === state.selectedTestTaskId)) state.selectedTestTaskId = '';
                 state.versions = state.versions.filter(item => item.id !== version.id);
+                state.testVersionIds = state.testVersionIds.filter(item => item !== version.id);
                 if (state.selectedVersionId === version.id) state.selectedVersionId = '';
                 state.notice = `已删除「${version.label}」及其关联试写和反馈。`;
             });
@@ -259,6 +268,14 @@ async function createWorkbench(host) {
     Object.assign(controller, createSettingsActions({ state, host, change }));
     Object.assign(controller, testTasks.createActions({ state, host, run, change, persist, emit, fail, find,
         isActive: operation => active === operation, getRevision: () => revision }));
+    if (globalThis.YaKitWorkbench.createReviewActions) {
+        Object.assign(controller, globalThis.YaKitWorkbench.createReviewActions({
+            state, host, run, find, fail, persist, emit, addVersion, controller,
+            isActive: operation => active === operation,
+            getRevision: () => revision,
+            draftChanged: () => { revision++; state.scenarioPrompt = ''; },
+        }));
+    }
     if (globalThis.YaKitWorkbench.createPresetActions) {
         Object.assign(controller, globalThis.YaKitWorkbench.createPresetActions({
             state, host, run, change, isActive: operation => active === operation,

@@ -2,7 +2,8 @@
 'use strict';
 const { rawText, required, text, apiRoute } = globalThis.YaKitWorkbench.state;
 const { INSTRUCTION, LEGACY_INSTRUCTION } = globalThis.YaKitWorkbench.prompts;
-const { promptDefaults, promptText, legacyScenarioPrompt, legacyTwoStageScenarioPrompt } = globalThis.YaKitWorkbench;
+const { promptDefaults, promptText, legacyScenarioPrompt, legacyTwoStageScenarioPrompt,
+    legacyCandidateScenarioPrompt, legacyCombinedDesignPrompt } = globalThis.YaKitWorkbench;
 
 function configFields(fields) {
     if (!fields || typeof fields !== 'object' || Array.isArray(fields)) throw new Error('API 配置格式不正确。');
@@ -71,9 +72,10 @@ function restoreSettings(state, saved) {
     state.assistPrompts = Object.fromEntries(Object.keys(promptDefaults).map(kind => [kind, getPrompt(saved || {}, kind).text]));
     // 仅迁移逐字相同的旧默认文案，保留用户编辑过的提示词。
     if (state.assistPrompts.builtin === LEGACY_INSTRUCTION) state.assistPrompts.builtin = INSTRUCTION;
-    if ([legacyScenarioPrompt, legacyTwoStageScenarioPrompt].includes(state.assistPrompts.scenario)) {
+    if ([legacyScenarioPrompt, legacyTwoStageScenarioPrompt, legacyCandidateScenarioPrompt].includes(state.assistPrompts.scenario)) {
         state.assistPrompts.scenario = promptDefaults.scenario;
     }
+    if (state.assistPrompts.design === legacyCombinedDesignPrompt) state.assistPrompts.design = promptDefaults.design;
 }
 
 function createSettingsActions({ state, host, change }) {

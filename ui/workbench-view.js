@@ -55,7 +55,7 @@
       // 保留尚未填完的数量，清空重输时不会被订阅刷新覆盖。
       if (!designCountEditing) setValue('design-count', String(state.designCount));
       $('busy-bar').hidden = !state.busy;
-      $('busy-text').textContent = ({ trial: '测试任务正在生成样本并进行 AI 盲评…', scenario: '正在生成冲突场景…', judge: '正在进行 AI 盲评…', 'preset-read': '正在读取预设…', 'preset-save': '正在保存预设…' })[state.busy] || '工作台 AI 正在生成…';
+      $('busy-text').textContent = ({ trial: '正在生成各份正文并统一盲评…', scenario: '正在生成共用场景…', judge: '正在进行 AI 盲评…', review: '正在处理本轮评审…', 'preset-read': '正在读取预设…', 'preset-save': '正在保存预设…' })[state.busy] || '工作台 AI 正在生成…';
       $('cancel').hidden = state.busy === 'preset-save' || state.busy === 'preset-read';
       $('design-button').disabled = designSubmitting || Boolean(state.busy) || !state.goal.trim();
       $('design-count').disabled = designSubmitting || Boolean(state.busy);
