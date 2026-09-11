@@ -2,6 +2,16 @@
 :root[data-theme="dark"]{color-scheme:dark;--background:#172126;--text:#dce5e8;--accent:#80b5c0;--accent-dark:#97c7d0;--on-accent:#172126;--line:#35464e;--muted:#a1b2ba;--paper:#202e35;--field:#233239;--surface:#293b43;--selected:#304951;--focus:#80b5c0;--error-bg:#442d2c;--error-line:#79514d;--error-text:#f2b7a5}
 :root[data-theme="st"]{font-family:var(--mainFontFamily,Inter),"PingFang SC","Microsoft YaHei",system-ui,sans-serif;color-scheme:normal;--background:var(--SmartThemeChatTintColor,#f4f6f7);--text:var(--SmartThemeBodyColor,#25333a);--paper:var(--SmartThemeBlurTintColor,#fff);--line:var(--SmartThemeBorderColor,#e3e8eb);--accent:var(--SmartThemeQuoteColor,#397684);--accent-dark:color-mix(in srgb,var(--accent) 82%,var(--text));--on-accent:var(--paper);--muted:color-mix(in srgb,var(--text) 65%,var(--paper));--field:color-mix(in srgb,var(--paper) 96%,var(--text));--surface:color-mix(in srgb,var(--paper) 92%,var(--text));--selected:color-mix(in srgb,var(--paper) 86%,var(--accent));--focus:var(--accent);--error-bg:color-mix(in srgb,var(--paper) 90%,#b44);--error-line:color-mix(in srgb,var(--paper) 65%,#b44);--error-text:var(--text)}
 *{box-sizing:border-box}
+/* 页面、讨论区和文本框共用当前主题的细滚动条。 */
+*{scrollbar-width:thin;scrollbar-color:var(--muted) transparent}
+@supports selector(::-webkit-scrollbar){
+  /* 复原标准属性，避免它们盖过下面的宽度和圆角。 */
+  *{scrollbar-width:auto;scrollbar-color:auto}
+  *::-webkit-scrollbar{width:8px;height:8px}
+  *::-webkit-scrollbar-track,*::-webkit-scrollbar-corner{background:transparent}
+  *::-webkit-scrollbar-thumb{background:var(--muted);border-radius:8px}
+  *::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+}
 body{margin:0}
 button,input,textarea,select{font:inherit}
 button,a,input,textarea,select{-webkit-tap-highlight-color:transparent}

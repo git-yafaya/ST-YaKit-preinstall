@@ -13,7 +13,7 @@ ST-YaKit-preinstall/
 ├── index.js                   # 发布宿主上下文桥并挂载入口
 ├── index.html                 # 同源工作台页面与脚本加载顺序
 ├── app.js                     # 创建宿主适配器、核心和视图
-├── style.css                  # 工作台与设置的主题、布局及微动效
+├── style.css                  # 四页共用的主题、布局、滚动条及微动效
 ├── core/
 │   ├── state.js               # 设置校验、记录恢复与保存快照
 │   ├── prompts.js             # 设计消息、答复解析与反馈指令
@@ -104,6 +104,8 @@ ST-YaKit-preinstall/
 主区工具栏中的按钮控制侧栏显隐；收起时侧栏不占布局空间，也不可通过键盘聚焦，展开按钮保持可见。导航用 `hidden` 切换现有页面节点，保留未提交输入；页面选择及侧栏状态只保留在当前 iframe，重新加载后默认工作台和展开侧栏。各页快捷入口复用同一切页方法。
 
 根元素 `data-theme` 控制主题；`st` 模式同步父页面的 `--SmartThemeBodyColor`、`--SmartThemeBlurTintColor`、`--SmartThemeChatTintColor`、`--SmartThemeBorderColor`、`--SmartThemeQuoteColor` 和 `--mainFontFamily`，监听父根元素的 `style/class/data-theme` 变化。浅色与深色使用本地主题值；响应式布局和 `prefers-reduced-motion` 规则统一应用。
+
+iframe 根页面、讨论区与文本框共用随主题配色的细滚动条，轨道透明；样式位于 `style.css`，统一覆盖四个页面。滑块颜色使用 `--muted`；支持 WebKit 滚动条伪元素的浏览器使用 8px 宽高及圆角，悬停时使用 `--accent`，并重置标准属性以免覆盖伪元素样式；其余支持标准属性的浏览器使用 `thin` 宽度。
 
 ## 公开 API
 
@@ -196,4 +198,4 @@ git diff --check
 
 v0.2.1 分区调整另已通过 UI 脚本语法、入口加载顺序、模板标签嵌套与控件引用、CSS 语法检查。
 
-SillyTavern 验收遵循本机 `AGENTS.md` 的人工流程。用户从扩展菜单打开工作台，确认四页切换、侧栏收放与主题，分别尝试主 API 和所需副 API，完成两版提示词及对应试写、反馈，再检查取消、复制、导出和重新打开恢复。
+SillyTavern 验收遵循本机 `AGENTS.md` 的人工流程。用户从扩展菜单打开工作台，确认四页切换、侧栏收放与主题；在三种主题下检查长页面、讨论区和长文本框的滚动条配色与滚动操作。分别尝试主 API 和所需副 API，完成两版提示词及对应试写、反馈，再检查取消、复制、导出和重新打开恢复。
