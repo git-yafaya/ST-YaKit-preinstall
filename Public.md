@@ -14,12 +14,13 @@ ST-YaKit-preinstall/
 ├── index.html                 # 同源页面、共用标题和顶部控件与脚本加载顺序
 ├── preview.html               # 独立演示入口，转到显式预览模式
 ├── app.js                     # 按入口选择适配器并创建核心和视图
-├── style.css                  # 主题、控件、页面与导航样式加载入口
+├── style.css                  # 主题、控件、页面、导航与轻提示样式入口
 ├── styles/
 │   ├── theme.css              # 四套主题与工作台变量映射
 │   ├── controls.css           # 按钮、输入、选项弹层与滚动条
 │   ├── pages.css              # 五页卡片、编辑与阅读布局
 │   ├── navigation.css         # 顶栏、导航指示器与切页轨道
+│   ├── toast.css              # 纪实同款底部轻提示与状态颜色
 │   └── launcher.css           # 菜单图标、弹窗尺寸与进退场
 ├── core/
 │   ├── state.js               # 设置校验、记录恢复与保存快照
@@ -39,7 +40,8 @@ ST-YaKit-preinstall/
 │   ├── launcher.js            # 扩展菜单、样式加载与弹窗事件绑定
 │   ├── dialog-motion.js       # 统一关闭动画与重新打开状态
 │   ├── workbench-template.js  # 五页轨道、顶部导航与工作台模板
-│   ├── workbench-view.js      # 状态渲染、事件、复制与下载
+│   ├── workbench-view.js      # 状态渲染、通知分发、事件、复制与下载
+│   ├── toast.js               # 轻提示创建、自动消失及卸载清理
 │   ├── preset-template.js     # 预设展示页与草稿来源保存控件
 │   ├── preset-view.js         # 预设选择、重读与草稿来源展示
 │   ├── preset-entries-view.js # 全部条目编辑、逐条保存与本次编辑保留
@@ -60,6 +62,8 @@ ST-YaKit-preinstall/
 │   ├── theme.test.mjs         # 主题同步与宿主变量检查
 │   ├── navigation.test.mjs    # 切页、键盘焦点与输入保留检查
 │   ├── launcher.test.mjs      # 原生下拉与退出键事件检查
+│   ├── toast.test.mjs         # 轻提示文本、显示时序与卸载清理
+│   ├── toast-routing.test.mjs # 状态提示去重、重复操作及错误优先
 │   └── dialog-motion.mjs      # 关闭、重新打开与减少动效检查
 └── AGENTS.md                  # 本机共享规则软链接，不入库
 ```
@@ -69,7 +73,7 @@ ST-YaKit-preinstall/
 扩展菜单入口显示「工作台」，图标由 `styles/launcher.css` 以 CSS 遮罩引用 `ui/workbench.svg`，使用 1em 尺寸和 `currentColor` 跟随菜单文字；图标设置 `aria-hidden`，按钮名称由文字提供。页面顶栏固定显示同一 SVG 图标与「预设工作台」，由 `styles/navigation.css` 设置排版与主题颜色；浏览器标题、宿主对话框和 iframe 名称同步为「预设工作台」。
 
 1. 酒馆根据 `manifest.json` 加载 ES 模块 `index.js`。入口读取 `/script.js` 的 `isGenerating` 和 `getMaxContextTokens`、`/scripts/textgen-settings.js` 的 `getTextGenModel`、世界书模块的当前选择及 Prompt Manager 中启用的静默提示条目。将这些只读能力与实时 `SillyTavern.getContext()` 包装为 `globalThis.YaKitWorkbenchHost.getContext()`，再挂载扩展菜单入口。
-2. 用户首次打开「工作台」时，同源 iframe 加载 `index.html`；关闭对话框仅隐藏容器，保留页面和未提交输入。顶部控件静态位于 `#app` 外，`launcher.js` 在 iframe 加载后将关闭按钮绑定到统一退场函数，应用启动报错时仍保留关闭入口。宿主加载限定到工作台弹窗的 `theme.css` 与 `launcher.css`；iframe 通过 `style.css` 加载界面样式，脚本按 `state → prompts → core/presets → workbench → api → host/presets → st-host → settings-template → theme-view → settings-view → trial-template → versions-template → preset-template → workbench-template → navigation-view → preset-entries-view → preset-view → workbench-view → app` 顺序加载，内部协作命名空间为 `globalThis.YaKitWorkbench`。
+2. 用户首次打开「工作台」时，同源 iframe 加载 `index.html`；关闭对话框仅隐藏容器，保留页面和未提交输入。顶部控件静态位于 `#app` 外，`launcher.js` 在 iframe 加载后将关闭按钮绑定到统一退场函数，应用启动报错时仍保留关闭入口。宿主加载限定到工作台弹窗的 `theme.css` 与 `launcher.css`；iframe 通过 `style.css` 加载界面样式，脚本按 `state → prompts → core/presets → workbench → api → host/presets → st-host → settings-template → theme-view → settings-view → trial-template → versions-template → preset-template → workbench-template → navigation-view → preset-entries-view → preset-view → toast → workbench-view → app` 顺序加载，内部协作命名空间为 `globalThis.YaKitWorkbench`。
 3. 普通入口由 `app.js` 通过父页面桥加载 `host/trial-context.js` 并创建 `createSillyTavernHost(getContext)`，再创建控制器、恢复保存记录并读取连接列表和当前聊天。页面重新获得焦点时刷新环境；普通入口缺少酒馆桥时显示错误。独立入口 `preview.html` 转到 `index.html?mode=preview`，显式加载示例与 `createLocalHost()`，复用同一套视图；演示请求只返回内置内容。
 4. 需求与草稿输入立即更新内存并排队保存，保留首尾空格和换行。设计请求固定开始时的设置快照，将需求、源草稿、历史设计讨论及本次要求组成消息数组，不附带当前聊天或此前试写正文。
 5. 主 API 设计使用 `generateRaw({prompt, instructOverride: true, trimNames: false})`；副 API 连接配置使用 `ConnectionManagerRequestService.sendRequest`；自定义接口使用 `ChatCompletionService.processRequest`。副 API 请求均关闭流式输出、输出上限为 4096 token。
@@ -81,6 +85,8 @@ ST-YaKit-preinstall/
 11. 每条使用原生 `details` 展开正文；非标记条目可直接编辑，点击「保存条目」调用 `savePresetContent(identifier, content, expectedContent)`，不改动工作台草稿与版本。视图按预设、标识及同标识出现次数保留编辑器节点，切页、切换预设和状态通知不清空输入。保存一条只推进本条基线；明确重新读取成功后采用新原文基线并保留本地编辑。点击「载入草稿」使用核心已读取的内容并跳转工作台，之后可通过「保存到原条目」写回草稿。
 
 ### 边界与持久化
+
+五页的现有 `state.notice`、`state.error` 以及复制、导出和设置保存反馈统一由视图转换为 Toast。订阅与异常捕获不会重复显示同一次错误；普通渲染不重播旧提示，再次执行保存、复制或失败操作仍可显示同文案。错误存在时不将状态中的成功文案当作新结果显示。未选正文就点击引用时显示提醒。Toast 不改变核心状态和保存流程。
 
 | 情况 | 当前处理 |
 | --- | --- |
@@ -160,6 +166,7 @@ ST-YaKit-preinstall/
 | 页面留白 | 默认上下 20px、左右 24px；iframe 视口不超过 480px 时为 14px |
 | 切页 | 五页常驻同一轨道，正文与导航指示器同步平移；240ms，`cubic-bezier(0.16, 1, 0.3, 1)` |
 | 窗口进退场 | 240ms 淡入或淡出，缩放从或至 0.98；关闭按钮、Esc、遮罩共用退场函数 |
+| Toast | 底部居中，距底部 24px，间隔 8px；内边距 10px / 18px，圆角 12px，字号 13px；停留 2300ms 后淡出，300ms 后移除 |
 | 减少动态效果 | 停用过渡与动画，关闭直接完成 |
 
 顶栏固定留在正文上方，显示入口图标、「预设工作台」标题和关闭按钮；另保留仅供读屏的当前页面名称。顶部导航始终显示，窄屏长页签显示省略号，完整名称保留在文字和 `title` 中。切页通过 `inert` 和 `aria-hidden` 隔离非当前页，不重建内容，保留草稿和各页滚动位置。页签支持左右方向键、Home、End；快捷入口聚焦目标页。当前页只保留在当前 iframe，重新加载后回到工作台。Esc 尊重控件已取消的事件，展开的原生下拉优先关闭选项；旧浏览器无法判断下拉展开状态时，焦点位于下拉框内由系统处理 Esc。遮罩关闭要求按下与松开均位于窗口外，退出期间再次打开会清除待关闭状态。
@@ -169,6 +176,8 @@ ST-YaKit-preinstall/
 设置、预设、版本和试写记录共用原生 `select`。支持 `appearance: base-select` 与 `::picker(select)` 时，弹层跟随控件宽度、限制在 iframe 视口内，最高为 `min(320px, 60dvh)`，超长名称换行、过多选项滚动；背景取 `--paper` 的不透明颜色，选中、悬停与焦点使用主题变量，入场为 160ms 淡入与 4px 位移。原生键盘选择、表单提交和动态连接选项保持原有行为。不支持该特性时使用系统选单，并提供选项文字和背景色；系统可能忽略部分样式。
 
 五页正文、讨论区、文本框和选项弹层共用 `controls.css` 的细滚动条与透明轨道。悬停或焦点进入时显示滑块，触屏常显；浅色使用中性灰，其他主题由强调色生成滑块色。支持 WebKit 滚动条伪元素时宽高均为 4px，其余支持标准属性的浏览器使用 `thin`。
+
+Toast 根节点位于工作台 iframe 的 `body`，五页共用，不挤占正文，也不拦截点击；提示以纯文本写入，通过 `aria-live="polite"` 播报。正常提示使用 `--yakit-text` 背景和 `--yakit-bg` 文字，提醒为纪实的黄色，错误为红底白字。最大宽度为视口减 28px，长文本自动换行。淡入与淡出沿用纪实的 12px 位移和 300ms 过渡，减少动态效果设置继续由共用样式处理。卸载工作台时移除根节点并清理未完成的帧和计时器。
 
 ## 公开 API
 
@@ -183,7 +192,8 @@ ST-YaKit-preinstall/
 | `YaKitWorkbench.createLocalHost()` | 创建原有示例请求与独立浏览器存储适配器，仅预览入口加载 |
 | `YaKitWorkbench.captureTrialContext(host, options, scenario)` | 同步深拷贝主 API 连接、实际注入参数和请求开始时的背景条件 |
 | `YaKitWorkbench.createWorkbench(host)` | 恢复记录、读取环境并返回控制器 |
-| `YaKitWorkbench.mountWorkbench(controller, root)` | 挂载五页工作台，返回解除订阅与主题监听函数 |
+| `YaKitWorkbench.mountWorkbench(controller, root)` | 挂载五页工作台，返回解除订阅、主题监听与 Toast 清理函数 |
+| `YaKitWorkbench.createToast(document)` | 创建当前文档的轻提示，返回 `{show, dispose}`；`show(message, {type, durationMs})` 默认 `success` / 2300ms，另支持 `warning` 和 `error`，卸载后调用不再显示 |
 | `YaKitWorkbench.mountPresets(controller, root, {run, openPage})` | 绑定预设选择、明确重读与草稿写回控件，返回 `{render}` |
 | `YaKitWorkbench.mountPresetEntries(controller, root, {run, openPage})` | 绑定全部条目的编辑、逐条保存与草稿载入，返回 `{render, rebase}`；`rebase(state)` 在明确重读成功后更新原文基线 |
 | `YaKitWorkbench.mountNavigation(root)` | 返回 `{openPage}`，绑定五页常驻导航与快捷入口；从 `root.ownerDocument` 读取读屏页名，管理键盘焦点与隐藏页 |
@@ -305,6 +315,8 @@ UI 代码位于 `ui/`、`styles/`、`style.css` 和页面模板；业务代码�
 | `tests/theme.test.mjs` | 四主题、双容器同步、宿主颜色变化与监听释放 |
 | `tests/navigation.test.mjs` | 页签键盘操作、快捷入口、隐藏页隔离与草稿和滚动保留 |
 | `tests/launcher.test.mjs` | 已处理的 Esc、展开或收起的原生下拉及旧浏览器选择器兼容 |
+| `tests/toast.test.mjs` | 纯文本输出、2300ms 停留、300ms 淡出、状态样式及卸载清理 |
+| `tests/toast-routing.test.mjs` | 普通渲染去重、同文案重复操作、订阅与 catch 去重及错误与本地反馈 |
 | `tests/dialog-motion.mjs` | 退场完成后关闭、重复关闭、重开与减少动态效果 |
 
 在保留本地测试的工作目录运行：
@@ -327,5 +339,7 @@ v0.2.7 的本地契约检查覆盖真实宿主请求参数、连接和背景快�
 v0.2.8 的本地检查覆盖预设列表与默认选择、读取不修改工作记录、草稿来源绑定、空白与清空、目标冲突、宿主写回失败及保存期间编辑保留；另检查预设模块加载顺序、模板控件引用和核心与真实适配器之间的模拟联接。真实预设保存和界面操作由用户人工验收。
 
 v0.2.9 已通过 26 项本地检查、弹窗动效检查、全部 JavaScript 语法、五页模板与控件引用和脚本加载顺序检查。新增检查覆盖逐条保存与草稿隔离、多条编辑保留、保存期间改回原文、冲突后重读及切换预设后的输入保留。
+
+v0.2.11 已通过 28 项本地检查、弹窗动效与 JavaScript 语法检查。新增检查覆盖 Toast 显示时序、清理、通知去重和重复操作；已逐项核对 Toast 的原有样式声明与纪实一致。界面效果按项目约定由用户人工验收。
 
 SillyTavern 验收遵循本机 `AGENTS.md` 的人工流程。从扩展菜单打开工作台，在宽屏与窄屏检查五页尺寸随窗口调整、四周留白、滑动切页、独立滚动、关闭按钮和常驻导航；切换四种主题，核对窗口、控件、滚动条与选项弹层。检查长选项换行、键盘选择、关闭与重新打开保留输入，以及系统减少动态效果设置。在「预设展示」核对全部条目、折叠编辑、逐条保存及载入草稿。真实预设写回、模型调用和完整试写流程继续由用户人工验收。

@@ -1,0 +1,41 @@
+/* 与纪实共用提示的尺寸、颜色和微动效。 */
+#yakit-toast-root {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: calc(100% - 28px);
+  width: max-content;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.yakit-toast {
+  background: var(--yakit-text);
+  color: var(--yakit-bg);
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 13px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.yakit-toast--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.yakit-toast--warning {
+  background: #C9A227;
+}
+
+.yakit-toast--error {
+  background: #C0392B;
+  color: #FFFFFF;
+}

@@ -11,7 +11,6 @@
         <button class="nav-item" data-page="settings">设置</button>
       </nav>
       <main>
-      <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
       <div class="page-viewport"><div class="page-track">
       <div class="page-frame">
       <div id="workbench-page" class="page workbench" tabindex="-1">

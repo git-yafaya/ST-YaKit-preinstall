@@ -4,25 +4,38 @@
     root.innerHTML = workbench.workbenchTemplate;
     const $ = id => root.querySelector(`#${id}`);
     const statusNames = { pending: '待反馈', satisfied: '达到预期', revise: '还需修改' };
-    let messageKey = '', versionKey = '', trialKey = '', feedbackKey = '', selection = '', localNotice = '';
-    let localError = false;
+    let messageKey = '', versionKey = '', trialKey = '', feedbackKey = '', selection = '';
+    let lastNotice = '', lastError = '', shownError = '', errorCount = 0, noticeCount = 0;
+    const toast = workbench.createToast(root.ownerDocument);
     const settings = workbench.mountSettings(controller, root, { run, notify });
     const { openPage } = workbench.mountNavigation(root);
-    const presets = workbench.mountPresets(controller, root, { run, openPage });
+    const presets = workbench.mountPresets(controller, root, { run: action => run(action, true), openPage });
 
     function showNotice(state) {
-      $('notice').textContent = localNotice || state.error || state.notice || '';
-      $('notice').hidden = !$('notice').textContent;
-      $('notice').classList.toggle('error', localError || (!localNotice && Boolean(state.error)));
+      // 只提示新结果；错误存在时不让成功文案盖住它。
+      if (state.error && state.error !== lastError) notify(state.error, 'error');
+      else if (!state.error && state.notice && state.notice !== lastNotice) notify(state.notice);
+      lastError = state.error; lastNotice = state.notice;
     }
-    async function run(action) {
-      localNotice = ''; localError = false;
+    async function run(action, repeatNotice = false) {
+      const errorsBefore = errorCount, noticesBefore = noticeCount;
+      let failed = false;
       try { await action(); }
-      catch (error) { localNotice = error.message || '本次操作没有完成，请重试。'; localError = true; }
-      render(controller.getState());
+      catch (error) {
+        failed = true;
+        const message = error.message || '本次操作没有完成，请重试。';
+        // 核心订阅已报出的错误不重复弹出；再次执行仍会提示相同错误。
+        if (errorCount === errorsBefore || shownError !== message) notify(message, 'error');
+      }
+      const state = controller.getState();
+      render(state);
+      // 保存或载入可以再次产生同一结果，输入、选择记录不重播旧提示。
+      if (repeatNotice && !failed && !state.error && state.notice && noticeCount === noticesBefore) notify(state.notice);
     }
-    function notify(message, error = false) {
-      localNotice = message; localError = error; showNotice(controller.getState());
+    function notify(message, type = 'success') {
+      if (type === 'error') { errorCount++; shownError = message; }
+      else noticeCount++;
+      toast.show(message, { type });
     }
     function setValue(id, value) {
       // 只在值确实变化时赋值，逐字输入不会重建编辑器或跳动光标。
@@ -136,7 +149,7 @@
     $('save-version').addEventListener('click', () => run(async () => {
       await controller.saveVersion($('version-label').value);
       if (!controller.getState().error) $('version-label').value = '';
-    }));
+    }, true));
     $('versions').addEventListener('change', () => run(() => controller.selectVersion($('versions').value)));
     $('trial-button').addEventListener('click', () => run(() => controller.trial($('trial-input').value)));
     $('trials').addEventListener('change', () => run(() => controller.selectTrial($('trials').value)));
@@ -158,7 +171,7 @@
     $('trial-output').addEventListener('touchend', rememberSelection);
     $('quote-selection').addEventListener('click', () => {
       rememberSelection();
-      if (!selection.trim()) { notify('先在试写正文中选中要反馈的句子；也可以直接填写问题片段。'); return; }
+      if (!selection.trim()) { notify('先在试写正文中选中要反馈的句子；也可以直接填写问题片段。', 'warning'); return; }
       $('excerpt').value = selection; $('feedback-note').focus();
     });
     $('copy').addEventListener('click', () => run(async () => {
@@ -182,6 +195,6 @@
     }));
     render(controller.getState());
     const unsubscribe = controller.subscribe(render);
-    return () => { unsubscribe(); settings.dispose(); };
+    return () => { unsubscribe(); settings.dispose(); toast.dispose(); };
   };
 })();

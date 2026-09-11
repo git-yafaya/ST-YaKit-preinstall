@@ -1,5 +1,6 @@
-/* 工作台样式按主题、控件、页面与导航分别维护。 */
+/* 工作台样式按主题、控件、页面、导航与轻提示分别维护。 */
 @import url('./styles/theme.css');
 @import url('./styles/controls.css');
 @import url('./styles/pages.css');
 @import url('./styles/navigation.css');
+@import url('./styles/toast.css');

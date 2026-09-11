@@ -120,13 +120,11 @@ body { margin: 0; display: flex; flex-direction: column; }
 }
 .page { width: 100%; min-height: 100%; animation: none; }
 .page:focus { outline: none; }
-.app-shell .notice { flex-shrink: 0; max-height: 30%; overflow-y: auto; margin: 12px 24px 0; }
 @media (max-width: 480px) {
   .app-toolbar { padding-inline: 14px; gap: 8px; }
   .sidebar { width: calc(100% - 28px); margin-inline: 14px; }
   .nav-item { padding-inline: 3px; }
   .page-frame { padding: 14px; }
-  .app-shell .notice { margin-inline: 14px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .page-track, .nav-indicator { transition: none; }

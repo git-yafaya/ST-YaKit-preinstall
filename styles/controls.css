@@ -63,11 +63,9 @@ small{font-weight:400}
 .text-button{font-size:12px;padding:4px 0;color:var(--accent);background:none;font-weight:500}
 .text-button:hover{color:var(--accent-dark)}
 .text-button span{margin-left:5px}
-.notice{margin:12px 24px 0;padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:var(--selected);color:var(--text);font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}
-.notice.error{background:var(--error-bg);border-color:var(--error-line);color:var(--error-text)}
 .busy-bar{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;max-width:calc(100% - 28px);width:max-content;padding:10px 18px;border-radius:12px;border:1px solid var(--line);background:var(--paper);box-shadow:0 6px 24px #0000001f;font-size:13px;z-index:5}
 .busy-bar .text-button{margin-left:8px}
 .spinner{width:13px;height:13px;flex-shrink:0;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-@media(max-width:480px){.notice{margin-inline:14px}.busy-bar{font-size:12px;gap:8px}.busy-bar .text-button{margin-left:0}}
+@media(max-width:480px){.busy-bar{font-size:12px;gap:8px}.busy-bar .text-button{margin-left:0}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}select::picker(select){animation:none}}
