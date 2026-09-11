@@ -4,9 +4,9 @@ main = "src/index.mjs"
 compatibility_date = "2026-09-01"
 
 [vars]
-GITHUB_CLIENT_ID = ""
-GITHUB_OWNER = ""
-GITHUB_REPO = ""
+GITHUB_CLIENT_ID = "Ov23liclmvmD6GzCpUgY"
+GITHUB_OWNER = "git-yafaya"
+GITHUB_REPO = "SheepSheep_Imagnation-Public"
 GITHUB_BRANCH = "main"
 # 填写酒馆的完整来源地址，多个用逗号隔开，如 http://localhost:8000,https://st.example.com。
 # 面向所有酒馆用户的公共服务可设为 *；这里不使用 Cookie，作者操作仍需登录。
