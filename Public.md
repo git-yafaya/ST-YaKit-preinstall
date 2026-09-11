@@ -23,7 +23,7 @@ ST-YaKit-preinstall/
 │   ├── theme.css                   # 四套主题与工作台变量映射
 │   └── toast.css                   # 纪实同款底部轻提示与状态颜色
 ├── core/
-│   ├── presets.js                  # 预设读取、版本应用、原版恢复与开关动作
+│   ├── presets.js                  # 预设读取与复制、版本应用、原版恢复与开关动作
 │   ├── prompts.js                  # 独立条目与修订协议、答复解析和反馈指令
 │   ├── scenarios.js                # 场景输入、模块连接解析与冲突场景设计
 │   ├── settings.js                 # 多套 API 配置、旧数据迁移与设计提示词
@@ -35,7 +35,7 @@ ST-YaKit-preinstall/
 │   ├── api.js                      # 模型与采样调度、空卡及聊天模式边界
 │   ├── local-host.js               # 离线演示请求及浏览器独立存储
 │   ├── preset-order.js             # 生效顺序、开关权限与目标开关更新
-│   ├── presets.js                  # 酒馆预设读取、正文及开关写回
+│   ├── presets.js                  # 酒馆预设读取、试作副本保存、正文及开关写回
 │   ├── requests.js                 # 独立主副 API 请求及真实 n 多候选解析
 │   ├── st-host.js                  # 酒馆设置、环境及模型和预设适配器入口
 │   └── trial-context.js            # 独立消息或聊天模式的请求条件快照
@@ -48,8 +48,8 @@ ST-YaKit-preinstall/
 │   ├── navigation-view.js          # 五页切换、快捷入口与键盘焦点
 │   ├── preset-entries-view.js      # 条目编辑、开关、逐条保存与输入保留
 │   ├── preset-prompt-view.js       # 原版及测试版本选择、只读预览与应用
-│   ├── preset-template.js          # 预设预览页与草稿来源保存控件
-│   ├── preset-view.js              # 预设选择、重读与草稿来源展示
+│   ├── preset-template.js          # 预设预览、复制按钮与草稿来源保存控件
+│   ├── preset-view.js              # 预设选择、复制、重读与草稿来源展示
 │   ├── select-view.js              # 触屏下拉再次点击收起与事件清理
 │   ├── settings-api-view.js        # API 编辑草稿、连接回填与模型选择
 │   ├── settings-prompt-view.js     # 提示词草稿、重置及修改标记
@@ -75,7 +75,8 @@ ST-YaKit-preinstall/
 │   ├── launcher.test.mjs           # 单次挂载、失败重试与弹窗事件检查
 │   ├── native-styles.test.mjs      # 局部样式、关闭隐藏与主题范围检查
 │   ├── navigation.test.mjs         # 切页、键盘焦点与输入保留检查
-│   ├── preset-display.test.mjs     # 逐条编辑、保存和切换后的输入保留检查
+│   ├── preset-copy.test.mjs        # 试作编号、完整复制、失败与忙碌状态检查
+│   ├── preset-display.test.mjs     # 复制按钮、逐条编辑、保存和切换后的输入保留检查
 │   ├── preset-preview-ui.mjs       # 版本切换、删除快照、开关与预览事件检查
 │   ├── presets-core.test.mjs       # 默认预设、草稿来源与写回状态检查
 │   ├── presets-host.test.mjs       # 预设读取、冲突校验与宿主写回检查
@@ -112,6 +113,7 @@ ST-YaKit-preinstall/
 11. 每条使用原生 `details` 展开正文，`summary` 显示为条目名称按钮；非标记条目可直接编辑，点击「保存条目」调用 `savePresetContent(identifier, content, expectedContent)`，不改动工作台草稿与版本。视图按预设、标识及同标识出现次数保留编辑器节点，切页、切换预设和状态通知不清空输入。保存一条只推进本条基线；明确重新读取成功后采用新原文基线并保留本地编辑。点击「载入草稿」使用核心已读取的内容并跳转工作台，之后可通过「保存到原条目」写回草稿。
 12. 每条的来源选单只更新本地预览；「应用提示词」调用 `applyPresetPrompt(identifier, versionId, expectedContent)`，空版本 ID 表示原版，其他 ID 必须属于已保存版本。首次应用测试版时记录原文；后续替换保留同一原文，应用原版或手动保存正文成功后清除该条替换记录。不同预设和条目分别记录，保存失败保留此前记录；已应用测试版被删除后仍可查看快照和恢复原版。原版编辑器与测试预览分开保留，应用期间不覆盖原版输入。
 13. 条目开关位于折叠控件外，调用 `setPresetEntryEnabled(identifier, enabled)` 即保存，不触发展开。核心传回读取时的启用状态和 `presetOrderCharacterId` 校验冲突；宿主只修改目标 `order.enabled`，目标未加入顺序时按酒馆 `appendPrompt` 规则插入开头。保存当前预设时同步活动设置和列表，保存其他预设保持当前选择。
+14. 「复制预设」调用 `copyPreset()`，宿主深拷贝所选预设的完整已保存内容，以「原名-试作编号」保存。原名去掉末尾的 `-试作数字`，取同原名现有最大试作编号加一，没有时从 1 开始。保存成功后酒馆原生列表选中副本，核心同步预设列表、名称、条目及生效顺序，并解除草稿来源绑定；草稿正文与原预设的本地编辑继续保留。
 
 ### 测试任务与数据隔离
 
@@ -174,6 +176,9 @@ ST-YaKit-preinstall/
 | 读取保存内容失败 | 显示错误，仍可编辑和导出 |
 | 当前预设为空或不在可用列表中 | 初始化保留空条目，不自动读取列表第一项；读取失败仍可编辑草稿 |
 | 预设读取或刷新 | 不覆盖草稿，也不持久化临时预设状态；重新读取解除草稿的条目来源绑定 |
+| 复制预设 | 复制完整已保存快照，包括提示词、开关、顺序与其他设置；未保存输入仍留在原预设编辑器中，需要带入副本时先保存 |
+| 复制时没有有效选择、目标已删除或保存失败 | 无有效选择时禁用按钮；宿主拒绝缺失目标，保存失败保留原选择、条目及草稿来源 |
+| 复制期间再次写入或取消 | 与条目写回共用保存锁及 `preset-save` 忙碌状态，拒绝重复写入，不将保存显示为已撤销 |
 | 展示页多条同时编辑 | 保存一条保留其他条目的输入和原文基线；保存期间继续输入、包括改回旧原文，也不被返回结果覆盖 |
 | 展示页明确重读或切换预设 | 成功后更新基线并保留本地编辑；读取失败保留原预设名称、列表与基线；刷新酒馆页面会清除未提交编辑 |
 | 直接保存与草稿来自同一条目 | 仅来源仍相同、原文基线匹配且草稿等于本次保存正文时同步来源基线；其他草稿保持原样，后续写回继续校验冲突 |
@@ -290,7 +295,7 @@ Toast 根节点 `#yakit-wb-toast-root` 位于工作台弹窗或预览容器中�
 | `YaKitWorkbenchHost.getContext()` | 返回酒馆当前上下文、生成与背景只读查询；`refreshPresetEditor()` 刷新预设列表，`getPresetPromptContext()` 返回 `{characterId,isToggleAllowed(entry)}`，`getApiProfileResources()` 异步提供酒馆的 `{proxies,findSecret,SECRET_KEYS}` |
 | `YaKitWorkbench.createApi(getContext)` | 创建模型请求适配器 |
 | `YaKitWorkbench.createApiProfiles(getContext)` | 创建连接回填和模型列表接口，返回 `{readApiProfile, fetchApiModels}` |
-| `YaKitWorkbench.createPresets(getContext)` | 创建聊天补全预设列表、读取与条目写回适配器 |
+| `YaKitWorkbench.createPresets(getContext)` | 创建聊天补全预设列表、读取、试作复制与条目写回适配器 |
 | `YaKitWorkbench.createSillyTavernHost(getContext)` | 创建保存、环境、模型及预设适配器 |
 | `YaKitWorkbench.createLocalHost()` | 创建原有示例请求与独立浏览器存储适配器，仅预览入口加载 |
 | `YaKitWorkbench.captureTrialContext(host, options, scenario)` | 同步深拷贝聊天模式的连接、注入参数和背景条件 |
@@ -300,7 +305,7 @@ Toast 根节点 `#yakit-wb-toast-root` 位于工作台弹窗或预览容器中�
 | `mountLauncher(mount)` | `ui/launcher.js` 的 ES 导出；创建唯一原生弹窗，首次打开等待 `mount(container)`，成功后复用实例，失败后可重开重试 |
 | `YaKitWorkbench.mountWorkbench(controller, root)` | 显式传入 `#yakit-wb-app`，挂载五页工作台，返回订阅、设置事件、下拉与 Toast 清理函数 |
 | `YaKitWorkbench.createToast(document, container = document.body)` | 在指定容器创建轻提示，工作台传入自己的弹窗，返回 `{show, dispose}`；`show(message, {type, durationMs})` 默认 `success` / 2300ms，另支持 `warning` 和 `error`，卸载后调用不再显示 |
-| `YaKitWorkbench.mountPresets(controller, root, {run, openPage})` | 绑定预设选择、明确重读与草稿写回控件，返回 `{render}` |
+| `YaKitWorkbench.mountPresets(controller, root, {run, openPage})` | 绑定预设选择、复制、明确重读与草稿写回控件，返回 `{render}` |
 | `YaKitWorkbench.mountPresetEntries(controller, root, {run, openPage})` | 绑定全部条目的编辑、逐条保存与草稿载入，返回 `{render, rebase}`；`rebase(state)` 在明确重读成功后更新原文基线 |
 | `YaKitWorkbench.mountNavigation(root, {onPageChange} = {})` | 返回 `{openPage}`，绑定五页常驻导航与快捷入口；切页回调用于清理设置草稿，从所属工作台容器读取读屏页名并管理焦点 |
 | `YaKitWorkbench.mountVersions(controller, root, {run})` | 返回 `{render, title}`，负责版本名称同步、选单、详情及同页删除确认，`title(version)` 返回名称和后置编号 |
@@ -317,6 +322,7 @@ Toast 根节点 `#yakit-wb-toast-root` 位于工作台弹窗或预览容器中�
 | `refreshPresets()` | 更新可用预设列表；未选择时补入酒馆当前预设名，不重读已有条目 |
 | `readPreset(name)` | 读取指定预设条目，更新名称并解除草稿来源绑定，保留草稿正文 |
 | `loadPresetEntry(identifier)` | 将非标记条目的原文载入草稿，记录写回来源并清除选中版本 |
+| `copyPreset()` | 复制当前选中的已保存预设；成功更新列表并切换到副本、解除草稿来源绑定，保留草稿正文 |
 | `savePresetEntry()` | 按来源和原文快照手动写回当前草稿；成功后更新条目和来源快照 |
 | `savePresetContent(identifier, content, expectedContent)` | 保存当前选中预设的唯一非标记条目；正文及原文必须为字符串，允许空白或清空；成功更新条目，不替换草稿或选中版本 |
 | `applyPresetPrompt(identifier, versionId, expectedContent)` | 将已保存版本写入唯一非标记条目，保存首次替换前的原文；空版本 ID 恢复原版，成功后更新条目与恢复记录 |
@@ -354,6 +360,7 @@ Toast 根节点 `#yakit-wb-toast-root` 位于工作台弹窗或预览容器中�
 | `fetchApiModels({profileId,url,apiKey,model})` | 返回去重的模型名称数组；空列表或请求错误时拒绝 Promise，模型可手填 |
 | `listPresets()` | 返回 `{presets: [{name}], selectedPresetName}`；未提供预设管理器时返回空列表与空名称 |
 | `readPreset(name)` | 返回 `{name, entries, orderCharacterId}`；条目含 `identifier/name/content/marker/enabled/toggleable/toggleReason` 和可选 `role`，按生效角色顺序排列 |
+| `copyPreset(presetName)` | 完整深拷贝指定已保存预设并按试作编号保存，返回 `{name, entries, orderCharacterId, presets}`；调用原生保存流程更新酒馆列表并选中副本，失败拒绝 Promise |
 | `savePresetEntry({presetName, identifier, content, expectedContent})` | 校验原文后只写目标内容，返回更新后的条目及可选 `notice`；不切换酒馆预设 |
 | `setPresetEntryEnabled({presetName, identifier, enabled, expectedEnabled, expectedOrderCharacterId})` | 校验布尔开关与原状态，可选角色 ID 校验；只保存目标开关，返回 `{name, entries, orderCharacterId, notice?}` |
 | `design(messages, {settings, signal, purpose = 'design'})` | `Promise<string>`；用途为 `design/scenario/judge`，host 不附加提示词。设计 JSON 为 `{action,prompt,explanation,scenario?}`，独立场景为原文，评分 JSON 为 `{results}` |
@@ -404,6 +411,14 @@ const { selectedPresetName } = await host.listPresets();
 if (selectedPresetName) console.table((await host.readPreset(selectedPresetName)).entries);
 ```
 
+在同一页面执行以下示例，会复制酒馆当前预设并切换到试作副本：
+
+```javascript
+const presetHost = globalThis.YaKitWorkbench.createSillyTavernHost(globalThis.YaKitWorkbenchHost.getContext);
+const presetName = (await presetHost.listPresets()).selectedPresetName;
+if (presetName) console.log((await presetHost.copyPreset(presetName)).name);
+```
+
 ## 当前接入状态
 
 | 项目 | 已实现内容与限制 |
@@ -419,7 +434,7 @@ if (selectedPresetName) console.table((await host.readPreset(selectedPresetName)
 | 试写条件 | 开始时记录连接、位置、聊天统计、作者注释及世界书选择，保存恢复和导出保持原快照 |
 | 独立演示 | 原有两版提示词及正文、独立 localStorage、反馈与取消；不调用真实模型 |
 | 版本与反馈 | 原文快照、自定义名称、稳定编号、改名与确认删除、正文引用、准确归因及按反馈修订 |
-| 预设条目 | 初始化读取当前已保存聊天补全预设；「预设预览」支持逐条开关、编辑、原版与测试版搭配应用、原文恢复及草稿写回；独立演示不提供预设接口 |
+| 预设条目 | 初始化读取当前已保存聊天补全预设；「预设预览」支持复制试作副本、逐条开关、编辑、原版与测试版搭配应用、原文恢复及草稿写回；独立演示不提供预设接口 |
 | 保存与导出 | 使用 `extensionSettings` 与 `saveSettingsDebounced`，支持复制及不含密钥的导出 |
 | 尚未接入 | 失败样本的自动续跑、跨任务统一盲评、文本补全单次 n 多样本；工作记录导入或整份记录清空、条目新增/删除/拖动排序及名称/角色编辑、其他类型预设；未提供独立的跨设备同步功能 |
 | 取消限制 | 独立主副 API 传入 AbortSignal；当前聊天静默入口不接收独立信号，不调用宿主全局停止接口，等待其结束再释放主通道 |
@@ -429,6 +444,8 @@ if (selectedPresetName) console.table((await host.readPreset(selectedPresetName)
 连接列表依赖启用的 `connection-manager`、已保存的连接配置和 `ConnectionManagerRequestService.getSupportedProfiles()`。独立主聊天补全与自定义副 API 依赖 `ChatCompletionService.processRequest()`，主文本补全依赖 `TextCompletionService.processRequest()`；主连接还读取 `getChatCompletionModel/getTextGenModel/getTextGenServer` 和连接参数，连接配置调用关闭 `includePreset/includeInstruct`。主 API 的连接状态与当前生成状态由宿主实时读取。试写条件还读取 `getChatCompletionModel`、`getTextGenModel`、`getTextGenServer`、`getMaxContextTokens`、`getPresetManager`、`chatMetadata`、`extensionPrompts`、当前聊天/角色/群组、`powerUserSettings`、世界书模块的 `selected_world_info` / `world_info.charLore`，以及 Prompt Manager 的 `getPromptOrderEntry` / `getPromptById` / `shouldTrigger`。
 
 预设接入依赖 `getPresetManager('openai')` 的 `getPresetList`、`getSelectedPresetName`、`getCompletionPresetByName` 与 `savePreset`，以及 Prompt Manager 的 `configuration.promptOrder`、`activeCharacter.id` 和 `isPromptToggleAllowed`。写回复制已保存预设，只替换目标正文或生效顺序中的开关，调用 `savePreset(name, next, {skipUpdate: true})`；成功后更新内存中对应字段，不切换当前预设。当前活动条目无冲突时同步 `chatCompletionSettings`、触发 `saveSettingsDebounced()` 并通过宿主桥 `refreshPresetEditor()` 调用 `promptManager.render(false)` 刷新列表。保存请求失败前不修改宿主内存。
+
+整份预设复制复用 `savePreset(newName, structuredClone(saved))` 的默认路径，由宿主 `updateList` 注册并选中副本；编号依据调用时的预设名称列表。原预设的已保存对象保持不变，副本的完整字段独立保存。
 
 API 设置读取依赖 `ConnectionManagerRequestService.getProfile/validateProfile`、连接管理列表、`CONNECT_API_MAP`、命名预设，以及酒馆 `openai.js` 的 `proxies` 和 `secrets.js` 的 `findSecret/SECRET_KEYS`。模型列表使用 `getRequestHeaders()` 调用 `/api/backends/chat-completions/status`；连接引用保留其源类型和密钥引用，文本补全连接暂不支持模型列表，独立接口使用归一化的 OpenAI 兼容地址。读取和拉取模型不切换酒馆当前连接。离线演示只返回固定的示例连接与模型，不访问填写的地址。
 
@@ -450,7 +467,8 @@ UI 代码位于 `ui/`、`styles/`、`style.css` 和页面模板；业务代码�
 | `tests/api-profiles.mjs` | 连接与密钥回填、模型空值和错误、地址归一、模型覆盖、主连接不变及离线演示 |
 | `tests/presets-core.test.mjs` | 默认预设、草稿隔离、原文基线、搭配恢复、版本删除、开关失败和真实适配器联接 |
 | `tests/presets-host.test.mjs` | 生效顺序、正文与开关冲突、缺引用启用、标记权限、保存锁和等待期间的宿主编辑 |
-| `tests/preset-display.test.mjs` | 全部条目展示、多条编辑、保存期间继续输入、原文冲突与重读、读取失败及切换后的输入保留 |
+| `tests/preset-copy.test.mjs` | 完整复制与独立性、试作编号与重名、复制试作、保存失败、并发忙碌与核心状态同步 |
+| `tests/preset-display.test.mjs` | 复制按钮及禁用条件、全部条目展示、多条编辑、保存期间继续输入、原文冲突与重读、读取失败及切换后的输入保留 |
 | `tests/preset-preview-ui.mjs` | 原版输入保留、只读测试预览、显式应用、删除版本快照、外部修改和开关事件 |
 | `tests/st-host.test.mjs` | 模拟宿主验证请求参数、连接选用、持久化与取消边界；契约检查通过，不调用真实模型 |
 | `tests/trial-record.test.mjs` | 从真实适配器到核心，验证试写期间切换条件后原版本归属、保存恢复与导出 |
@@ -510,5 +528,7 @@ v0.2.18 已通过预设核心、宿主、逐条编辑、版本预览与导航共
 v0.3.0 已通过本地核心、宿主及视图契约检查，新增覆盖空卡无角色、固定场景、独立样本、真实 n、盲评数据隔离、默认最高分阅读、用户偏好、部分失败重评、取消与恢复；已有检查已适配新模块加载及裁判返回。API 配置、独立请求、弹窗动效、全部 JavaScript 语法与差异检查通过。真实模型是否遵守场景和评分质量、实际接口的 n 支持及酒馆界面仍需人工确认。
 
 人工验证本次流程：填写明确约束并保存提示词，保持空卡，手填与现有聊天冲突的场景，确认三份正文围绕该场景；在无角色时复测。切换 AI 场景生成，检查冲突诱因；为四个环节选择不同 API，再以同连接合并生成提示词与场景。对支持 n 的接口选择单次三份，检查评分、默认推荐阅读与人工偏好；模拟裁判失败后重评，核对已有样本及偏好保留。
+
+v0.3.2 已通过完整副本与原对象独立性、试作编号、复制试作、保存失败、忙碌互斥、草稿保留及按钮状态的本地检查，现有预设核心、宿主及通知检查通过；相关 JavaScript 语法、版本记录与差异检查通过。人工验收时，在「预设预览」连续复制同一预设及其试作副本，确认编号递增、酒馆和工作台选中副本，原预设内容保留。
 
 SillyTavern 验收遵循本机 `AGENTS.md` 的人工流程。从扩展菜单打开工作台，在宽屏与窄屏检查五页尺寸随窗口调整、四周留白、滑动切页、独立滚动、关闭按钮和常驻导航；切换四种主题，核对窗口、控件与选项弹层。确认仅「预设预览」保留原有滚动条，其他页面正文、讨论区、文本框、设置子页及可样式化选项弹层均隐藏滚动条，并检查滚轮、触屏和键盘仍可滚动。检查长选项换行、键盘选择、关闭与重新打开保留输入，以及系统减少动态效果设置。在「预设预览」核对折叠编辑、逐条保存、开关、不同条目的版本搭配、重新打开后切回原版及载入草稿。真实预设写回、模型调用和完整试写流程继续由用户人工验收。

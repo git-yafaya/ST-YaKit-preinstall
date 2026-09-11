@@ -66,6 +66,34 @@
                 return presetView(name, getSaved(manager, name), getContext().getPresetPromptContext?.());
             },
 
+            async copyPreset(presetName) {
+                if (saving) throw new Error('上一条预设仍在保存中，请稍后再试。');
+                const manager = getManager();
+                if (typeof manager.savePreset !== 'function') throw new Error('当前酒馆不支持保存预设。');
+                const next = structuredClone(getSaved(manager, presetName));
+                const prefix = `${presetName.replace(/-试作\d+$/, '')}-试作`;
+                let number = 1n;
+                // 复制试作时沿用原名；跳过已有最大编号，保留所有已存在的副本。
+                for (const name of Object.keys(manager.getPresetList().preset_names)) {
+                    if (!name.startsWith(prefix)) continue;
+                    const suffix = name.slice(prefix.length);
+                    if (/^\d+$/.test(suffix) && BigInt(suffix) >= number) number = BigInt(suffix) + 1n;
+                }
+                const name = `${prefix}${number}`;
+                const result = presetView(name, next, getContext().getPresetPromptContext?.());
+                saving = true;
+                try {
+                    // 默认保存路径会更新酒馆的预设列表，并切换到这个完整副本。
+                    await manager.savePreset(name, next);
+                    const { presets, preset_names: names } = manager.getPresetList();
+                    result.presets = Object.keys(names).filter(item => presets?.[names[item]])
+                        .map(item => ({ name: item }));
+                    return result;
+                } finally {
+                    saving = false;
+                }
+            },
+
             async savePresetEntry({ presetName, identifier, content, expectedContent } = {}) {
                 if (typeof identifier !== 'string' || !identifier.trim()
                     || typeof content !== 'string' || typeof expectedContent !== 'string') {

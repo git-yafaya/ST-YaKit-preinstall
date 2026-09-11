@@ -38,6 +38,19 @@ function createPresetActions({ state, host, run, change, isActive, draftChanged 
                 state.notice = '预设已读取，请选择要编辑的条目。';
             });
         },
+        copyPreset() {
+            return run('preset-save', async () => {
+                if (typeof host.copyPreset !== 'function') throw new Error('请从酒馆扩展菜单打开工作台后复制预设。');
+                const result = await host.copyPreset(state.selectedPresetName);
+                state.presets = result.presets;
+                state.selectedPresetName = result.name;
+                state.presetEntries = result.entries;
+                state.presetOrderCharacterId = result.orderCharacterId ?? null;
+                // 副本成为新目标，保留草稿，但解除草稿与原预设条目的绑定。
+                state.presetSource = null;
+                state.notice = `已复制为「${result.name}」。`;
+            });
+        },
         setPresetEntryEnabled(identifier, enabled) {
             return run('preset-save', async () => {
                 if (typeof host.setPresetEntryEnabled !== 'function') throw new Error('请从酒馆扩展菜单打开工作台后调整条目开关。');

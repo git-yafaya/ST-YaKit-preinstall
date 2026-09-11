@@ -55,7 +55,7 @@
       $('draft-count').textContent = `${Array.from(state.draft).length} 字`;
       $('draft-state').textContent = activeVersion?.content === state.draft ? `已保存 · ${versions.title(activeVersion)}` : '当前草稿 · 尚未保存为版本';
       $('busy-bar').hidden = !state.busy;
-      $('busy-text').textContent = ({ trial: '测试任务正在生成样本并进行 AI 盲评…', scenario: '正在生成冲突场景…', judge: '正在进行 AI 盲评…', 'preset-read': '正在读取预设…', 'preset-save': '正在保存预设条目…' })[state.busy] || '工作台 AI 正在生成…';
+      $('busy-text').textContent = ({ trial: '测试任务正在生成样本并进行 AI 盲评…', scenario: '正在生成冲突场景…', judge: '正在进行 AI 盲评…', 'preset-read': '正在读取预设…', 'preset-save': '正在保存预设…' })[state.busy] || '工作台 AI 正在生成…';
       $('cancel').hidden = state.busy === 'preset-save' || state.busy === 'preset-read';
       $('design-button').disabled = Boolean(state.busy) || !state.goal.trim();
       $('design-button').firstChild.textContent = state.busy === 'design' ? '正在生成 ' : state.messages.length > 1 ? '修改提示词 ' : '生成提示词 ';
