@@ -318,6 +318,8 @@ API 表单读取酒馆连接并回填地址、可读取密钥和模型，模型�
 
 设置、预设、版本和试写记录共用原生 `select`。下拉框外边距固定为零，控件间距由所在布局控制，优先于宿主主题的外边距设置。支持 `appearance: base-select` 与 `::picker(select)` 时，弹层跟随控件宽度、限制在浏览器视口内，最高为 `min(320px, 60dvh)`，超长名称换行、过多选项滚动；背景取 `--paper` 的不透明颜色，选中、悬停与焦点使用主题变量，入场为 160ms 淡入与 4px 位移。原生键盘选择、表单提交和动态连接选项保持原有行为。不支持该特性时使用系统选单，并提供选项文字和背景色；系统可能忽略部分样式。
 
+共用弹层设置 `position-try-order: normal`，覆盖浏览器默认的 `most-block-size` 排序，保留默认下方定位与溢出回退：下方空间足够时向下展开，放不下时再由浏览器尝试其他位置。依据见 [HTML 原生下拉样式](https://html.spec.whatwg.org/multipage/rendering.html#the-select-element-2) 与 [CSS 回退顺序](https://drafts.csswg.org/css-anchor-position-1/#position-try-order-property)。人工验收时检查下方足够但上方更宽敞、靠近视口底部和长列表三种情况；系统选单的展开方向由浏览器或操作系统控制。
+
 `select-view.js` 在工作台根节点委托 `pointerdown`，覆盖各页和动态新增的下拉框，卸载时移除监听。浏览器支持 `base-select` 和 `:open`，且主触点再次按下已展开、启用的 `select` 本身时，取消默认事件，阻止兼容鼠标按下在原生弹层收起后重新打开列表；实际外观为系统选单时跳过。选项及分组、鼠标、触控笔、键盘和 `input/change` 仍走原有处理。取消主 `pointerdown` 抑制兼容鼠标事件的依据见 [Pointer Events 规范](https://www.w3.org/TR/pointerevents/#compatibility-mapping-with-mouse-events)。
 
 `controls.css` 仅为「预设预览」页及其内部控件、可样式化选项弹层保留细滚动条与透明轨道：悬停或焦点进入时显示滑块，触屏常显；浅色使用中性灰，其他主题由强调色生成滑块色。支持 WebKit 滚动条伪元素时宽高均为 4px，其余支持标准属性的浏览器使用 `thin`。其他页面正文、讨论区、文本框、设置子页和可样式化选项弹层隐藏滚动条，保留原有溢出与滚动行为；系统选单由浏览器或操作系统控制。

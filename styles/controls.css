@@ -45,6 +45,8 @@
 @supports (appearance:base-select) and selector(::picker(select)){
   .yakit-workbench select,.yakit-workbench select::picker(select){appearance:base-select}
   .yakit-workbench select{padding-inline-end:12px}
+  /* 优先在下方展开，放不下时再由浏览器尝试翻转位置。 */
+  .yakit-workbench select::picker(select){position-try-order:normal}
   .yakit-workbench select::picker(select){box-sizing:border-box;inline-size:anchor-size(self-inline);min-inline-size:0;max-inline-size:calc(100vw - 28px);max-block-size:min(320px,60dvh);overflow:auto;margin-block:4px;padding:5px;border:1px solid var(--line);border-radius:8px;background:var(--paper);background:rgb(from var(--paper) r g b / 1);color:var(--text);box-shadow:0 10px 25px -5px #0000001f,0 8px 10px -6px #0000000f;animation:yakit-wb-select-enter .16s ease-out}
   .yakit-workbench select:not(#yakit-wb-presets-page *)::picker(select){scrollbar-width:none}
   .yakit-workbench select option,.yakit-workbench select option:not(:checked){min-height:40px;padding:10px 12px;border-radius:8px;background:transparent;white-space:normal;overflow-wrap:anywhere;transition:background .16s ease}
