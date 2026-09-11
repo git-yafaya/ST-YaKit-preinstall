@@ -25,6 +25,11 @@ const settingOptions = {
 };
 
 function settingValue(key, value) {
+    if (key === 'designCount') {
+        const count = typeof value === 'number' || typeof value === 'string' ? Number(value) : NaN;
+        if (!Number.isSafeInteger(count) || count < 1) throw new Error('提示词数量必须是正整数。');
+        return count;
+    }
     if (!Object.hasOwn(settingDefaults, key)) throw new Error(`不能更新字段：${key}。`);
     const result = text(value, key);
     if (settingOptions[key] && !settingOptions[key].includes(result)) throw new Error(`设置值不正确：${key}。`);
@@ -63,7 +68,7 @@ function designSettings(state) {
 
 function initialState(saved) {
     const state = {
-        goal: '', draft: '', ...settingDefaults, designApi: 'main',
+        goal: '', draft: '', designCount: 1, ...settingDefaults, designApi: 'main',
         messages: [], versions: [], nextVersionNumber: 1, selectedVersionId: '', trials: [], selectedTrialId: '',
         profiles: [], canGenerate: false, mainApiLabel: '', contextLabel: '', canTrial: false,
         presets: [], selectedPresetName: '', presetEntries: [], presetSource: null, presetOrderCharacterId: null,
@@ -74,7 +79,7 @@ function initialState(saved) {
     for (const key of ['goal', 'draft']) {
         if (typeof saved[key] === 'string') state[key] = saved[key];
     }
-    for (const key of Object.keys(settingDefaults)) {
+    for (const key of ['designCount', ...Object.keys(settingDefaults)]) {
         try { state[key] = settingValue(key, saved[key]); } catch { /* 无效设置恢复默认值。 */ }
     }
     if (!state.secondaryProfileId && typeof saved.profileId === 'string') state.secondaryProfileId = saved.profileId.trim();

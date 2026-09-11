@@ -3,7 +3,7 @@
 
     function createApi(getContext) {
         const { required, checkAbort, replyText, isolatedRequest } = globalThis.YaKitWorkbench;
-        let primaryBusy = false;
+        let primaryBusy = null;
         const preparedTrials = new WeakMap();
 
         function prepareTrialSettings(settings = {}) {
@@ -20,18 +20,22 @@
             return copied;
         }
 
-        async function primaryRequest(context, signal, request) {
+        async function primaryRequest(context, signal, request, parallel = false) {
             checkAbort(signal);
-            if (primaryBusy) throw new Error('上一条酒馆 API 请求仍在结束中，请稍后再试。');
+            if (primaryBusy && !(parallel && signal && primaryBusy.parallel && primaryBusy.signal === signal)) {
+                throw new Error('上一条酒馆 API 请求仍在结束中，请稍后再试。');
+            }
             if (context.isGenerating?.()) throw new Error('酒馆正在生成正文，请完成后再使用酒馆 API。');
             if (context.onlineStatus === 'no_connection') throw new Error('请先连接酒馆 API。');
-            primaryBusy = true;
+            // 同轮设计共用取消信号；最后一条请求实际结束后才释放占用。
+            const batch = primaryBusy ||= { signal, parallel, count: 0 };
+            batch.count++;
             try {
                 const result = await request();
                 checkAbort(signal);
                 return result;
             } finally {
-                primaryBusy = false;
+                if (--batch.count === 0) primaryBusy = null;
             }
         }
 
@@ -39,10 +43,10 @@
             prepareTrialSettings,
             async design(messages, { settings = {}, signal, purpose = 'design' } = {}) {
                 const context = getContext();
-                // 设计、场景和盲评共用独立消息通道，purpose 只供调用方标识用途。
+                // 设计允许同轮并发；场景和盲评继续独占主 API 通道。
                 const request = () => isolatedRequest(context, messages, settings, signal);
                 const results = (settings.designApi || 'main') === 'main'
-                    ? await primaryRequest(context, signal, request) : await request();
+                    ? await primaryRequest(context, signal, request, purpose === 'design') : await request();
                 return results[0];
             },
 

@@ -39,9 +39,9 @@ async function createWorkbench(host) {
         try { action(); state.error = ''; emit(); } catch (error) { return fail(error); }
         await persist();
     };
-    const addVersion = label => {
+    const addVersion = (label, content = state.draft) => {
         const version = { id: crypto.randomUUID(), label, number: state.nextVersionNumber++,
-            content: state.draft, createdAt: new Date().toISOString() };
+            content, createdAt: new Date().toISOString() };
         state.versions.push(version);
         return version;
     };
@@ -66,12 +66,13 @@ async function createWorkbench(host) {
         if (error) throw error;
     };
     const design = async (instruction, sourceDraft) => {
-        let messages, settings, combined = false;
+        let messages, settings, count, combined = false;
         const forceRevise = sourceDraft !== undefined;
         try {
             // 历史反馈已有对应条目和意见，不受当前需求框是否为空影响。
             if (!forceRevise) required(state.goal, '需求');
             instruction = required(instruction, '设计要求');
+            count = forceRevise ? 1 : settingValue('designCount', state.designCount);
             settings = scenarios.moduleSettings(state, 'design');
             messages = designMessages(state, instruction, sourceDraft, forceRevise);
             combined = state.combineDesignScenario && state.sceneSource === 'ai';
@@ -83,12 +84,31 @@ async function createWorkbench(host) {
         } catch (error) { return fail(error); }
         return run('design', async operation => {
             state.messages.push({ role: 'user', content: instruction }); emit();
-            const reply = await host.design(messages, { settings, signal: operation.controller.signal, purpose: 'design' });
+            const results = [];
+            let saveFailure;
+            // 同时发起独立请求，收到一份就保存；最终按请求顺序采用，不由返回快慢决定草稿。
+            const replies = await Promise.allSettled(Array.from({ length: count }, async (_, index) => {
+                const reply = await host.design(clone(messages), {
+                    settings: clone(settings), signal: operation.controller.signal, purpose: 'design',
+                });
+                if (active !== operation) return;
+                state.messages.push({ role: 'assistant', content: text(reply, '模型答复') });
+                try {
+                    const result = parseDesign(reply);
+                    if (combined) required(result.scenario, '合并答复中的测试场景');
+                    const version = count > 1 ? addVersion(`生成提示词 ${state.nextVersionNumber}（第 ${index + 1} 份）`, result.prompt) : null;
+                    results[index] = { ...result, version };
+                } finally {
+                    // 格式错误的原始答复也保留，取消后不丢掉已经收到的内容。
+                    emit();
+                    try { await persist(); } catch (error) { saveFailure = error; }
+                }
+            }));
             if (active !== operation) return;
-            state.messages.push({ role: 'assistant', content: text(reply, '模型答复') });
-            const result = parseDesign(reply);
-            if (combined) required(result.scenario, '合并答复中的测试场景');
-            if (revision === operation.revision) {
+            const valid = results.filter(Boolean), result = valid[0];
+            const errors = replies.filter(reply => reply.status === 'rejected').map(reply => reply.reason);
+            const unchanged = revision === operation.revision;
+            if (result && unchanged) {
                 if (state.draft.trim() && state.draft !== result.prompt
                     && !state.versions.some(version => version.content === state.draft)) {
                     addVersion(`自动保留 ${state.nextVersionNumber}`);
@@ -99,10 +119,18 @@ async function createWorkbench(host) {
                 state.draft = result.prompt;
                 if (combined) state.scenarioText = result.scenario;
                 revision++;
-                state.notice = result.explanation || '草稿已更新，请保存为新版本后试写。';
-            } else {
+                if (result.version) state.selectedVersionId = result.version.id;
+                state.notice = count > 1 ? `已生成 ${valid.length} 份提示词并分别保存，可切换版本查看。`
+                    : result.explanation || '草稿已更新，请保存为新版本后试写。';
+            } else if (result) {
                 state.notice = '生成期间草稿或版本已改变；本次答复保留在讨论中，请查看后采用。';
             }
+            if (errors.length) {
+                if (count === 1) throw errors[0];
+                throw new Error(`${count} 份提示词中 ${errors.length} 份失败，已保留 ${valid.length} 份有效结果。`
+                    + (errors[0]?.message || String(errors[0])));
+            }
+            if (saveFailure) throw saveFailure;
         });
     };
     const controller = {

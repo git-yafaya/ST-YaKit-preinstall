@@ -6,6 +6,7 @@
     root.innerHTML = workbench.workbenchTemplate;
     const $ = id => root.querySelector(`#yakit-wb-${id}`);
     let messageKey = '';
+    let designCountEditing = false, designSubmitting = false;
     let lastNotice = '', lastError = '', shownError = '', errorCount = 0, noticeCount = 0;
     const toast = workbench.createToast(document, container);
     const selects = workbench.mountSelects(root);
@@ -50,13 +51,16 @@
       versions.render(state);
       trials.render(state);
       setValue('goal', state.goal); setValue('draft', state.draft);
+      // 保留尚未填完的数量，清空重输时不会被订阅刷新覆盖。
+      if (!designCountEditing) setValue('design-count', String(state.designCount));
       const activeVersion = state.versions.find(item => item.id === state.selectedVersionId);
       $('draft-count').textContent = `${Array.from(state.draft).length} 字`;
       $('draft-state').textContent = activeVersion?.content === state.draft ? `已保存 · ${versions.title(activeVersion)}` : '当前草稿 · 尚未保存为版本';
       $('busy-bar').hidden = !state.busy;
       $('busy-text').textContent = ({ trial: '测试任务正在生成样本并进行 AI 盲评…', scenario: '正在生成冲突场景…', judge: '正在进行 AI 盲评…', 'preset-read': '正在读取预设…', 'preset-save': '正在保存预设…' })[state.busy] || '工作台 AI 正在生成…';
       $('cancel').hidden = state.busy === 'preset-save' || state.busy === 'preset-read';
-      $('design-button').disabled = Boolean(state.busy) || !state.goal.trim();
+      $('design-button').disabled = designSubmitting || Boolean(state.busy) || !state.goal.trim();
+      $('design-count').disabled = designSubmitting || Boolean(state.busy);
       $('design-button').firstChild.textContent = state.busy === 'design' ? '正在生成 ' : state.messages.length > 1 ? '修改提示词 ' : '生成提示词 ';
       $('save-version').disabled = Boolean(state.busy) || !state.draft.trim();
       $('copy').disabled = !state.draft.trim();
@@ -92,10 +96,26 @@
     }
 
     ['goal', 'draft'].forEach(id => $(id).addEventListener('input', () => run(() => controller.update({ [id]: $(id).value }))));
+    $('design-count').addEventListener('input', () => { designCountEditing = true; });
+    $('design-count').addEventListener('change', () => {
+      if (!$('design-count').checkValidity()) return;
+      const designCount = $('design-count').valueAsNumber;
+      designCountEditing = false;
+      run(() => controller.update({ designCount }));
+    });
     $('design-form').addEventListener('submit', event => {
       event.preventDefault();
+      if (designSubmitting || controller.getState().busy || !$('design-form').reportValidity()) return;
+      const designCount = $('design-count').valueAsNumber;
+      const instruction = $('instruction').value || $('goal').value;
+      // 保存数量期间也锁定提交，避免重复启动或改动本轮数量。
+      designSubmitting = true;
+      designCountEditing = false;
       run(async () => {
-        await controller.design($('instruction').value || $('goal').value);
+        try {
+          await controller.update({ designCount });
+        } finally { designSubmitting = false; }
+        await controller.design(instruction);
         if (!controller.getState().error) $('instruction').value = '';
       });
     });

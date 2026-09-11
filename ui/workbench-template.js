@@ -20,7 +20,11 @@
             <div class="field"><label for="yakit-wb-goal">你希望改善什么？</label><textarea id="yakit-wb-goal" rows="3" placeholder="描述想要的写作效果，例如：NPC 只能知道亲眼见过或被告知的事情。"></textarea></div>
             <form id="yakit-wb-design-form" class="composer">
               <label for="yakit-wb-instruction" class="sr-only">补充要求或修改意见</label><textarea id="yakit-wb-instruction" rows="2" placeholder="继续补充要求，或告诉工作台哪里需要修改…"></textarea>
-              <div class="composer-actions"><button id="yakit-wb-design-button" class="button button-primary" type="submit">生成提示词 <span aria-hidden="true">↑</span></button></div>
+              <div class="composer-actions">
+                <label for="yakit-wb-design-count" class="design-count">生成数量<input id="yakit-wb-design-count" type="number" min="1" max="9007199254740991" step="1" value="1" required aria-describedby="yakit-wb-design-count-hint"></label>
+                <button id="yakit-wb-design-button" class="button button-primary" type="submit">生成提示词 <span aria-hidden="true">↑</span></button>
+                <p id="yakit-wb-design-count-hint" class="page-hint">多条同时生成，结果可在版本记录切换。</p>
+              </div>
             </form>
             <div class="conversation-label"><span>修改讨论</span></div>
             <div id="yakit-wb-messages" class="messages" aria-live="polite"></div>

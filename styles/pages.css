@@ -15,7 +15,11 @@
 .yakit-workbench .composer{margin:14px 0 0;border:1px solid var(--line);border-radius:8px;background:var(--field);overflow:hidden}
 .yakit-workbench .composer textarea{border:0;border-radius:0;min-height:80px}
 .yakit-workbench .composer:focus-within{border-color:var(--focus)}
-.yakit-workbench .composer-actions{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:0 10px 10px}
+.yakit-workbench .composer-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px;padding:0 10px 10px}
+.yakit-workbench .design-count{display:flex;align-items:center;gap:8px;margin-right:auto}
+.yakit-workbench .design-count input{width:76px}
+.yakit-workbench .design-count input:disabled{opacity:.5;cursor:not-allowed}
+.yakit-workbench .composer-actions>.page-hint{flex-basis:100%;margin-top:0}
 .yakit-workbench .draft-panel{display:flex;flex-direction:column}
 .yakit-workbench .preset-picker{border-bottom:1px solid var(--line);flex-shrink:0}
 .yakit-workbench .preset-picker select{flex:1 1 140px;width:0}
