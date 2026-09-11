@@ -16,7 +16,7 @@ function required(value, name) {
 }
 
 const settingDefaults = {
-    theme: 'st', navigationStyle: 'auto', secondarySource: 'profile',
+    theme: 'forest', navigationStyle: 'auto', secondarySource: 'profile',
     secondaryProfileId: '', secondaryUrl: '', secondaryModel: '', secondaryKey: '',
 };
 const settingOptions = {

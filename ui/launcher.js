@@ -16,7 +16,7 @@ export function mountLauncher(mount) {
     const dialog = document.createElement('dialog');
     dialog.id = 'yakit-workbench-dialog';
     dialog.className = 'yakit-workbench';
-    dialog.dataset.theme = 'st';
+    dialog.dataset.theme = 'forest';
     dialog.setAttribute('aria-label', '预设工作台');
     dialog.innerHTML = shellTemplate;
     const close = attachDialogMotion(dialog);

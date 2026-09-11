@@ -74,7 +74,7 @@
     dialog?.addEventListener('close', close);
     dialog?.addEventListener('yakit:open', close);
     function render(state) {
-      $('theme').value = state.theme || 'st';
+      $('theme').value = state.theme || 'forest';
       const navigationStyle = state.navigationStyle || 'auto';
       const navigator = root.ownerDocument.defaultView?.navigator || {};
       // 按设备识别手机和平板；iPad 桌面模式单独判断，触屏电脑仍放在上方。

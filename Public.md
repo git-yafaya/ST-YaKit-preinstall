@@ -242,7 +242,7 @@ ST-YaKit-preinstall/
 
 | 字段 | 默认值或含义 |
 | --- | --- |
-| `theme` | 默认 `st`（跟随酒馆）；另支持 `forest`（林系风）、`light`（浅色）、`dark`（黑灰深色） |
+| `theme` | 默认 `forest`（林系风）；另支持 `st`（跟随酒馆）、`light`（浅色）、`dark`（黑灰深色）；缺失或无效值恢复林系风，已有合法选择（包括 `st`）保留 |
 | `navigationStyle` | 默认 `auto`（按设备选择位置）；另支持 `top`（上方文字）、`bottom`（下方图标）；缺失或无效值恢复自动，已有合法选择保留 |
 | `designApi` | 内部派生的 `main` 或 `secondary`，表示酒馆当前 API 或副 API；不接受 `update` 修改，不持久化 |
 | `moduleApis` | `{design:'default',scenario:'default',sample:'default',judge:'default'}`；每项可为 `default` 或已保存 API 配置 ID，旧 `main` 值按 `default` 处理 |
