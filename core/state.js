@@ -16,11 +16,12 @@ function required(value, name) {
 }
 
 const settingDefaults = {
-    theme: 'st', navigationStyle: 'top', designApi: 'main', secondarySource: 'profile',
+    // 自动导航的实际位置由视图按设备决定。
+    theme: 'st', navigationStyle: 'auto', designApi: 'main', secondarySource: 'profile',
     secondaryProfileId: '', secondaryUrl: '', secondaryModel: '', secondaryKey: '',
 };
 const settingOptions = {
-    theme: ['st', 'forest', 'light', 'dark'], navigationStyle: ['top', 'bottom'],
+    theme: ['st', 'forest', 'light', 'dark'], navigationStyle: ['auto', 'top', 'bottom'],
     designApi: ['main', 'secondary'], secondarySource: ['profile', 'custom'],
 };
 

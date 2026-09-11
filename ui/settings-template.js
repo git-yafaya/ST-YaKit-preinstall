@@ -6,7 +6,7 @@
         <div id="yakit-wb-settings-primary" class="settings-body settings-content">
           <details class="panel settings-card"><summary class="button">界面设置</summary><div class="panel-content settings-group">
             <div class="field"><label for="yakit-wb-theme">主题</label><select id="yakit-wb-theme"><option value="forest">林系风</option><option value="st">跟随酒馆</option><option value="light">浅色</option><option value="dark">深色</option></select><p class="page-hint">选择界面配色，切换后即时生效。</p></div>
-            <fieldset class="navigation-options"><legend>导航栏样式</legend><label><input type="radio" name="yakit-wb-navigation-style" value="top"><span>上方</span></label><label><input type="radio" name="yakit-wb-navigation-style" value="bottom"><span>下方</span></label></fieldset>
+            <fieldset class="navigation-options"><legend>导航栏样式</legend><label><input type="radio" name="yakit-wb-navigation-style" value="auto"><span>自动</span></label><label><input type="radio" name="yakit-wb-navigation-style" value="top"><span>上方</span></label><label><input type="radio" name="yakit-wb-navigation-style" value="bottom"><span>下方</span></label></fieldset>
           </div></details>
           <details class="panel settings-card"><summary class="button">副 API</summary><div class="panel-content settings-group">
             <div class="field"><label for="yakit-wb-design-api">工作台 AI</label><select id="yakit-wb-design-api"><option value="main">主 API</option><option value="secondary">副 API</option></select></div>

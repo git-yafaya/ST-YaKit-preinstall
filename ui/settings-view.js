@@ -71,8 +71,12 @@
       $('theme').value = state.theme || 'st';
       $('design-api').value = state.designApi || 'main';
       $('design-api').disabled = Boolean(state.busy);
-      $('app-shell').dataset.navigationStyle = state.navigationStyle || 'top';
-      root.querySelectorAll('input[name="yakit-wb-navigation-style"]').forEach(input => { input.checked = input.value === (state.navigationStyle || 'top'); });
+      const navigationStyle = state.navigationStyle || 'auto';
+      const navigator = root.ownerDocument.defaultView?.navigator || {};
+      // 按设备识别手机和平板；iPad 桌面模式单独判断，触屏电脑仍放在上方。
+      const mobile = navigator.userAgentData?.mobile || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '') || (/Macintosh/i.test(navigator.userAgent || '') && navigator.maxTouchPoints > 1);
+      $('app-shell').dataset.navigationStyle = navigationStyle === 'auto' ? (mobile ? 'bottom' : 'top') : navigationStyle;
+      root.querySelectorAll('input[name="yakit-wb-navigation-style"]').forEach(input => { input.checked = input.value === navigationStyle; });
       $('main-api-label').textContent = state.mainApiLabel || '当前主 API';
       const configs = state.secondaryApiConfigs || [];
       const nextList = JSON.stringify([configs, state.profiles]);
