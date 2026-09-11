@@ -7,8 +7,8 @@
     let messageKey = '', versionKey = '', trialKey = '', feedbackKey = '', selection = '', localNotice = '';
     let localError = false;
     const settings = workbench.mountSettings(controller, root, { run, notify });
-    const presets = workbench.mountPresets(controller, root, { run });
-    workbench.mountNavigation(root);
+    const { openPage } = workbench.mountNavigation(root);
+    const presets = workbench.mountPresets(controller, root, { run, openPage });
 
     function showNotice(state) {
       $('notice').textContent = localNotice || state.error || state.notice || '';

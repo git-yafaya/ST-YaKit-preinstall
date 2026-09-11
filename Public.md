@@ -18,13 +18,13 @@ ST-YaKit-preinstall/
 ├── styles/
 │   ├── theme.css              # 四套主题与工作台变量映射
 │   ├── controls.css           # 按钮、输入、选项弹层与滚动条
-│   ├── pages.css              # 四页卡片、编辑与阅读布局
+│   ├── pages.css              # 五页卡片、编辑与阅读布局
 │   ├── navigation.css         # 顶栏、导航指示器与切页轨道
 │   └── launcher.css           # 菜单图标、弹窗尺寸与进退场
 ├── core/
 │   ├── state.js               # 设置校验、记录恢复与保存快照
 │   ├── prompts.js             # 设计消息、答复解析与反馈指令
-│   ├── presets.js             # 预设列表、条目载入与写回状态
+│   ├── presets.js             # 预设读取、草稿载入与两种条目写回入口
 │   └── workbench.js           # 草稿、版本、试写及异步状态控制
 ├── host/
 │   ├── api.js                 # 主副 API 设计与主 API 正文请求
@@ -38,11 +38,12 @@ ST-YaKit-preinstall/
 │   ├── workbench.svg          # 扩展菜单的工作台图标
 │   ├── launcher.js            # 扩展菜单、样式加载与弹窗事件绑定
 │   ├── dialog-motion.js       # 统一关闭动画与重新打开状态
-│   ├── workbench-template.js  # 四页轨道、顶部导航与工作台模板
+│   ├── workbench-template.js  # 五页轨道、顶部导航与工作台模板
 │   ├── workbench-view.js      # 状态渲染、事件、复制与下载
-│   ├── preset-template.js     # 预设条目读取与保存控件
-│   ├── preset-view.js         # 预设选项、条目和来源状态展示
-│   ├── navigation-view.js     # 四页切换、快捷入口与键盘焦点
+│   ├── preset-template.js     # 预设展示页与草稿来源保存控件
+│   ├── preset-view.js         # 预设选择、重读与草稿来源展示
+│   ├── preset-entries-view.js # 全部条目编辑、逐条保存与本次编辑保留
+│   ├── navigation-view.js     # 五页切换、快捷入口与键盘焦点
 │   ├── trial-template.js      # 独立试写与反馈页面
 │   ├── versions-template.js   # 版本选择、原文预览与导出页面
 │   ├── settings-template.js   # API 与主题设置模板
@@ -52,6 +53,7 @@ ST-YaKit-preinstall/
 │   ├── core.test.mjs          # 核心状态与业务边界检查
 │   ├── presets-core.test.mjs  # 默认预设、草稿来源与写回状态检查
 │   ├── presets-host.test.mjs  # 预设读取、冲突校验与宿主写回检查
+│   ├── preset-display.test.mjs # 逐条编辑、保存和切换后的输入保留检查
 │   ├── st-host.test.mjs       # 宿主适配器与请求契约检查
 │   ├── trial-record.test.mjs  # 试写条件的版本归属、保存恢复与导出
 │   ├── preview-host.test.mjs  # 独立演示、旧数据、取消与入口隔离
@@ -67,7 +69,7 @@ ST-YaKit-preinstall/
 扩展菜单入口显示「工作台」，图标由 `styles/launcher.css` 以 CSS 遮罩引用 `ui/workbench.svg`，使用 1em 尺寸和 `currentColor` 跟随菜单文字；图标设置 `aria-hidden`，按钮名称由文字提供。
 
 1. 酒馆根据 `manifest.json` 加载 ES 模块 `index.js`。入口读取 `/script.js` 的 `isGenerating` 和 `getMaxContextTokens`、`/scripts/textgen-settings.js` 的 `getTextGenModel`、世界书模块的当前选择及 Prompt Manager 中启用的静默提示条目。将这些只读能力与实时 `SillyTavern.getContext()` 包装为 `globalThis.YaKitWorkbenchHost.getContext()`，再挂载扩展菜单入口。
-2. 用户首次打开「工作台」时，同源 iframe 加载 `index.html`；关闭对话框仅隐藏容器，保留页面和未提交输入。顶部控件静态位于 `#app` 外，`launcher.js` 在 iframe 加载后将关闭按钮绑定到统一退场函数，应用启动报错时仍保留关闭入口。宿主加载限定到工作台弹窗的 `theme.css` 与 `launcher.css`；iframe 通过 `style.css` 加载界面样式，脚本按 `state → prompts → core/presets → workbench → api → host/presets → st-host → settings-template → theme-view → settings-view → trial-template → versions-template → preset-template → workbench-template → navigation-view → preset-view → workbench-view → app` 顺序加载，内部协作命名空间为 `globalThis.YaKitWorkbench`。
+2. 用户首次打开「工作台」时，同源 iframe 加载 `index.html`；关闭对话框仅隐藏容器，保留页面和未提交输入。顶部控件静态位于 `#app` 外，`launcher.js` 在 iframe 加载后将关闭按钮绑定到统一退场函数，应用启动报错时仍保留关闭入口。宿主加载限定到工作台弹窗的 `theme.css` 与 `launcher.css`；iframe 通过 `style.css` 加载界面样式，脚本按 `state → prompts → core/presets → workbench → api → host/presets → st-host → settings-template → theme-view → settings-view → trial-template → versions-template → preset-template → workbench-template → navigation-view → preset-entries-view → preset-view → workbench-view → app` 顺序加载，内部协作命名空间为 `globalThis.YaKitWorkbench`。
 3. 普通入口由 `app.js` 通过父页面桥加载 `host/trial-context.js` 并创建 `createSillyTavernHost(getContext)`，再创建控制器、恢复保存记录并读取连接列表和当前聊天。页面重新获得焦点时刷新环境；普通入口缺少酒馆桥时显示错误。独立入口 `preview.html` 转到 `index.html?mode=preview`，显式加载示例与 `createLocalHost()`，复用同一套视图；演示请求只返回内置内容。
 4. 需求与草稿输入立即更新内存并排队保存，保留首尾空格和换行。设计请求固定开始时的设置快照，将需求、源草稿、历史设计讨论及本次要求组成消息数组，不附带当前聊天或此前试写正文。
 5. 主 API 设计使用 `generateRaw({prompt, instructOverride: true, trimNames: false})`；副 API 连接配置使用 `ConnectionManagerRequestService.sendRequest`；自定义接口使用 `ChatCompletionService.processRequest`。副 API 请求均关闭流式输出、输出上限为 4096 token。
@@ -75,7 +77,8 @@ ST-YaKit-preinstall/
 7. 试写要求选定版本与当前草稿完全一致。请求仅传 `{content, input}`，适配器检查候选非空并保留其原始空白，通过主 API 的 `generateQuietPrompt` 把候选提示词、两个换行和试写要求组合为 `quietPrompt`。使用当前聊天背景、世界书及作者注释，返回正文写入工作台记录，不自动追加聊天消息。
 8. 主 API 的取消、忙碌和连接检查通过后，在调用宿主生成之前同步深拷贝试写条件。成功答复关联发起时的 `versionId`、输入和 `context`，`context.capturedAt` 是条件采集时间，记录的 `createdAt` 是答复入库时间。期间切换连接、聊天或版本不改写已采集条件。按反馈修改时找回该试写的源版本，仅在用户提交后将评价、意见及引用片段交给设计模型；没有片段时交回该次完整正文。
 9. 新建议进入草稿，保存后成为下一版。「版本记录」选择已有版本并只读显示其原文和保存时间，选择行为仍将该版本载入草稿。该页导出从当前内存生成 JSON，排除 `secondaryKey`；「工作台」中的复制取当前草稿。
-10. 初始化调用 `refreshPresets()` 获取聊天补全预设列表；当前预设名属于可用列表时，调用已有 `readPreset(name)` 读取条目。有预设时选单仅列真实预设，无预设时显示「暂无可用预设」。手动切换会读取对应预设，「重新读取」更新当前条目；「刷新列表」保留已选预设、条目与草稿来源。读取使用已保存的预设，点击「载入草稿」才替换草稿并记录来源，点击「保存到原条目」才写回。
+10. 初始化调用 `refreshPresets()` 获取聊天补全预设列表；当前预设名属于可用列表且宿主提供 `readPreset` 时读取条目。「预设展示」按宿主返回的顺序展示全部条目，包括未启用、未列入默认顺序及标记条目。有预设时选单列出可用预设，无预设时显示「暂无可用预设」；刷新后当前目标被删除时，保留标注「不在列表中」的原名称。切换预设及「重新读取」读取对应内容，「刷新列表」保留已选预设、条目与草稿来源。
+11. 每条使用原生 `details` 展开正文；非标记条目可直接编辑，点击「保存条目」调用 `savePresetContent(identifier, content, expectedContent)`，不改动工作台草稿与版本。视图按预设、标识及同标识出现次数保留编辑器节点，切页、切换预设和状态通知不清空输入。保存一条只推进本条基线；明确重新读取成功后采用新原文基线并保留本地编辑。点击「载入草稿」使用核心已读取的内容并跳转工作台，之后可通过「保存到原条目」写回草稿。
 
 ### 边界与持久化
 
@@ -100,6 +103,9 @@ ST-YaKit-preinstall/
 | 读取保存内容失败 | 显示错误，仍可编辑和导出 |
 | 当前预设为空或不在可用列表中 | 初始化保留空条目，不自动读取列表第一项；读取失败仍可编辑草稿 |
 | 预设读取或刷新 | 不覆盖草稿，也不持久化临时预设状态；重新读取解除草稿的条目来源绑定 |
+| 展示页多条同时编辑 | 保存一条保留其他条目的输入和原文基线；保存期间继续输入、包括改回旧原文，也不被返回结果覆盖 |
+| 展示页明确重读或切换预设 | 成功后更新基线并保留本地编辑；读取失败保留原预设名称、列表与基线；刷新酒馆页面会清除未提交编辑 |
+| 直接保存与草稿来自同一条目 | 仅来源仍相同、原文基线匹配且草稿等于本次保存正文时同步来源基线；其他草稿保持原样，后续写回继续校验冲突 |
 | 条目载入与保存 | 标记条目不能载入或写回；保留正文空白并允许清空；目标缺失、标识重复或原文已变化时拒绝写回 |
 | 预设写回期间发生编辑 | 不支持取消写回；保留期间的草稿与宿主新编辑，切换版本解除草稿来源绑定 |
 | 活动预设的目标条目有未保存修改 | 写回前拒绝提交，要求处理酒馆中的修改后重新读取；其他未保存参数保持不变 |
@@ -116,7 +122,7 @@ ST-YaKit-preinstall/
 
 独立演示使用 `localStorage['yakit.prompt-workbench.preview.v1']`，保留历史演示数据，与酒馆设置分开。通过本地静态服务打开 `preview.html`；该入口与普通酒馆入口均复用 `index.html`，没有独立 UI 副本。
 
-持久化内容包括设置、需求、草稿、讨论、版本、试写、反馈和选中记录。`profiles/mainApiLabel/contextLabel/canTrial/presets/selectedPresetName/presetEntries/presetSource/busy/error/notice` 不持久化。主题切换立即保存，其余 API 设置通过「保存设置」提交。未提交的设计要求、试写要求、版本名称和反馈编辑框属于视图临时内容。
+持久化内容包括设置、需求、草稿、讨论、版本、试写、反馈和选中记录。`profiles/mainApiLabel/contextLabel/canTrial/presets/selectedPresetName/presetEntries/presetSource/busy/error/notice` 不持久化。主题切换立即保存，其余 API 设置通过「保存设置」提交。未提交的设计要求、试写要求、版本名称、反馈和预设条目编辑框属于视图临时内容；预设逐条编辑不进入工作记录持久化或导出。
 
 导出结构为 `{formatVersion: 1, ...savedState}`，其中排除副 API 密钥。预设条目通过独立按钮手动写回；未提供工作记录导入或删除入口。
 
@@ -145,24 +151,24 @@ ST-YaKit-preinstall/
 
 设置字段统一在核心校验，未知字段和非法枚举拒绝更新。副 API 完整性在发起设计时检查，允许先保存未填完的配置。正文 API 始终使用当前主 API。
 
-顶部导航常驻，提供工作台、试写与反馈、版本记录、设置四个页面。工作台在宽屏并排显示需求讨论与提示词编辑，小屏纵向排列；四页共用随宿主视口调整大小的窗口，正文独立滚动。主题、控件与微动效规范与 YaKit 纪实保持一致，样式保存在本仓库。
+顶部导航常驻，提供工作台、预设展示、试写与反馈、版本记录、设置五个页面。工作台在宽屏并排显示需求讨论与提示词编辑，小屏纵向排列；五页共用随宿主视口调整大小的窗口，正文独立滚动。主题、控件与微动效规范与 YaKit 纪实保持一致，样式保存在本仓库。
 
 | 界面项 | 当前规则 |
 | --- | --- |
-| 窗口尺寸 | 宽度 `calc(100vw - 24px)`，高度 `calc(100dvh - 24px)`；四页共用，四周各留 12px，随宿主视口变化同步调整 |
+| 窗口尺寸 | 宽度 `calc(100vw - 24px)`，高度 `calc(100dvh - 24px)`；五页共用，四周各留 12px，随宿主视口变化同步调整 |
 | 顶栏与卡片 | 顶栏高 56px，关闭按钮为 32px；窗口圆角 20px，卡片圆角 12px |
 | 页面留白 | 默认上下 20px、左右 24px；iframe 视口不超过 480px 时为 14px |
-| 切页 | 四页常驻同一轨道，正文与导航指示器同步平移；240ms，`cubic-bezier(0.16, 1, 0.3, 1)` |
+| 切页 | 五页常驻同一轨道，正文与导航指示器同步平移；240ms，`cubic-bezier(0.16, 1, 0.3, 1)` |
 | 窗口进退场 | 240ms 淡入或淡出，缩放从或至 0.98；关闭按钮、Esc、遮罩共用退场函数 |
 | 减少动态效果 | 停用过渡与动画，关闭直接完成 |
 
-顶栏固定留在正文上方，提供关闭按钮，当前页面名称仅供读屏。顶部导航始终显示。切页通过 `inert` 和 `aria-hidden` 隔离非当前页，不重建内容，保留草稿和各页滚动位置。页签支持左右方向键、Home、End；快捷入口聚焦目标页。当前页只保留在当前 iframe，重新加载后回到工作台。Esc 尊重控件已取消的事件，展开的原生下拉优先关闭选项；旧浏览器无法判断下拉展开状态时，焦点位于下拉框内由系统处理 Esc。遮罩关闭要求按下与松开均位于窗口外，退出期间再次打开会清除待关闭状态。
+顶栏固定留在正文上方，提供关闭按钮，当前页面名称仅供读屏。顶部导航始终显示，窄屏长页签显示省略号，完整名称保留在文字和 `title` 中。切页通过 `inert` 和 `aria-hidden` 隔离非当前页，不重建内容，保留草稿和各页滚动位置。页签支持左右方向键、Home、End；快捷入口聚焦目标页。当前页只保留在当前 iframe，重新加载后回到工作台。Esc 尊重控件已取消的事件，展开的原生下拉优先关闭选项；旧浏览器无法判断下拉展开状态时，焦点位于下拉框内由系统处理 Esc。遮罩关闭要求按下与松开均位于窗口外，退出期间再次打开会清除待关闭状态。
 
 主题由 iframe 根元素和宿主弹窗的 `data-theme` 同步控制；`st` 模式从父页面正文读取 `--SmartThemeBodyColor`、`--SmartThemeBlurTintColor`、`--SmartThemeChatTintColor`、`--SmartThemeBorderColor`、`--SmartThemeQuoteColor`、`--SmartThemeEmColor` 和 `--mainFontFamily`，监听父根元素与正文的 `style/class/data-theme` 变化。林系风、浅色的 `--yakit-*` 颜色与纪实一致；深色使用黑灰背景和浅灰强调色，并通过 `--on-accent` 为主按钮配置深色文字。现有组件变量映射到这些主题值，深色导航选中项使用 `--selected` 背景和 `--text` 文字。宿主样式只匹配工作台弹窗，iframe 样式只匹配带 `yakit-workbench` 类的根元素；主题仍使用本工作台的设置保存。
 
-设置、版本和试写记录共用原生 `select`。支持 `appearance: base-select` 与 `::picker(select)` 时，弹层跟随控件宽度、限制在 iframe 视口内，最高为 `min(320px, 60dvh)`，超长名称换行、过多选项滚动；背景取 `--paper` 的不透明颜色，选中、悬停与焦点使用主题变量，入场为 160ms 淡入与 4px 位移。原生键盘选择、表单提交和动态连接选项保持原有行为。不支持该特性时使用系统选单，并提供选项文字和背景色；系统可能忽略部分样式。
+设置、预设、版本和试写记录共用原生 `select`。支持 `appearance: base-select` 与 `::picker(select)` 时，弹层跟随控件宽度、限制在 iframe 视口内，最高为 `min(320px, 60dvh)`，超长名称换行、过多选项滚动；背景取 `--paper` 的不透明颜色，选中、悬停与焦点使用主题变量，入场为 160ms 淡入与 4px 位移。原生键盘选择、表单提交和动态连接选项保持原有行为。不支持该特性时使用系统选单，并提供选项文字和背景色；系统可能忽略部分样式。
 
-四页正文、讨论区、文本框和选项弹层共用 `controls.css` 的细滚动条与透明轨道。悬停或焦点进入时显示滑块，触屏常显；浅色使用中性灰，其他主题由强调色生成滑块色。支持 WebKit 滚动条伪元素时宽高均为 4px，其余支持标准属性的浏览器使用 `thin`。
+五页正文、讨论区、文本框和选项弹层共用 `controls.css` 的细滚动条与透明轨道。悬停或焦点进入时显示滑块，触屏常显；浅色使用中性灰，其他主题由强调色生成滑块色。支持 WebKit 滚动条伪元素时宽高均为 4px，其余支持标准属性的浏览器使用 `thin`。
 
 ## 公开 API
 
@@ -177,9 +183,10 @@ ST-YaKit-preinstall/
 | `YaKitWorkbench.createLocalHost()` | 创建原有示例请求与独立浏览器存储适配器，仅预览入口加载 |
 | `YaKitWorkbench.captureTrialContext(host, options, scenario)` | 同步深拷贝主 API 连接、实际注入参数和请求开始时的背景条件 |
 | `YaKitWorkbench.createWorkbench(host)` | 恢复记录、读取环境并返回控制器 |
-| `YaKitWorkbench.mountWorkbench(controller, root)` | 挂载四页工作台，返回解除订阅与主题监听函数 |
-| `YaKitWorkbench.mountPresets(controller, root, {run})` | 绑定预设读取、载入和写回控件，返回 `{render}` |
-| `YaKitWorkbench.mountNavigation(root)` | 绑定四页常驻导航与快捷入口；从 `root.ownerDocument` 读取读屏页名，管理键盘焦点与隐藏页 |
+| `YaKitWorkbench.mountWorkbench(controller, root)` | 挂载五页工作台，返回解除订阅与主题监听函数 |
+| `YaKitWorkbench.mountPresets(controller, root, {run, openPage})` | 绑定预设选择、明确重读与草稿写回控件，返回 `{render}` |
+| `YaKitWorkbench.mountPresetEntries(controller, root, {run, openPage})` | 绑定全部条目的编辑、逐条保存与草稿载入，返回 `{render, rebase}`；`rebase(state)` 在明确重读成功后更新原文基线 |
+| `YaKitWorkbench.mountNavigation(root)` | 返回 `{openPage}`，绑定五页常驻导航与快捷入口；从 `root.ownerDocument` 读取读屏页名，管理键盘焦点与隐藏页 |
 | `YaKitWorkbench.mountTheme(controller)` | 返回 `{sync, dispose}`；同步 iframe 与宿主弹窗主题，并可解除宿主主题监听 |
 | `YaKitWorkbench.state` / `.prompts` | 状态校验、保存快照、设计消息和答复解析 |
 
@@ -192,6 +199,7 @@ ST-YaKit-preinstall/
 | `readPreset(name)` | 读取指定预设条目，更新名称并解除草稿来源绑定，保留草稿正文 |
 | `loadPresetEntry(identifier)` | 将非标记条目的原文载入草稿，记录写回来源并清除选中版本 |
 | `savePresetEntry()` | 按来源和原文快照手动写回当前草稿；成功后更新条目和来源快照 |
+| `savePresetContent(identifier, content, expectedContent)` | 保存当前选中预设的唯一非标记条目；正文及原文必须为字符串，允许空白或清空；成功更新条目，不替换草稿或选中版本 |
 | `update(fields)` | 原子校验并更新允许编辑的字段 |
 | `design(instruction)` | 使用当前配置、需求、草稿和讨论生成提示词 |
 | `saveVersion(label)` | 保存草稿为独立版本；空名称自动编号 |
@@ -268,7 +276,7 @@ if (selectedPresetName) console.table((await host.readPreset(selectedPresetName)
 | 试写条件 | 开始时记录连接、位置、聊天统计、作者注释及世界书选择，保存恢复和导出保持原快照 |
 | 独立演示 | 原有两版提示词及正文、独立 localStorage、反馈与取消；不调用真实模型 |
 | 版本与反馈 | 原文保存、不可变版本、正文引用、准确归因及按反馈修订 |
-| 预设条目 | 初始化读取当前聊天补全预设，支持手动切换、载入草稿与写回；独立演示不提供预设接口 |
+| 预设条目 | 初始化读取当前聊天补全预设；「预设展示」列出全部条目，支持切换预设、逐条编辑保存、载入草稿与写回；独立演示不提供预设接口 |
 | 保存与导出 | 使用 `extensionSettings` 与 `saveSettingsDebounced`，支持复制及不含密钥的导出 |
 | 尚未接入 | 工作记录导入或删除、条目新增/删除/排序及名称/角色/开关编辑、其他类型预设；未提供独立的跨设备同步功能 |
 | 取消限制 | 主 API 无独立 AbortSignal 入口，不调用宿主全局停止接口；取消仅忽略结果，仍等待宿主完成 |
@@ -288,8 +296,9 @@ UI 代码位于 `ui/`、`styles/`、`style.css` 和页面模板；业务代码�
 | 脚本 | 覆盖内容 |
 | --- | --- |
 | `tests/core.test.mjs` | 版本、反馈归因、正文隔离、取消、格式错误、保存恢复、编辑保护、API 设置快照、密钥导出排除及历史恢复；6 项通过 |
-| `tests/presets-core.test.mjs` | 默认读取当前预设、空列表、手动选择与刷新保留、草稿来源和写回状态 |
+| `tests/presets-core.test.mjs` | 默认预设、草稿与直接保存的隔离、原文基线、清空、失败及占位和重复标识 |
 | `tests/presets-host.test.mjs` | 预设列表与顺序、原文冲突、空内容保存及写回期间的宿主编辑 |
+| `tests/preset-display.test.mjs` | 全部条目展示、多条编辑、保存期间继续输入、原文冲突与重读、读取失败及切换后的输入保留 |
 | `tests/st-host.test.mjs` | 模拟宿主验证请求参数、连接选用、持久化与取消边界；契约检查通过，不调用真实模型 |
 | `tests/trial-record.test.mjs` | 从真实适配器到核心，验证试写期间切换条件后原版本归属、保存恢复与导出 |
 | `tests/preview-host.test.mjs` | 演示入口隔离、原两版流程、旧存储恢复、可变请求快照与取消 |
@@ -317,4 +326,6 @@ v0.2.7 的本地契约检查覆盖真实宿主请求参数、连接和背景快�
 
 v0.2.8 的本地检查覆盖预设列表与默认选择、读取不修改工作记录、草稿来源绑定、空白与清空、目标冲突、宿主写回失败及保存期间编辑保留；另检查预设模块加载顺序、模板控件引用和核心与真实适配器之间的模拟联接。真实预设保存和界面操作由用户人工验收。
 
-SillyTavern 验收遵循本机 `AGENTS.md` 的人工流程。从扩展菜单打开工作台，在宽屏与窄屏检查四页尺寸随窗口调整、四周留白、滑动切页、独立滚动、关闭按钮和常驻导航；切换四种主题，核对窗口、控件、滚动条与选项弹层。检查长选项换行、键盘选择、关闭与重新打开保留输入，以及系统减少动态效果设置。真实模型调用和完整试写流程继续由用户人工验收。
+v0.2.9 已通过 26 项本地检查、弹窗动效检查、全部 JavaScript 语法、五页模板与控件引用和脚本加载顺序检查。新增检查覆盖逐条保存与草稿隔离、多条编辑保留、保存期间改回原文、冲突后重读及切换预设后的输入保留。
+
+SillyTavern 验收遵循本机 `AGENTS.md` 的人工流程。从扩展菜单打开工作台，在宽屏与窄屏检查五页尺寸随窗口调整、四周留白、滑动切页、独立滚动、关闭按钮和常驻导航；切换四种主题，核对窗口、控件、滚动条与选项弹层。检查长选项换行、键盘选择、关闭与重新打开保留输入，以及系统减少动态效果设置。在「预设展示」核对全部条目、折叠编辑、逐条保存及载入草稿。真实预设写回、模型调用和完整试写流程继续由用户人工验收。

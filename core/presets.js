@@ -43,6 +43,27 @@ function createPresetActions({ state, host, run, change, isActive, draftChanged 
                 state.notice = `已载入「${entry.name}」，修改后可写回预设。`;
             });
         },
+        savePresetContent(identifier, content, expectedContent) {
+            return run('preset-save', async () => {
+                if (typeof host.savePresetEntry !== 'function') throw new Error('请从酒馆扩展菜单打开工作台后写回预设。');
+                const presetName = state.selectedPresetName;
+                const entries = state.presetEntries.filter(item => item.identifier === identifier);
+                if (!presetName || entries.length !== 1) throw new Error('目标条目不存在或标识重复，请重新读取预设。');
+                const entry = entries[0];
+                if (entry.marker) throw new Error('占位条目不能载入或修改。');
+                content = rawText(content, '条目内容');
+                expectedContent = rawText(expectedContent, '条目原文');
+                const source = state.presetSource;
+                const result = await host.savePresetEntry({ presetName, identifier, content, expectedContent });
+                state.presetEntries = result.entries;
+                // 草稿正好是本次保存内容时才同步基线，旧草稿仍须通过原文冲突检查。
+                if (state.presetSource === source && source?.presetName === presetName
+                    && source.identifier === identifier && source.content === expectedContent && state.draft === content) {
+                    source.content = content;
+                }
+                state.notice = result.notice || `已写回「${entry.name}」。`;
+            });
+        },
         savePresetEntry() {
             return run('preset-save', async () => {
                 if (typeof host.savePresetEntry !== 'function') throw new Error('请从酒馆扩展菜单打开工作台后写回预设。');

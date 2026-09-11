@@ -3,7 +3,7 @@
   workbench.mountNavigation = function mountNavigation(root) {
     const $ = id => root.querySelector(`#${id}`);
     const document = root.ownerDocument;
-    const pages = { workbench: '工作台', trial: '试写与反馈', versions: '版本记录', settings: '设置' };
+    const pages = { workbench: '工作台', presets: '预设展示', trial: '试写与反馈', versions: '版本记录', settings: '设置' };
     const names = Object.keys(pages);
     const buttons = Array.from(root.querySelectorAll('[data-page]'));
     names.forEach(name => {
@@ -41,6 +41,7 @@
     buttons.forEach((button, index) => {
       button.id = `nav-${button.dataset.page}`;
       button.type = 'button';
+      button.title = pages[button.dataset.page];
       button.setAttribute('role', 'tab');
       button.setAttribute('aria-controls', `${button.dataset.page}-page`);
       button.style.gridColumn = index + 1;
@@ -58,5 +59,6 @@
     });
     root.querySelectorAll('[data-open-page]').forEach(button => button.addEventListener('click', () => openPage(button.dataset.openPage)));
     openPage('workbench', false);
+    return { openPage };
   };
 })();

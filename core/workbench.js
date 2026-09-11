@@ -185,7 +185,7 @@ async function createWorkbench(host) {
         try {
             await controller.refreshPresets();
             // 首次打开读取酒馆当前预设；后续刷新仍保留手动选择和草稿来源。
-            if (state.selectedPresetName
+            if (typeof host.readPreset === 'function' && state.selectedPresetName
                 && state.presets.some(preset => preset.name === state.selectedPresetName)) {
                 await controller.readPreset(state.selectedPresetName);
             }
