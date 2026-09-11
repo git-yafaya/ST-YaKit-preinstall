@@ -53,6 +53,7 @@ function initialState(saved) {
         goal: '', draft: '', ...settingDefaults,
         messages: [], versions: [], selectedVersionId: '', trials: [], selectedTrialId: '',
         profiles: [], mainApiLabel: '', contextLabel: '', canTrial: false,
+        presets: [], selectedPresetName: '', presetEntries: [], presetSource: null,
         busy: null, error: '', notice: '',
     };
     if (!saved || typeof saved !== 'object') return state;
@@ -91,7 +92,9 @@ function initialState(saved) {
 }
 
 function savedState(state) {
-    const { profiles, mainApiLabel, contextLabel, canTrial, busy, error, notice, ...data } = state;
+    // 预设目标只在当前页面有效，重新加载页面后须重新读取并选择条目。
+    const { profiles, mainApiLabel, contextLabel, canTrial, presets, selectedPresetName,
+        presetEntries, presetSource, busy, error, notice, ...data } = state;
     return clone(data);
 }
 

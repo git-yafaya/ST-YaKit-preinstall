@@ -4,6 +4,6 @@
   "requires": [],
   "js": "index.js",
   "author": "yafaya",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "minimum_client_version": "1.18.0"
 }

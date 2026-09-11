@@ -7,6 +7,7 @@
     let messageKey = '', versionKey = '', trialKey = '', feedbackKey = '', selection = '', localNotice = '';
     let localError = false;
     const settings = workbench.mountSettings(controller, root, { run, notify });
+    const presets = workbench.mountPresets(controller, root, { run });
     workbench.mountNavigation(root);
 
     function showNotice(state) {
@@ -43,6 +44,7 @@
     }
     function render(state) {
       settings.render(state);
+      presets.render(state);
       setValue('goal', state.goal); setValue('draft', state.draft);
       const activeVersion = state.versions.find(item => item.id === state.selectedVersionId);
       const trial = currentTrial(state);
@@ -52,7 +54,8 @@
       $('trial-version').textContent = activeVersion ? (activeVersion.content === state.draft ? `使用版本 · ${activeVersion.label}` : '草稿已修改，请先保存新版本') : '先保存一个提示词版本';
       $('context-label').textContent = state.contextLabel || '当前聊天';
       $('busy-bar').hidden = !state.busy;
-      $('busy-text').textContent = state.busy === 'trial' ? '正文 AI 正在试写…' : '工作台 AI 正在生成…';
+      $('busy-text').textContent = ({ trial: '正文 AI 正在试写…', 'preset-read': '正在读取预设…', 'preset-save': '正在保存预设条目…' })[state.busy] || '工作台 AI 正在生成…';
+      $('cancel').hidden = state.busy === 'preset-save' || state.busy === 'preset-read';
       $('design-button').disabled = Boolean(state.busy) || !state.goal.trim();
       $('design-button').firstChild.textContent = state.busy === 'design' ? '正在生成 ' : state.messages.length > 1 ? '修改提示词 ' : '生成提示词 ';
       $('trial-button').disabled = Boolean(state.busy) || !state.canTrial || !activeVersion || activeVersion.content !== state.draft;

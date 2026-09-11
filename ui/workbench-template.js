@@ -28,10 +28,12 @@
         </section>
         <section class="panel draft-panel" aria-labelledby="draft-title">
           <div class="panel-heading"><div><span class="section-kicker">PROMPT</span><h2 id="draft-title">提示词草稿</h2></div><span class="editable-badge"><i></i>可直接编辑</span></div>
+          ${workbench.presetTemplate}
           <div class="draft-toolbar"><span id="draft-state">当前草稿</span><button id="copy" class="text-button">复制提示词 <span aria-hidden="true">⧉</span></button></div>
           <label for="draft" class="sr-only">提示词草稿</label><textarea id="draft" class="draft-editor" spellcheck="false" placeholder="先在左侧描述需求，生成第一版提示词。你也可以在这里直接开始写。"></textarea>
           <div class="editor-footer"><span id="draft-count">0 字</span></div>
           <div class="draft-save">
+            ${workbench.presetSaveTemplate}
             <div class="save-row"><label for="version-label" class="sr-only">新版本名称</label><input id="version-label" placeholder="版本名称（选填）" maxlength="80"><button id="save-version" class="button button-secondary">保存为版本 <span aria-hidden="true">＋</span></button></div>
             <div class="draft-links"><button class="text-button" data-open-page="versions">查看版本记录</button><button class="text-button" data-open-page="trial">前往试写 <span aria-hidden="true">→</span></button></div>
           </div>

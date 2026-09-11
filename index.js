@@ -15,6 +15,7 @@ globalThis.YaKitWorkbenchHost = {
             const prompt = promptManager?.getPromptById('quietPrompt');
             return entry?.enabled && promptManager.shouldTrigger(prompt, 'quiet') ? prompt : null;
         },
+        refreshPresetEditor: () => promptManager?.render(false),
     }),
 };
 

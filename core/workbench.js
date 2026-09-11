@@ -35,10 +35,14 @@ async function createWorkbench(host) {
         await persist();
     };
     const run = async (kind, action) => {
-        if (active) return fail(new Error('请等待当前操作完成，或先取消。'));
-        const operation = { controller: new AbortController(), revision };
+        if (active) return fail(new Error(state.busy === 'preset-save'
+            ? '请等待预设写回完成。' : '请等待当前操作完成，或先取消。'));
+        const operation = { controller: new AbortController(), revision, kind };
         active = operation;
-        state.busy = kind; state.error = ''; state.notice = ''; emit();
+        state.busy = kind;
+        // 读取临时预设不会修复工作记录，继续保留原来的加载失败提示。
+        if (kind !== 'preset-read' || state.error !== loadError) state.error = '';
+        state.notice = ''; emit();
         let error;
         try { await action(operation); } catch (caught) {
             if (active === operation) error = caught;
@@ -47,7 +51,7 @@ async function createWorkbench(host) {
         active = null; state.busy = null;
         if (error) state.error = error.message || String(error);
         emit();
-        await persist();
+        if (kind !== 'preset-read') await persist();
         if (error) throw error;
     };
     const design = async (instruction, sourceDraft) => {
@@ -115,6 +119,7 @@ async function createWorkbench(host) {
             return change(() => {
                 const version = find(state.versions, id, '提示词版本');
                 state.selectedVersionId = version.id; state.draft = version.content; revision++; state.notice = '';
+                state.presetSource = null;
             });
         },
         async trial(input) {
@@ -157,10 +162,11 @@ async function createWorkbench(host) {
             return design(instruction, version.content);
         },
         async cancel() {
-            if (!active) return;
+            // 预设写入已经交给酒馆，不能把取消显示成写入已撤销。
+            if (!active || state.busy === 'preset-save') return;
             const operation = active; active = null; operation.controller.abort();
             state.busy = null; state.notice = '已取消，已有草稿和记录已保留。'; emit();
-            await persist();
+            if (operation.kind !== 'preset-read') await persist();
         },
         exportData() {
             // 密钥只用于连接和本地设置，不放进导出的工作记录。
@@ -168,7 +174,23 @@ async function createWorkbench(host) {
             return JSON.stringify({ formatVersion: 1, ...data }, null, 2);
         },
     };
+    if (globalThis.YaKitWorkbench.createPresetActions) {
+        Object.assign(controller, globalThis.YaKitWorkbench.createPresetActions({
+            state, host, run, change, isActive: operation => active === operation,
+            draftChanged: () => { revision++; },
+        }));
+    }
     try { await controller.refreshEnvironment(); } catch { /* 环境读取失败时仍允许编辑和导出。 */ }
+    if (host.listPresets && controller.refreshPresets) {
+        try {
+            await controller.refreshPresets();
+            // 首次打开读取酒馆当前预设；后续刷新仍保留手动选择和草稿来源。
+            if (state.selectedPresetName
+                && state.presets.some(preset => preset.name === state.selectedPresetName)) {
+                await controller.readPreset(state.selectedPresetName);
+            }
+        } catch { /* 预设读取失败时仍允许编辑草稿。 */ }
+    }
     return controller;
 }
 
