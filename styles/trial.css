@@ -1,0 +1,152 @@
+/* 试写页固定使用冷浅色；只有进入本页时，弹窗外壳才跟随这一套颜色。 */
+.yakit-workbench:has(#yakit-wb-nav-trial[aria-selected="true"]),
+.yakit-workbench #yakit-wb-trial-page{
+  color-scheme:light;
+  --background:#F8F9FA;
+  --paper:#FFFFFF;
+  --field:#FFFFFF;
+  --surface:#F1F2F4;
+  --accent:#18181B;
+  --accent-dark:#303036;
+  --selected:#F1F2F4;
+  --text:#18181B;
+  --muted:#6B7280;
+  --line:rgba(0,0,0,.08);
+  --focus:#9CA3AF;
+  --on-accent:#FFFFFF;
+  --yakit-text-muted:#9CA3AF;
+  --scroll-thumb:#9CA3AF;
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  letter-spacing:-.01em;
+}
+.yakit-workbench:has(#yakit-wb-nav-trial[aria-selected="true"]) .sidebar{background:#ECEEF1}
+.yakit-workbench:has(#yakit-wb-nav-trial[aria-selected="true"]) .nav-indicator{background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.yakit-workbench:has(#yakit-wb-nav-trial[aria-selected="true"]) .nav-item{color:#6B7280;font-weight:500}
+.yakit-workbench:has(#yakit-wb-nav-trial[aria-selected="true"]) .nav-item[aria-selected="true"]{color:#18181B}
+
+/* 外框不滚动：左侧只滚参数，右侧只滚正文、评分和反馈。 */
+.yakit-workbench .page-frame:has(> #yakit-wb-trial-page){overflow:hidden;scrollbar-gutter:auto}
+.yakit-workbench #yakit-wb-trial-page{height:100%;min-height:0;color:var(--text)}
+.yakit-workbench .trial-panel{display:grid;grid-template-columns:minmax(0,42fr) minmax(0,58fr);height:100%;min-height:0;border:0;border-radius:0;background:transparent}
+.yakit-workbench .trial-controls,.yakit-workbench .trial-preview{display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
+.yakit-workbench .trial-controls{border-right:1px solid rgba(0,0,0,.06)}
+/* 内侧留出焦点外圈的位置，滚动区不会裁掉控件边缘的高亮。 */
+.yakit-workbench .trial-parameters,.yakit-workbench .trial-preview-content{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:4px 24px 20px 4px}
+.yakit-workbench .trial-preview-content{display:flex;flex-direction:column;padding:20px 0 0 24px}
+.yakit-workbench .environment{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-bottom:20px;color:var(--muted);font-size:12px}
+.yakit-workbench .environment>span:last-child{margin-left:auto;max-width:100%;overflow-wrap:anywhere}
+.yakit-workbench .status-dot{width:5px;height:5px;flex-shrink:0;border-radius:50%;background:var(--accent)}
+.yakit-workbench #yakit-wb-trial-page label{font-weight:500}
+.yakit-workbench #yakit-wb-trial-page .field>label{margin-bottom:8px}
+.yakit-workbench #yakit-wb-trial-page .test-options{align-items:start;gap:16px;margin-bottom:20px}
+.yakit-workbench #yakit-wb-trial-page .test-options>.field{flex-basis:calc(50% - 8px)}
+.yakit-workbench #yakit-wb-trial-page .test-options>.field:last-child{flex-basis:100%}
+.yakit-workbench #yakit-wb-trial-page .test-toggle{gap:10px;padding:12px;border-radius:8px;background:var(--paper);border-color:var(--line);color:var(--muted)}
+.yakit-workbench #yakit-wb-trial-page .test-toggle:has(>input:checked){color:var(--text);border-color:rgba(0,0,0,.18)}
+.yakit-workbench #yakit-wb-trial-page .test-toggle:has(>input:enabled):hover{background:var(--surface)}
+.yakit-workbench #yakit-wb-trial-page select,
+.yakit-workbench #yakit-wb-trial-page textarea,
+.yakit-workbench #yakit-wb-trial-page input:not([type="checkbox"],[type="radio"]){border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--text)}
+.yakit-workbench #yakit-wb-trial-page select{width:100%}
+.yakit-workbench #yakit-wb-trial-page select:hover:not(:disabled){background:var(--paper);border-color:rgba(0,0,0,.18)}
+.yakit-workbench #yakit-wb-trial-page textarea{display:block;min-height:80px;height:112px;max-height:160px;resize:none}
+.yakit-workbench #yakit-wb-trial-page #yakit-wb-trial-input{height:144px}
+.yakit-workbench #yakit-wb-trial-page #yakit-wb-excerpt{height:80px}
+.yakit-workbench #yakit-wb-trial-page textarea::placeholder,
+.yakit-workbench #yakit-wb-trial-page input::placeholder{color:#9CA3AF}
+.yakit-workbench #yakit-wb-trial-page textarea:focus,
+.yakit-workbench #yakit-wb-trial-page input:not([type="checkbox"],[type="radio"]):focus,
+.yakit-workbench #yakit-wb-trial-page select:focus{outline:none;border-color:var(--focus);box-shadow:0 0 0 2px rgba(156,163,175,.18)}
+.yakit-workbench #yakit-wb-trial-page .page-hint{margin-top:8px;font-size:12px;line-height:1.6;color:#6B7280;overflow-wrap:anywhere}
+.yakit-workbench .trial-actions{display:grid;flex-shrink:0;gap:6px;padding:16px 24px 4px 4px;border-top:1px solid rgba(0,0,0,.06);background:var(--background)}
+.yakit-workbench #yakit-wb-trial-version{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.yakit-workbench #yakit-wb-trial-page .trial-actions>.page-hint{grid-row:2;margin:0}
+.yakit-workbench #yakit-wb-trial-page #yakit-wb-trial-button{grid-row:3;width:100%;min-height:40px;margin-top:8px;border-radius:8px}
+.yakit-workbench #yakit-wb-trial-page .button{gap:5px;min-height:32px;padding:8px 12px;border-radius:6px;font-weight:500}
+.yakit-workbench #yakit-wb-trial-page .button-primary{background:#18181B;color:#FFFFFF;font-weight:600}
+.yakit-workbench #yakit-wb-trial-page .button-primary:hover:not(:disabled){background:#303036}
+.yakit-workbench #yakit-wb-trial-page .button-secondary{background:#FFFFFF;color:var(--muted);border:1px solid var(--line)}
+.yakit-workbench #yakit-wb-trial-page .button-secondary:hover:not(:disabled){background:var(--surface);color:var(--text)}
+.yakit-workbench #yakit-wb-trial-page .subtle-badge{border-radius:6px}
+.yakit-workbench .quote-heading{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.yakit-workbench .quote-heading label span{margin-left:4px;font-size:12px;color:var(--muted);font-weight:400}
+.yakit-workbench .test-task-bar{flex-shrink:0;padding:4px 4px 16px 24px;border-bottom:1px solid rgba(0,0,0,.06)}
+.yakit-workbench #yakit-wb-task-status:empty{display:none}
+.yakit-workbench .trial-task-details{flex-shrink:0;margin-bottom:20px}
+.yakit-workbench .trial-task-details>.message-prompt{margin:0 0 14px}
+.yakit-workbench #yakit-wb-trial-page #yakit-wb-judge-actions{align-items:center;margin:0;gap:8px}
+.yakit-workbench #yakit-wb-trial-page #yakit-wb-judge-actions>.test-toggle{flex:1 1 200px}
+/* 沿用视图已有的 hidden 状态，在没有任务时收起整个详情区。 */
+.yakit-workbench .trial-task-details:has(> #yakit-wb-task-snapshot[hidden]):has(> #yakit-wb-judge-actions[hidden]):has(> #yakit-wb-judgement-overview[hidden]){display:none}
+.yakit-workbench #yakit-wb-judge-actions[hidden]+.page-hint{display:none}
+.yakit-workbench .test-snapshot-text{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.6;padding:8px 0 12px}
+.yakit-workbench .trial-reading{display:grid;flex:1 0 auto;gap:20px;min-width:0}
+.yakit-workbench .trial-result,.yakit-workbench .feedback-section{min-width:0;background:var(--paper);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.yakit-workbench .trial-result{display:flex;flex-direction:column}
+.yakit-workbench .trial-result>*{flex-shrink:0}
+.yakit-workbench .output-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px}
+.yakit-workbench .output-heading h3{flex-shrink:0;color:var(--muted);font-size:12px;font-weight:500}
+.yakit-workbench .output-heading select{max-width:72%}
+.yakit-workbench .trial-empty{flex:1 0 auto;min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+.yakit-workbench .trial-empty>span{position:relative;margin-bottom:21px;font-family:Georgia,serif;font-size:43px;line-height:1.2;color:#9CA3AF}
+.yakit-workbench .trial-empty>span>span{position:absolute;top:0;right:-12px;font-size:20px;color:#9CA3AF}
+.yakit-workbench .trial-empty h3{font-size:12px;font-weight:500;color:var(--muted)}
+.yakit-workbench .trial-context{padding:0 16px;font-size:12px;line-height:1.6;color:var(--muted);overflow-wrap:anywhere}
+.yakit-workbench .trial-output{padding:16px;font-size:14px;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--text)}
+.yakit-workbench .trial-output::selection{background:#E5E7EB}
+.yakit-workbench .trial-output:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.yakit-workbench .feedback-section{padding:16px}
+.yakit-workbench .feedback-section>.section-row{flex-wrap:wrap}
+.yakit-workbench .feedback-status{display:flex;flex-wrap:wrap;gap:4px;min-width:0;margin:14px 0;padding:4px;border:0;border-radius:8px;background:var(--surface)}
+.yakit-workbench .feedback-status label{flex:1 1 120px;position:relative;cursor:pointer}
+.yakit-workbench .feedback-status input{position:absolute;opacity:0;width:1px;height:1px}
+.yakit-workbench #yakit-wb-trial-page .feedback-status .button{width:100%;background:transparent;border-color:transparent}
+.yakit-workbench #yakit-wb-trial-page .feedback-status input:checked+.button{background:#FFFFFF;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.yakit-workbench .feedback-status input:active+.button{transform:scale(.97)}
+.yakit-workbench .feedback-status input:focus-visible+.button{outline:2px solid var(--focus);outline-offset:2px}
+.yakit-workbench .feedback-section textarea{margin-bottom:14px}
+.yakit-workbench .feedback-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
+.yakit-workbench .feedback-state{margin-top:10px;font-size:12px;color:var(--muted);text-align:right}
+.yakit-workbench .sample-score{margin:0 16px 16px;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+.yakit-workbench .sample-score strong{color:var(--accent)}
+.yakit-workbench .sample-score p{white-space:pre-wrap;margin-top:6px}
+.yakit-workbench .sample-score ul{padding-left:20px;margin:6px 0 0}
+.yakit-workbench .judgement-overview h3,.yakit-workbench .sample-score h3{font-size:12px;font-weight:600;margin-top:14px}
+.yakit-workbench .trial-task-details h3{font-size:12px;font-weight:600}
+.yakit-workbench .judgement-overview ul{padding-left:20px;margin:0;font-size:12px;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere}
+.yakit-workbench .judge-ranking{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:10px 0 0}
+.yakit-workbench .judge-ranking li{min-width:0;max-width:100%}
+.yakit-workbench .judge-ranking .button{white-space:normal;text-align:left;overflow-wrap:anywhere}
+.yakit-workbench #yakit-wb-trial-page .judge-ranking [aria-current="true"],
+.yakit-workbench #yakit-wb-trial-page #yakit-wb-prefer-trial[aria-pressed="true"]{color:var(--text);background:var(--selected);border-color:rgba(0,0,0,.18)}
+.yakit-workbench .score-evidence>li+li{margin-top:12px}
+.yakit-workbench .score-evidence .evidence-requirement{color:var(--muted)}
+.yakit-workbench .score-evidence blockquote{white-space:pre-wrap;margin:8px 0;padding:8px 12px;border-left:2px solid var(--accent);background:var(--surface);color:var(--text)}
+
+/* 小屏上下各占一块可用空间，创建按钮留在上半区底部。 */
+@media(max-width:959px){
+  .yakit-workbench .trial-panel{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) minmax(0,1fr)}
+  .yakit-workbench .trial-controls{border-right:0;border-bottom:1px solid rgba(0,0,0,.06)}
+  .yakit-workbench .trial-parameters{padding:4px 4px 16px}
+  .yakit-workbench .trial-actions{grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:10px 4px}
+  .yakit-workbench .trial-actions>.page-hint{grid-column:1}
+  .yakit-workbench #yakit-wb-trial-page #yakit-wb-trial-button{grid-column:2;grid-row:1 / 3;align-self:center;width:auto;margin:0}
+  .yakit-workbench .test-task-bar{padding:12px 4px}
+  .yakit-workbench .trial-preview-content{padding:14px 0 0}
+}
+@media(max-width:480px){
+  .yakit-workbench .environment{gap:6px;margin-bottom:14px}
+  .yakit-workbench .output-heading,.yakit-workbench .feedback-section,.yakit-workbench .trial-output{padding:12px}
+  .yakit-workbench .trial-context{padding-inline:12px}
+  .yakit-workbench .sample-score{margin-inline:12px}
+  .yakit-workbench .trial-actions{gap:4px 8px}
+  .yakit-workbench #yakit-wb-trial-page #yakit-wb-trial-button{padding-inline:10px}
+}
+/* 矮屏把任务标签与下拉框放在一行，给预览留出滚动空间。 */
+@media(max-width:959px) and (max-height:600px){
+  .yakit-workbench .test-task-bar{padding-block:8px}
+  .yakit-workbench .test-task-bar>.field{display:flex;align-items:center;gap:8px}
+  .yakit-workbench #yakit-wb-trial-page .test-task-bar .field>label{flex-shrink:0;margin:0}
+  .yakit-workbench #yakit-wb-trial-page .test-task-bar select{flex:1;width:0}
+  .yakit-workbench .trial-actions{padding-block:6px}
+}

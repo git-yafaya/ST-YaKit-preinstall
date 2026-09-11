@@ -1,4 +1,3 @@
-.yakit-workbench .status-dot{width:5px;height:5px;display:inline-block;border-radius:50%;background:var(--accent)}
 .yakit-workbench .workbench{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr));gap:14px;align-items:stretch;height:100%;min-height:0}
 .yakit-workbench .panel{background:var(--paper);border:1px solid var(--line);border-radius:12px;min-width:0;overflow:hidden}
 /* 需求与讨论分别滚动，始终沿用工作台的可用高度。 */
@@ -45,41 +44,6 @@
 .yakit-workbench .version-name input{font-size:13px}
 .yakit-workbench .save-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .yakit-workbench .save-row input{flex:1 1 140px;width:0;font-size:13px}
-.yakit-workbench .trial-controls{padding:14px 16px}
-.yakit-workbench .environment{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:12px;margin-bottom:14px}
-.yakit-workbench .environment>span:last-child{margin-left:auto;color:var(--muted)}
-.yakit-workbench .trial-controls>label{display:block;margin-bottom:8px}
-.yakit-workbench .trial-controls textarea{font-size:14px;background:var(--field)}
-.yakit-workbench .trial-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}
-.yakit-workbench .trial-actions>span{font-size:11px;color:var(--muted);max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.yakit-workbench .output-heading{padding:14px 16px 0;display:flex;justify-content:space-between;align-items:center;gap:10px}
-.yakit-workbench .output-heading h3{font-size:11px;font-weight:500;color:var(--muted);white-space:nowrap}
-.yakit-workbench .output-heading select{max-width:65%}
-.yakit-workbench .trial-empty{margin:0 16px;min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
-.yakit-workbench .trial-empty>span{font-family:Georgia,serif;font-size:43px;color:var(--muted);margin-bottom:21px;position:relative}
-.yakit-workbench .trial-empty>span>span{font-size:20px;position:absolute;top:0;right:-12px;color:var(--muted)}
-.yakit-workbench .trial-empty h3{font-size:12px;font-weight:500;color:var(--muted)}
-.yakit-workbench .trial-output{font-size:14px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;padding:16px;color:var(--text)}
-.yakit-workbench .trial-output::selection{background:var(--selected)}
-.yakit-workbench .feedback-section{border-top:1px solid var(--line);padding:14px 16px;background:var(--paper)}
-.yakit-workbench .feedback-status{display:flex;flex-wrap:wrap;gap:8px;min-width:0;border:0;padding:0;margin:12px 0 14px}
-.yakit-workbench .feedback-status label{flex:1;cursor:pointer;position:relative}
-.yakit-workbench .feedback-status input{position:absolute;opacity:0;width:1px;height:1px}
-.yakit-workbench .feedback-status .button{width:100%}
-.yakit-workbench .feedback-status input:active+.button{transform:scale(.97)}
-.yakit-workbench .feedback-status input:checked+.button{color:var(--accent);background:var(--selected)}
-.yakit-workbench .feedback-status input:focus-visible+span{outline:2px solid var(--focus);outline-offset:2px}
-.yakit-workbench .quote-heading{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:8px}
-.yakit-workbench .quote-heading label{font-size:11px;color:var(--muted)}
-.yakit-workbench .quote-heading label span{font-size:11px;color:var(--muted);font-weight:400;margin-left:4px}
-.yakit-workbench .feedback-section textarea{margin-bottom:14px}
-.yakit-workbench .feedback-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
-.yakit-workbench .feedback-state{margin-top:10px;font-size:11px;color:var(--muted);text-align:right}
-
-.yakit-workbench .trial-reading{display:grid;grid-template-columns:minmax(0,1fr);border-top:1px solid var(--line);align-items:start}
-.yakit-workbench .trial-reading:has(.feedback-section[hidden]){grid-template-columns:1fr}
-.yakit-workbench .trial-result{min-width:0}
-.yakit-workbench .trial-context{font-size:12px;line-height:1.6;color:var(--muted);padding:14px 16px 0}
 .yakit-workbench .version-toolbar{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:stretch}
 .yakit-workbench .version-actions{display:flex;gap:12px;flex-wrap:wrap}
 .yakit-workbench .version-count{margin-left:6px;color:var(--muted);font-size:12px;font-weight:400}
@@ -104,24 +68,17 @@
   .yakit-workbench .design-content{display:grid;grid-template-rows:1fr auto}
   .yakit-workbench .design-content>.field{display:flex;flex-direction:column}
   .yakit-workbench .design-content>.field>textarea{flex:1;resize:none}
-  .yakit-workbench .trial-reading{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
-  .yakit-workbench .trial-reading .feedback-section{border-top:0;border-left:1px solid var(--line)}
   /* 名称与版本选择同列，保存和删除按钮放在导出按钮下方。 */
   .yakit-workbench .version-toolbar{grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:20px}
   .yakit-workbench .version-actions,.yakit-workbench .version-edit-actions{justify-content:flex-end}
 }
 @media(max-width:480px){
-  .yakit-workbench .panel-content,.yakit-workbench .trial-controls,.yakit-workbench .feedback-section{padding:12px}
-  .yakit-workbench .output-heading{padding:12px 12px 0}
-  .yakit-workbench .trial-context{padding:12px 12px 0}
-  .yakit-workbench .trial-output{padding:12px}
+  .yakit-workbench .panel-content{padding:12px}
   .yakit-workbench .save-row .button{flex:1 0 auto}
-  .yakit-workbench .trial-actions{align-items:flex-start;flex-direction:column;gap:12px}
-  .yakit-workbench .trial-actions>span{max-width:100%;white-space:normal}
 }
 .yakit-workbench .test-options{display:flex;flex-wrap:wrap;align-items:end;gap:12px;margin-bottom:12px}
 .yakit-workbench .test-options>.field{flex:1 1 150px;min-width:0}
-.yakit-workbench .test-options select,.yakit-workbench .test-task-bar select{width:100%}
+.yakit-workbench .test-options select{width:100%}
 /* 选择项整块可点击，沿用主页卡片圆角，以颜色过渡反馈操作。 */
 .yakit-workbench .test-toggle{display:flex;align-items:center;gap:12px;width:100%;min-width:0;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--field);font-weight:500;line-height:1.6;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:color .15s ease,background .15s ease,border-color .15s ease}
 .yakit-workbench .test-toggle>span{flex:1;min-width:0;overflow-wrap:anywhere}
@@ -137,25 +94,3 @@
 .yakit-workbench .test-toggle input::before{content:none}
 .yakit-workbench .test-toggle input:focus-visible{outline:none}
 .yakit-workbench .test-toggle input:disabled{cursor:not-allowed}
-.yakit-workbench .trial-controls>.page-hint{margin:0 0 14px}
-.yakit-workbench .test-task-bar{padding:14px 16px;border-top:1px solid var(--line)}
-.yakit-workbench .test-task-bar>.page-hint{margin-top:10px}
-.yakit-workbench .test-task-bar>.test-options{margin:14px 0 0}
-.yakit-workbench .test-task-bar .test-options>.test-toggle{flex:1 1 180px}
-.yakit-workbench .test-snapshot-text{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.6;padding:8px 0 12px}
-.yakit-workbench .sample-score{padding:12px;margin:14px 16px 0;border-radius:8px;background:var(--field);font-size:12px;line-height:1.6;overflow-wrap:anywhere}
-.yakit-workbench .sample-score strong{color:var(--accent)}
-.yakit-workbench .sample-score p{white-space:pre-wrap;margin-top:6px}
-.yakit-workbench .sample-score ul{padding-left:20px;margin:6px 0 0}
-.yakit-workbench .judgement-overview h3,.yakit-workbench .sample-score h3{font-size:12px;font-weight:600;margin-top:14px}
-.yakit-workbench .judgement-overview>.page-hint{margin-top:6px}
-.yakit-workbench .judgement-overview ul{padding-left:20px;margin:0;font-size:12px;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere}
-.yakit-workbench .judge-ranking{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:10px 0 0}
-.yakit-workbench .judge-ranking li{min-width:0;max-width:100%}
-.yakit-workbench .judge-ranking .button{white-space:normal;text-align:left;overflow-wrap:anywhere}
-.yakit-workbench .judge-ranking [aria-current="true"]{color:var(--accent);background:var(--selected)}
-.yakit-workbench .score-evidence>li+li{margin-top:12px}
-.yakit-workbench .score-evidence .evidence-requirement{color:var(--muted)}
-.yakit-workbench .score-evidence blockquote{white-space:pre-wrap;margin:8px 0;padding:8px 12px;border-left:2px solid var(--accent);background:var(--paper);color:var(--text)}
-.yakit-workbench #yakit-wb-prefer-trial[aria-pressed="true"]{color:var(--accent);background:var(--selected)}
-@media(max-width:480px){.yakit-workbench .test-task-bar{padding:12px}.yakit-workbench .sample-score{margin-inline:12px}.yakit-workbench .feedback-section>.section-row{flex-wrap:wrap}}
