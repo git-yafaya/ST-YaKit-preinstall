@@ -46,7 +46,11 @@
       button.setAttribute('role', 'tab');
       button.setAttribute('aria-controls', `yakit-wb-${button.dataset.page}-page`);
       button.style.gridColumn = index + 1;
-      button.addEventListener('click', () => openPage(button.dataset.page, 'tab'));
+      button.addEventListener('click', () => {
+        // 再点当前预设导航时，让预设列表回到顶部。
+        if (button.dataset.page === 'presets' && button.classList.contains('active')) $('presets-page').parentElement.scrollTop = 0;
+        openPage(button.dataset.page, 'tab');
+      });
       button.addEventListener('keydown', event => {
         let next;
         if (event.key === 'ArrowRight') next = (index + 1) % buttons.length;
