@@ -14,6 +14,7 @@ async function createWorkbench(host) {
     restoreSettings(state, loaded);
     scenarios.restore(state, loaded);
     testTasks.restore(state, loaded);
+    globalThis.YaKitWorkbench.workshop?.restore(state, loaded);
     state.error = loadError;
     const listeners = new Set();
     let active = null;
@@ -55,13 +56,13 @@ async function createWorkbench(host) {
         return version;
     };
     const run = async (kind, action) => {
-        if (active) return fail(new Error(state.busy === 'preset-save'
-            ? '请等待预设写回完成。' : '请等待当前操作完成，或先取消。'));
+        if (active) return fail(new Error(['preset-save', 'workshop-save'].includes(state.busy)
+            ? '请等待当前写入完成。' : '请等待当前操作完成，或先取消。'));
         const operation = { controller: new AbortController(), revision, kind };
         active = operation;
         state.busy = kind;
-        // 读取临时预设不会修复工作记录，继续保留原来的加载失败提示。
-        if (kind !== 'preset-read' || state.error !== loadError) state.error = '';
+        // 读取或搜索临时预设不会修复工作记录，继续保留原来的加载失败提示。
+        if (!['preset-read', 'preset-search'].includes(kind) || state.error !== loadError) state.error = '';
         state.notice = ''; emit();
         let error, result;
         try { result = await action(operation); } catch (caught) {
@@ -71,7 +72,7 @@ async function createWorkbench(host) {
         active = null; state.busy = null;
         if (error) state.error = error.message || String(error);
         emit();
-        if (kind !== 'preset-read') await persist();
+        if (!['preset-read', 'preset-search'].includes(kind)) await persist();
         if (error) throw error;
         return result;
     };
@@ -182,6 +183,7 @@ async function createWorkbench(host) {
                     revision++;
                     if (['draft', 'goal', 'scenarioText', 'sceneSource'].some(key => key in next && next[key] !== state[key])) state.scenarioPrompt = '';
                 }
+                if ('goal' in next && next.goal !== state.goal) state.presetSearch = null;
                 Object.assign(state, next); syncLegacyFields(state, next); state.notice = '';
             });
         },
@@ -251,12 +253,13 @@ async function createWorkbench(host) {
             return design(instruction, version.content);
         },
         async cancel() {
-            // 预设写入已经交给酒馆，不能把取消显示成写入已撤销。
-            if (!active || state.busy === 'preset-save') return;
+            // 预设或社区写入已经提交，不能把取消显示成远端写入已撤销。
+            if (!active || ['preset-save', 'workshop-save'].includes(state.busy)) return;
             const operation = active; active = null; operation.controller.abort();
             if (operation.task) { operation.task.status = 'cancelled'; operation.task.error = '已取消，已有样本已保留。'; }
-            state.busy = null; state.notice = '已取消，已有草稿和记录已保留。'; emit();
-            if (operation.kind !== 'preset-read') await persist();
+            state.busy = null;
+            state.notice = operation.kind === 'preset-search' ? '已取消条目查找。' : '已取消，已有草稿和记录已保留。'; emit();
+            if (!['preset-read', 'preset-search'].includes(operation.kind)) await persist();
         },
         exportData() {
             // 密钥只用于连接和本地设置，不放进导出的工作记录。
@@ -266,6 +269,16 @@ async function createWorkbench(host) {
         },
     };
     Object.assign(controller, createSettingsActions({ state, host, change }));
+    if (globalThis.YaKitWorkbench.presetSearch) {
+        Object.assign(controller, globalThis.YaKitWorkbench.presetSearch.createActions({
+            state, host, run, isActive: operation => active === operation,
+        }));
+    }
+    if (globalThis.YaKitWorkbench.workshop) {
+        Object.assign(controller, globalThis.YaKitWorkbench.workshop.createActions({
+            state, run, change, find, addVersion, isActive: operation => active === operation,
+        }));
+    }
     Object.assign(controller, testTasks.createActions({ state, host, run, change, persist, emit, fail, find,
         isActive: operation => active === operation, getRevision: () => revision }));
     if (globalThis.YaKitWorkbench.createReviewActions) {

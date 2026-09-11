@@ -72,7 +72,9 @@ function initialState(saved) {
         messages: [], versions: [], nextVersionNumber: 1, selectedVersionId: '', trials: [], selectedTrialId: '',
         profiles: [], canGenerate: false, mainApiLabel: '', contextLabel: '', canTrial: false,
         presets: [], selectedPresetName: '', presetEntries: [], presetSource: null, presetOrderCharacterId: null,
-        presetPromptOverrides: [],
+        presetPromptOverrides: [], presetSearch: null,
+        workshopUrl: '', workshopApprovals: [], workshopImports: [],
+        workshopEntries: [], workshopMine: [], workshopUser: null,
         busy: null, error: '', notice: '',
     };
     if (!saved || typeof saved !== 'object') return state;
@@ -132,7 +134,8 @@ function initialState(saved) {
 function savedState(state) {
     // 预设目标只在当前页面有效，重新加载页面后须重新读取并选择条目。
     const { profiles, mainApiLabel, contextLabel, canTrial, canGenerate, presets, selectedPresetName,
-        presetEntries, presetSource, presetOrderCharacterId, busy, error, notice, designApi, ...data } = state;
+        presetEntries, presetSource, presetOrderCharacterId, presetSearch, busy, error, notice, designApi,
+        workshopEntries, workshopMine, workshopUser, ...data } = state;
     return clone(data);
 }
 

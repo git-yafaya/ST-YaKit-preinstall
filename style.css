@@ -1,8 +1,10 @@
 @import url('./styles/theme.css');
 @import url('./styles/controls.css');
 @import url('./styles/pages.css');
+@import url('./styles/preset-search.css');
 @import url('./styles/navigation.css');
 @import url('./styles/settings.css');
 @import url('./styles/toast.css');
 @import url('./styles/launcher.css');
+@import url('./styles/workshop.css');
 @import url('./styles/trial.css');

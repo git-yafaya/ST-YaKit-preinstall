@@ -1,6 +1,6 @@
 # ST-YaKit-preinstall 开发说明
 
-这是 YaKit 系列的 SillyTavern 提示词工作台，使用原生 JavaScript、HTML 和 CSS，无依赖安装和构建步骤。
+这是 YaKit 系列的 SillyTavern 提示词工作台，插件端使用原生 JavaScript、HTML 和 CSS，无依赖安装和构建步骤；创意工坊社区服务通过 Cloudflare Workers 和 GitHub 提供，使用 Wrangler 单独部署。
 
 ## 仓库结构
 
@@ -19,21 +19,26 @@ ST-YaKit-preinstall/
 │   ├── launcher.css                # 菜单图标、弹窗尺寸与进退场
 │   ├── navigation.css              # 顶栏、导航指示器与切页轨道
 │   ├── pages.css                   # 工作台、预设、版本与共享选择卡片
+│   ├── preset-search.css           # 工作台左侧查找操作、载入提示与结果索引
 │   ├── settings.css                # 设置分组、二级滑轨与编辑页常驻底栏
 │   ├── theme.css                   # 四套主题与工作台变量映射
 │   ├── toast.css                   # 纪实同款底部轻提示与状态颜色
-│   └── trial.css                   # 试写双栏、样本对比、局部滚动与主题控件
+│   ├── trial.css                   # 试写双栏、样本对比、局部滚动与主题控件
+│   └── workshop.css                # 工坊浏览、发布表单与响应式布局
 ├── core/
 │   ├── judgement.js                # 裁判指令、结构化证据校验与历史评分恢复
 │   ├── prompt-defaults.js          # 七类默认引导、已保存文本读取与旧默认场景文案
 │   ├── presets.js                  # 预设读取与复制、版本应用、原版恢复与开关动作
+│   ├── preset-search.js            # 按想法分批查找条目、校验证据与汇总结果
 │   ├── prompts.js                  # 可编辑生成引导与固定协议、答复解析和反馈指令
 │   ├── review.js                   # 初审整合、二审终审确认与同场景重构
 │   ├── scenarios.js                # 模块连接、参测选择校验与需求共用场景生成
 │   ├── settings.js                 # 可选副 API 配置、旧数据迁移与各环节提示词存取
 │   ├── state.js                    # 设置校验、API 路由派生、记录恢复与保存快照
 │   ├── test-tasks.js               # 多候选快照、同场景采样、匿名评分与阶段恢复
-│   └── workbench.js                # 并发设计、版本与自动命名、测试任务接入及异步状态控制
+│   ├── workbench.js                # 并发设计、版本与模块动作接入及异步状态控制
+│   ├── workshop-package.js         # 插件与社区服务共用的作品字段校验
+│   └── workshop.js                 # 终审归档、社区请求、发布与下载版本管理
 ├── host/
 │   ├── api-profiles.js             # 连接来源解析、字段回填与模型列表
 │   ├── api.js                      # 同批设计并发、采样调度与主通道占用
@@ -42,7 +47,8 @@ ST-YaKit-preinstall/
 │   ├── presets.js                  # 酒馆预设读取、试作副本保存、正文及开关写回
 │   ├── requests.js                 # 独立主副 API 请求及真实 n 多候选解析
 │   ├── st-host.js                  # 酒馆设置、环境及模型和预设适配器入口
-│   └── trial-context.js            # 独立消息或聊天模式的请求条件快照
+│   ├── trial-context.js            # 独立消息或聊天模式的请求条件快照
+│   └── workshop-client.js          # 工坊请求、GitHub 授权弹窗与内存会话
 ├── preview/
 │   ├── examples.js                 # 原有演示需求、提示词与两版正文
 │   └── preview.js                  # 通过本地适配器挂载同一套界面
@@ -51,15 +57,16 @@ ST-YaKit-preinstall/
 │   ├── judgement-view.js           # 需求清单、并列排名和逐篇审查证据展示
 │   ├── launcher.js                 # 扩展菜单、唯一弹窗与首次按需加载
 │   ├── navigation-view.js          # 六页常驻导航、程序切页、键盘焦点与预设回顶
-│   ├── preset-entries-view.js      # 条目编辑、开关、逐条保存与输入保留
+│   ├── preset-entries-view.js      # 条目编辑、开关、逐条保存、输入保留与引文定位
 │   ├── preset-prompt-view.js       # 原版及测试版本选择、只读预览与应用
+│   ├── preset-search-view.js       # 左侧搜索、载入来源、结果索引与跳转接线
 │   ├── preset-template.js          # 预设预览与备份按钮
-│   ├── preset-view.js              # 预设选择、复制与重读
+│   ├── preset-view.js              # 预设选择、复制、重读与指定条目跳转
 │   ├── select-view.js              # 触屏下拉再次点击收起与事件清理
 │   ├── settings-api-view.js        # API 编辑草稿、连接回填与模型选择
 │   ├── settings-prompt-view.js     # 提示词草稿、重置及修改标记
-│   ├── settings-template.js        # 设置二级页、共用场景卡片与共用操作按钮
-│   ├── settings-view.js            # 导航设备适配、设置子页与操作按钮布局
+│   ├── settings-template.js        # 设置二级页、五项模块 API 与共用操作按钮
+│   ├── settings-view.js            # 导航设备适配、设置子页、模块 API 选择与操作按钮
 │   ├── shell-template.js           # 正式窗口和预览共用顶栏与挂载容器
 │   ├── theme-view.js               # 同步当前容器的主题选择
 │   ├── toast.js                    # 轻提示创建、自动消失及卸载清理
@@ -70,10 +77,20 @@ ST-YaKit-preinstall/
 │   ├── trial-view.js               # 场景、任务、对比、评分、偏好及反馈控件
 │   ├── versions-template.js        # 提示词名称、版本选择、改名删除与原文页面
 │   ├── versions-view.js            # 名称同步、记录选择与改名删除确认
-│   ├── workbench-template.js       # 六页轨道、创意工坊空态与含生成数量的工作台模板
+│   ├── workbench-template.js       # 六页轨道与含生成数量、条目查找的工作台模板
 │   ├── workbench-messages-view.js  # 讨论展示、逐条展开复制和保存操作
 │   ├── workbench-view.js           # 主视图渲染、数量输入、模块挂载、通知与导出
-│   └── workbench.svg               # 扩展菜单的工作台图标
+│   ├── workbench.svg               # 扩展菜单的工作台图标
+│   ├── workshop-template.js        # 工坊地址、社区列表与发布编辑模板
+│   ├── workshop-publish-view.js    # 终审条目预览、发布与作者管理操作
+│   └── workshop-view.js            # 社区搜索筛选、详情、登录与下载接线
+├── workshop-worker/
+│   ├── wrangler.toml               # 社区服务部署配置模板，不含密钥
+│   └── src/
+│       ├── index.mjs              # HTTP 路由、作品发布与作者权限
+│       ├── auth.mjs               # GitHub OAuth、登录状态与签名会话
+│       ├── catalog.mjs            # GitHub 目录读取与 SHA 条件写入
+│       └── http.mjs               # 跨域、JSON 请求及响应边界
 ├── tests/                     # 本地忽略目录，不随仓库分发
 │   ├── api-profiles.mjs            # 连接回填、模型列表及离线接口检查
 │   ├── comparison-core.test.mjs    # 多候选归因、共用场景、复审选项与整组删除
@@ -90,6 +107,8 @@ ST-YaKit-preinstall/
 │   ├── launcher.test.mjs           # 单次挂载、失败重试与弹窗事件检查
 │   ├── native-styles.test.mjs      # 局部样式、关闭隐藏与主题范围检查
 │   ├── navigation.test.mjs         # 切页、键盘焦点、输入保留与预设回顶检查
+│   ├── preset-search-core.test.mjs # 查询协议、引文归属、取消与配置迁移检查
+│   ├── preset-search-ui.test.mjs   # 搜索、索引定位、设置与载入显示检查
 │   ├── preset-copy.test.mjs        # 试作编号、完整复制、失败与忙碌状态检查
 │   ├── preset-display.test.mjs     # 备份按钮、逐条编辑、保存和切换后的输入保留检查
 │   ├── preset-preview-ui.mjs       # 版本切换、删除快照、开关与预览事件检查
@@ -114,7 +133,10 @@ ST-YaKit-preinstall/
 │   ├── trial-ui.test.mjs           # 候选选择、样本归属、评分与反馈接线
 │   ├── versions-core.test.mjs      # 命名、编号、改名删除和恢复检查
 │   ├── versions-ui.test.mjs        # 版本选择、命名和删除确认检查
-│   └── workbench-messages.test.mjs  # 逐条结果复制、保存、写回目标与展开状态检查
+│   ├── workbench-messages.test.mjs  # 逐条结果复制、保存、写回目标与展开状态检查
+│   ├── workshop-core.test.mjs      # 终审快照、发布资格、恢复及下载幂等
+│   ├── workshop-ui.test.mjs        # 工坊控件、纯文本与发布事件接线
+│   └── workshop-worker.test.mjs    # 授权、作品权限、发布与 GitHub 冲突检查
 └── AGENTS.md                   # 本机共享规则软链接，不入库
 ```
 
@@ -126,7 +148,7 @@ ST-YaKit-preinstall/
 2. 首次打开弹窗时按需导入 `app.js`，它通过 ES 模块导入现有状态、提示词、设置、预设、宿主及视图组件；同一模块在酒馆窗口中只执行一次。入口创建 `createSillyTavernHost(getContext)`，再调用 `mountApp(container, host)`，恢复记录并向容器内的 `#yakit-wb-app` 挂载六页工作台。工作组件尚在加载时重复打开共用一次请求，失败只在内容区显示错误，关闭按钮继续可用，重开后可重试。
 3. 关闭弹窗保留工作台实例、输入和滚动位置，重新打开与窗口获得焦点时更新聊天、连接及可试写状态。设置二级页的未确认草稿继续按原规则丢弃。独立演示入口 `preview.html` 直接加载 `preview/preview.js`，用相同的 `shell-template.js`、`app.js` 和本地适配器创建界面；演示只返回内置内容。卸载函数解除环境刷新监听并释放视图订阅及提示计时器。
 4. 需求输入立即更新内存并排队保存，保留首尾空格和换行；当前草稿由生成、版本选择或讨论结果保存更新。「生成数量」通过 `designCount` 保存，默认 1，接受正安全整数。设计固定开始时的数量、设置、消息和载入条目名称，按数量同时发起独立 `host.design` 请求，各次使用同一取消信号及内容相同的消息和设置副本，通过 `Promise.allSettled` 等待完成。第一个系统消息为最新保存的破限提示词与补充提示词，第二个先读取已保存的 `assistPrompts.design`，再追加固定的 JSON 返回契约和操作约束；其后仅为本次需求背景、当前参考条目及本次要求。每次请求默认生成独立条目，只有本次明确要求修改当前条目时才修订。历史讨论保留展示，不再逐轮发送；普通设计不附带聊天或试写正文，反馈修订只传关联版本及本次反馈，且始终只发起一次请求。
-5. 四个模块分别通过 `moduleApis` 解析工作台配置快照，默认均为 `default`，沿用所选副 API；没有选择或连接字段全部为空时使用酒馆当前 API。`designApi` 仅为请求内部标志，由连接字段派生，不再作为可编辑或持久化开关。设计、场景、盲评和空卡样本使用独立消息通道：聊天补全使用 `ChatCompletionService.processRequest`，文本补全使用 `TextCompletionService.processRequest`。保存连接先通过 `resolveApiProfile` 解析来源和连接参数，再调用对应服务；仅提取预设中的连接字段，不载入预设正文或指令模板。不走宿主聊天组装、宏替换或 `generateRaw` 的扩展提示事件。请求关闭流式；副 API 上限 4096 token，酒馆聊天补全采用当前答复长度；适用的 OpenAI 模型使用 `max_completion_tokens`。
+5. 五个模块分别通过 `moduleApis` 解析工作台配置快照，默认均为 `default`，沿用所选副 API；没有选择或连接字段全部为空时使用酒馆当前 API。`designApi` 仅为请求内部标志，由连接字段派生，不再作为可编辑或持久化开关。设计、场景、盲评和空卡样本使用独立消息通道：聊天补全使用 `ChatCompletionService.processRequest`，文本补全使用 `TextCompletionService.processRequest`。保存连接先通过 `resolveApiProfile` 解析来源和连接参数，再调用对应服务；仅提取预设中的连接字段，不载入预设正文或指令模板。不走宿主聊天组装、宏替换或 `generateRaw` 的扩展提示事件。请求关闭流式；副 API 上限 4096 token，酒馆聊天补全采用当前答复长度；适用的 OpenAI 模型使用 `max_completion_tokens`。
 6. 每份设计答复为 `{action, prompt, explanation}` JSON，也接受完整 JSON 代码围栏。`action` 为 `create` 或 `revise`，缺省兼容为 `create`，非法值拒绝采用；`prompt` 必须为单条完整的非空提示词。原始答复按返回顺序立即保存到讨论，格式错误的原文也保留，界面展示说明和「查看提示词」，旁边并排提供「复制提示词」「保存到原条目」「保存为版本」。展开按钮以 `aria-expanded` 和 `aria-controls` 关联正文；普通状态刷新保留展开状态。多份生成的有效答复逐份保存为独立版本；全部结束后按请求顺序采用第一份有效结果并选中对应版本。单份结果继续作为待保存草稿。采用前，如果现有非空草稿与结果不同，且没有逐字相同的已保存版本，就按自动命名规则新增版本。两类自动保存均使用「预设条目名称-number-YYYYMMDD」：条目名称取设计开始时的 `presetSource.name`，去除首尾空白，未载入条目或名称空白时使用「提示词」；编号取该版本的全局递增 `number`，日期由同一版本的 `createdAt` 按设备本地时区转换。已有版本恢复时保留原名称。新建解除原选中版本和预设来源，普通修订保留当前来源；反馈修订解除预设来源。取消、全部无效或期间修改草稿、需求、版本时不替换草稿和选择，也不自动留存旧草稿；已收到的多份有效版本继续保留，取消后的迟到答复忽略。手动与自动保存共用独立 ID、名称、递增编号和时间；已保存正文保持不变，名称可单独修改。手动保存的空名称使用「未命名提示词」。
 7. 测试必须填写原始需求。`trial(input, options)` 优先使用非空 `options.versionIds`，否则读取 `state.testVersionIds`；这些候选从已保存版本读取，不受当前草稿修改影响。选择为空时兼容 `selectedVersionId` 单版本路径，并保留草稿须等于已保存原文的校验。任务先保存全部候选、原始需求与设置，再固定手填场景或生成一个共用场景；每候选生成 1—6 份正文，默认一份。空卡消息为 `[{role:"system",content:破限提示词 + "\n\n" + 候选原文},{role:"user",content:场景}]`，不装配完整预设、需求、讨论、角色、世界书、作者注释或其他样本。关闭空卡时使用主 API 的 `generateQuietPrompt`，聊天背景仍由酒馆组装；正文只保存到工作台，不追加聊天消息。
 8. 样本保存 `versionId/taskId/sampleIndex`、场景和 `context`。每候选占固定全局编号区间，返回先后不改变归属；`context.capturedAt` 是请求开始时间，`createdAt` 是入库时间。`parallel` 为每候选每样本独立请求，`single` 为每候选一次真实 n 请求，读取接口 `choices`，不拆分一篇正文。空卡全部并发，聊天全部串行；失败保留成功结果，取消停止后续调用并忽略迟到返回。全部完成后，将所有候选正文统一匿名盲评；初次评分选最高分，同分按任务编号，不自动写人工偏好。单篇反馈仍按原版本与本次意见、引用或全文修订。
@@ -136,6 +158,26 @@ ST-YaKit-preinstall/
 12. 每条的来源选单只更新本地预览；「应用提示词」调用 `applyPresetPrompt(identifier, versionId, expectedContent)`，空版本 ID 表示原版，其他 ID 必须属于已保存版本。首次应用测试版时记录原文；后续替换保留同一原文，应用原版或手动保存正文成功后清除该条替换记录。不同预设和条目分别记录，保存失败保留此前记录；已应用测试版被删除后仍可查看快照和恢复原版。原版编辑器与测试预览分开保留，应用期间不覆盖原版输入。
 13. 条目开关位于折叠控件外，调用 `setPresetEntryEnabled(identifier, enabled)` 即保存，不触发展开。核心传回读取时的启用状态和 `presetOrderCharacterId` 校验冲突；宿主只修改目标 `order.enabled`，目标未加入顺序时按酒馆 `appendPrompt` 规则插入开头。保存当前预设时同步活动设置和列表，保存其他预设保持当前选择。
 14. 「备份预设」调用 `copyPreset()`，宿主深拷贝所选预设的完整已保存内容，以「原名-试作编号」保存。原名去掉末尾的 `-试作数字`，取同原名现有最大试作编号加一，没有时从 1 开始。保存成功后酒馆原生列表选中副本，核心同步预设列表、名称、条目及生效顺序，并解除草稿来源绑定；草稿正文与原预设的本地编辑继续保留。
+
+### 按想法查找预设条目
+
+工作台左侧的「搜索预设条目」调用 `searchPresetEntries(instruction = '')`，使用 `state.goal` 与本次补充输入；两者都为空时拒绝请求，生成数量不参与查找。来源是当前已读取的 `presetEntries`，关闭项保留；标记条目及空白正文跳过，缺失或重复标识报错。查找使用 `moduleApis.presetSearch`，通过现有 `host.design` 发送 `purpose: 'preset-search'`；系统消息固定查找协议，用户消息为 `{goal,instruction,entries}`。条目正文仅作为分析材料，查找协议独立于设计和试写引导。
+
+正文按字符粗估请求大小：每片最多 16000 字符，重叠 400 字符，按约 24000 字符的材料预算顺序发送；正文全部覆盖，不静默截断。该预算不等于模型 token 窗口，接口拒绝时显示错误。模型每批返回最多五条结果；汇总先按高/中置信排序，再按原标识去重保留五条，同等级保持返回顺序。
+
+结果必须包含有效的 `identifier/confidence/relation/quote/reason`，引用须为对应片段中的非空连续原文；未知标识、重复标识、非法枚举、伪造引用和仅含未展开占位符的高置信证据均报错。名称和开关取读取数据，不使用模型改写值。关联等级衡量原文依据，支持和冲突均可高关联；没有充分依据时允许空结果。
+
+`presetSearch` 只在当前实例内保留，搜索成功、失败及取消都不写工作记录，也不修改草稿、版本、讨论或载入来源。重新搜索先清旧结果，失败和取消不展示半成品；等待期间需求或预设变化会丢弃旧结果。修改需求、重新读取、复制预设或成功写回正文/开关后清空结果；载入草稿保留结果。搜索期间补充输入禁用，结束后改变补充输入会隐藏旧结果。
+
+左侧显示 `presetSource` 的预设名与条目名，未载入时显示操作提示。点击索引切到预设预览、展开目标条目、显示并聚焦「搜索命中原文」，仅移动预设页的滚动容器；已保存引文单独展示，原版/测试版选择和未保存编辑保留。目标或引文失效时提示重新搜索。
+
+| 查找状态字段 | 含义 |
+| --- | --- |
+| `presetSearch` | 初始为 `null`；完成后为 `{presetName,goal,instruction,results}`，不保存、恢复或导出 |
+| `results[].identifier/name/enabled` | 条目标识、原名称及已读取的开关状态 |
+| `results[].confidence` | `high` 或 `medium`，用于排列关联证据强弱 |
+| `results[].relation` | `supports` 支持、`conflicts` 冲突、`related` 间接影响 |
+| `results[].quote/reason` | 已校验原文与对应想法的关联理由 |
 
 ### 测试任务与数据隔离
 
@@ -162,7 +204,7 @@ ST-YaKit-preinstall/
 | `results[].doubts` | 待用户核实的疑点数组，每项为 `{requirementId,quote,reason}`；无疑点时为空数组 |
 | 每条证据 | `requirementId` 必须存在，`quote` 必须非空且逐字来自对应范本，`reason` 必须非空 |
 
-七类可编辑引导由 `prompt-defaults.js` 提供非空默认值，并通过 `assistPrompts` 保存、恢复和导出。缺失或非字符串值采用对应默认文案；已保存字符串优先，`custom` 的空字符串及纯空白也原样保留，其他项空白则回退默认。重置仅填入当前默认草稿，确认后才保存。生成与修改引导由 `assistPrompts.design` 保存，普通生成、多份生成与反馈修订统一读取；旧存档缺失时补齐默认内容，空白确认后恢复默认，自定义文本原样保存、恢复和导出。破限提示词随所有模型生成请求发送，设计与反馈沿用原有首条系统消息，场景请求以破限原文作为首条系统消息，裁判在系统消息前拼接破限原文，正文通过 `builtinPrompt` 传递。任务开始时在内存固定破限、场景生成、裁判和聊天试写文案；初次评分使用该快照，重评读取最新保存的破限与裁判文案。反馈引导随人工意见一起组装，版本及正文归属仍由代码确定。设计返回字段、操作约束、动态数据标签及评分解析继续由业务代码管理。空卡正文使用破限提示词、候选原文和固定场景；候选业务原文保持独立，聊天试写的 `quietPrompt` 同样以前述破限原文开头。场景引导仅逐字匹配已知旧默认时迁移为当前需求场景文案，其他保存内容原样保留；请求始终只提供原始需求。
+七类可编辑引导由 `prompt-defaults.js` 提供非空默认值，并通过 `assistPrompts` 保存、恢复和导出。缺失或非字符串值采用对应默认文案；已保存字符串优先，`custom` 的空字符串及纯空白也原样保留，其他项空白则回退默认。重置仅填入当前默认草稿，确认后才保存。生成与修改引导由 `assistPrompts.design` 保存，普通生成、多份生成与反馈修订统一读取；旧存档缺失时补齐默认内容，空白确认后恢复默认，自定义文本原样保存、恢复和导出。破限提示词随提示词设计、场景、正文和裁判的请求发送，设计与反馈沿用原有首条系统消息，场景请求以破限原文作为首条系统消息，裁判在系统消息前拼接破限原文，正文通过 `builtinPrompt` 传递。任务开始时在内存固定破限、场景生成、裁判和聊天试写文案；初次评分使用该快照，重评读取最新保存的破限与裁判文案。反馈引导随人工意见一起组装，版本及正文归属仍由代码确定。设计返回字段、操作约束、动态数据标签及评分解析继续由业务代码管理。空卡正文使用破限提示词、候选原文和固定场景；候选业务原文保持独立，聊天试写的 `quietPrompt` 同样以前述破限原文开头。场景引导仅逐字匹配已知旧默认时迁移为当前需求场景文案，其他保存内容原样保留；请求始终只提供原始需求。
 
 试写页在原生折叠区展示需求清单，按分数显示样本排名、实际样本编号和匿名标签，允许并列。排名按钮选择对应正文，不设置人工偏好。逐篇评分将明确违例与疑点分开展示，原句、对应要求和原因全部作为纯文本写入；未发现问题时显示空态，历史评分提示缺少需求清单或独立疑点。参数与结果分栏，评分与反馈位于右侧阅读区，沿用六页共用窗口尺寸和动效。
 
@@ -180,12 +222,21 @@ ST-YaKit-preinstall/
 | --- | --- |
 | `initial` → `reviseTestTask(id, note)` | 发送原需求、同场景、全部候选、正文、评分和意见，以最高分样本对应候选为基准整合有效部分；保存完整新提示词后，在原需求和场景测试，进入同轮 `second` |
 | `second` → `confirmReview(id)` | 对同一批正文重新匿名盲评，不生成新正文；成功后保存旧评分到 `review.previousJudgement`，进入 `final` 等待人工确认 |
-| `final` → `confirmReview(id)` | 用户确认本轮通过，阶段改为 `approved`；不调用模型，不发布到工坊或写回预设 |
+| `final` → `confirmReview(id)` | 用户确认本轮通过，阶段改为 `approved`，独立保存可发布的终审快照；发布由工坊中的后续操作触发 |
 | `second` / `final` → `reviseTestTask(id, note)` | AI 简述为什么没用、哪些地方没用、正确位置是什么并重构完整提示词；保存后复用原需求与场景，进入下一轮 `initial` |
 
 修订使用当前设计 API 和引导，修改意见允许为空。返回 `prompt` 必须非空，`explanation` 保存到新任务 `review.summary`；设计模型可见候选身份以便修改，后续裁判仍只接收原始需求、场景与匿名正文。新版本名包含阶段与轮次，修改前未保存的草稿先留存，旧任务及评分保留；子任务使用当前采样设置，`parentTaskId` 关联上轮。
 
 取消修订后不发起后续测试；测试失败保留已保存新版本和任务。二审确认中的终审失败或取消时，恢复原二审评分、状态与阶段，允许重试。恢复阶段时校验枚举、正整数轮次与文字字段，缺失或损坏则默认初审第 1 轮；上一阶段评分通过同样的证据校验后才恢复。三问分析与修订解释由模型生成，代码只验证答复格式。
+
+### 创意工坊与终审归档
+
+1. `confirmReview()` 在人工确认终审时，先校验任务已完成、预期样本齐全、正文及评分逐一对应，再从候选快照创建独立 `workshopApprovals`。多候选各自保存所属样本的评分与模型，编号重排为 `1..n`；不读取当前草稿。`local-preview` 固定演示样本不归档。
+2. 归档保留通过正文、需求、场景、轮次、摘要、模型名与评分。新记录保存通过时间；恢复已有 `approved` 任务时，缺失的历史时间保留 `null`。归档独立于版本和测试任务，删除原版本不删除归档；不完整历史记录不迁移。
+3. 配置地址后，首次进入工坊或主动刷新读取公开作品；普通重绘不联网。GitHub 登录通过弹窗完成，客户端核对回调来源、弹窗和随机标识。会话只保存在内存，刷新整个酒馆后需重新登录；更换服务地址清除旧会话与列表。
+4. 发布只能选择已归档的终审条目，上传字段由共用解析器逐项复制。作品介绍可以修改，正文新版本必须选择另一个通过快照；同一作者重复提交同一通过正文复用已有发布。下架后可主动重新上架同版，不增加重复发布版本。Worker 校验作者身份、声明完整性及正文对应关系；终审属于作者本地确认，不代表平台复测。
+5. 下载当前发布版本只新增本地版本与来源对应关系，保留当前草稿和预设目标；同一作品与发布版本重复下载复用已有本地版本。本地版本被删除后可再次下载。应用继续使用既有 `applyPresetPrompt()`，目标为已存在的非标记预设条目。
+6. Worker 在 GitHub 专用仓库中用一个 `catalog.json` 保存作品及历史发布；公开查询过滤下架，作者查询保留下架记录。写入带旧文件 SHA，冲突返回 `409`，刷新后重试。仓库读取失败或目录损坏不视为空目录；只有确认分支存在且文件缺失时初始化空库。
 
 ### 边界与持久化
 
@@ -276,7 +327,7 @@ ST-YaKit-preinstall/
 
 独立演示使用 `localStorage['yakit.prompt-workbench.preview.v1']`，保留历史演示数据，与酒馆设置分开。通过本地静态服务打开 `preview.html`；该入口通过 `preview/preview.js` 复用 `app.js` 和 `shell-template.js`，只使用本地适配器。
 
-持久化内容包括设置、需求、草稿、场景输入、讨论、版本、下次版本编号、测试任务、试写、评分、人工偏好、反馈、选中记录及 `presetPromptOverrides` 原文恢复信息。`designApi/profiles/mainApiLabel/contextLabel/canTrial/canGenerate/presets/selectedPresetName/presetEntries/presetSource/presetOrderCharacterId/busy/error/notice` 不持久化。主题、导航样式与副 API 配置选择立即保存；API 编辑通过页面底部「保存」提交，提示词编辑通过页面底部「确认」提交。场景输入即时持久化；未提交的设计要求、提示词名称、反馈和预设条目编辑框属于视图临时内容；预设未保存编辑不进入工作记录，已应用版本的原文快照会保存及导出。
+持久化内容包括设置、需求、草稿、场景输入、讨论、版本、下次版本编号、测试任务、试写、评分、人工偏好、反馈、选中记录、`presetPromptOverrides` 原文恢复信息，以及 `workshopUrl/workshopApprovals/workshopImports`。`designApi/profiles/mainApiLabel/contextLabel/canTrial/canGenerate/presets/selectedPresetName/presetEntries/presetSource/presetOrderCharacterId/presetSearch/busy/error/notice/workshopEntries/workshopMine/workshopUser` 不持久化；工坊会话令牌只在请求客户端内存中保存。主题、导航样式与副 API 配置选择立即保存；API 编辑通过页面底部「保存」提交，提示词编辑通过页面底部「确认」提交。场景输入即时持久化；未提交的设计要求、提示词名称、反馈和预设条目编辑框属于视图临时内容；预设未保存编辑不进入工作记录，已应用版本的原文快照会保存及导出。
 
 导出结构为 `{formatVersion: 1, ...savedState}`，其中排除副 API 密钥。预设条目通过独立按钮手动写回；版本可单独删除，未提供工作记录导入或整份记录清空入口。
 
@@ -290,7 +341,7 @@ ST-YaKit-preinstall/
 | `navigationStyle` | 默认 `auto`（按设备选择位置）；另支持 `top`（上方文字）、`bottom`（下方图标）；缺失或无效值恢复自动，已有合法选择保留 |
 | `designApi` | 内部派生的 `main` 或 `secondary`，表示酒馆当前 API 或副 API；不接受 `update` 修改，不持久化 |
 | `designCount` | 默认 `1`；正安全整数，允许数字或数字字符串输入，保存为数字；只控制工作台独立设计请求数，不加入 API 设置快照，反馈修订始终一次 |
-| `moduleApis` | `{design:'default',scenario:'default',sample:'default',judge:'default'}`；每项可为 `default` 或已保存 API 配置 ID，旧 `main` 值按 `default` 处理 |
+| `moduleApis` | `{design:'default',scenario:'default',sample:'default',judge:'default',presetSearch:'default'}`；每项可为 `default` 或已保存 API 配置 ID，旧 `main` 值按 `default` 处理，旧记录缺少 `presetSearch` 时补默认值并保留原四项 |
 | `scenarioText` / `sceneSource` | 空字符串 / `manual`；AI 模式为 `ai`，已有场景会复用 |
 | `scenarioPrompt` | 默认空字符串；保留旧专用场景提示词的恢复与导出，新生成不写入专用提示词 |
 | `emptyCardMode` | `true`；system 为破限原文加双换行及候选原文，user 为固定场景 |
@@ -328,6 +379,10 @@ ST-YaKit-preinstall/
 | `presetEntries` / `presetSource` | 临时条目列表与草稿来源 `{presetName, identifier, name, content}`；初始为空数组 / `null` |
 | `presetOrderCharacterId` | 临时生效角色顺序 ID，字符串或 `null`；开关保存时用于校验读取目标 |
 | `presetPromptOverrides` | 默认 `[]`；每项 `{presetName, identifier, originalContent, appliedContent, versionId}`，保存及导出原文恢复信息 |
+| `workshopUrl` | 默认空；HTTPS 工坊根地址，本机开发允许 HTTP；拒绝内嵌账号、查询与片段 |
+| `workshopApprovals` | 默认 `[]`；独立终审作品快照，删除原版本或任务后仍保留 |
+| `workshopImports` | 默认 `[]`；`{entryId,releaseId,versionId}` 的下载对应关系 |
+| `workshopEntries` / `workshopMine` / `workshopUser` | 临时公开作品、自己的发布和登录身份，均不保存或导出 |
 | `mainApiLabel` | 当前酒馆 `mainApi`，保留在环境状态中，当前界面不使用 |
 | `contextLabel` | 当前角色或群组名及聊天 ID；无聊天时显示提示 |
 | `canTrial` | 已选角色或群组、具备静默生成接口且主 API 非断开状态时为真 |
@@ -337,13 +392,13 @@ ST-YaKit-preinstall/
 
 设置字段统一在核心校验，未知字段和非法枚举拒绝更新。各模块的 API 完整性在发起操作时检查，允许先保存未填完的配置；连接 ID、地址、模型和密钥全部为空时沿用酒馆当前 API，半填配置及失效 ID 要补全或重新选择。正文连接由 `moduleApis.sample` 决定。
 
-设置一级页提供默认收起的「界面设置」「副 API」「模块 API」「内置提示词」分组。副 API 选择框始终提供「留空，沿用酒馆当前 API」，下方列出已存配置卡片；新增后立即选中，编辑保留 ID、列表位置，编辑非激活项不改变当前连接。清空选择保留全部配置并在重载后继续留空；删除激活项后选择剩余首项，删除最后一项沿用酒馆当前 API。四个模块提供沿用选项及已保存配置。选择和编辑同步 `secondary*` 旧字段，旧 `update` 调用修改这些字段时也同步当前列表项；请求路由始终按连接字段派生。
+设置一级页提供默认收起的「界面设置」「副 API」「模块 API」「内置提示词」分组。副 API 选择框始终提供「留空，沿用酒馆当前 API」，下方列出已存配置卡片；新增后立即选中，编辑保留 ID、列表位置，编辑非激活项不改变当前连接。清空选择保留全部配置并在重载后继续留空；删除激活项后选择剩余首项，删除最后一项沿用酒馆当前 API。五个模块提供沿用选项及已保存配置。选择和编辑同步 `secondary*` 旧字段，旧 `update` 调用修改这些字段时也同步当前列表项；请求路由始终按连接字段派生。
 
 API 和提示词编辑共用二级滑动轨道，使用主页的 240ms 动效；一级、二级独立滚动，非当前页设为 `inert` 与 `aria-hidden`。两类编辑卡片占满可用高度，编辑区独立滚动，底栏常驻：API 页左侧返回与删除、右侧保存，新建时隐藏删除；七类提示词页左侧返回与重置、右侧确认。操作按钮由设置模板创建，打开 API 编辑时移入对应底栏，离开时移回提示词底栏，沿用原事件和禁用状态；进入编辑页时对应编辑区滚动归零。
 
 API 表单读取酒馆连接并回填地址、可读取密钥和模型，模型列表通过宿主状态接口拉取；填写自己的地址或密钥会解除原连接引用。返回保留滑出画面，下次进入重新读取已保存内容；切换顶级页或关闭时清理草稿。提示词入口按已保存正文、编辑页按当前草稿逐字比较默认内容，偏离时标红并显示「已修改」；重置只改草稿，确认才保存。
 
-常驻导航依次提供预设预览、工作台、试写与反馈、版本记录、创意工坊、设置六个页面，页面轨道采用相同顺序；创意工坊标识为 `workshop`，复用通用面板显示「暂无内容」，不读取或保存业务数据；上方显示文字，下方显示图标并保留可访问名称。工作台在宽屏将左侧需求输入与生成操作、右侧修改讨论等宽等高铺满可用区域，小屏上下排列；六页共用所选主题、随宿主视口调整大小的窗口与微动效。试写页使用双栏布局，样式保存在本仓库。
+常驻导航依次提供预设预览、工作台、试写与反馈、版本记录、创意工坊、设置六个页面，页面轨道采用相同顺序；创意工坊标识为 `workshop`，复用通用面板提供社区浏览、终审条目发布和作者管理；配置地址后在进入时读取社区数据；上方显示文字，下方显示图标并保留可访问名称。工作台在宽屏将左侧需求输入与生成操作、右侧修改讨论等宽等高铺满可用区域，小屏上下排列；六页共用所选主题、随宿主视口调整大小的窗口与微动效。试写页使用双栏布局，样式保存在本仓库。
 
 生成按钮旁的原生数量输入沿用现有字段样式，输入中允许暂时清空，合法值变更及提交前保存；提交与生成期间禁用，避免重复发起。
 
@@ -411,7 +466,7 @@ Toast 根节点 `#yakit-wb-toast-root` 位于工作台弹窗或预览容器中�
 
 ## 公开 API
 
-当前未发布供其他插件消费的稳定 API。以下为酒馆同一文档内的宿主适配、组件及控制器契约。
+当前未发布供其他插件消费的稳定 API。以下为酒馆同一文档内的宿主适配、组件及控制器契约，以及独立 Workers 社区服务接口。
 
 | 接口 | 职责 |
 | --- | --- |
@@ -430,10 +485,15 @@ Toast 根节点 `#yakit-wb-toast-root` 位于工作台弹窗或预览容器中�
 | `mountLauncher(mount)` | `ui/launcher.js` 的 ES 导出；创建唯一原生弹窗，首次打开等待 `mount(container)`，成功后复用实例，失败后可重开重试 |
 | `YaKitWorkbench.mountWorkbench(controller, root)` | 显式传入 `#yakit-wb-app`，挂载六页工作台，返回订阅、设置事件、下拉与 Toast 清理函数 |
 | `YaKitWorkbench.createToast(document, container = document.body)` | 在指定容器创建轻提示，工作台传入自己的弹窗，返回 `{show, dispose}`；`show(message, {type, durationMs})` 默认 `success` / 2300ms，另支持 `warning` 和 `error`，卸载后调用不再显示 |
-| `YaKitWorkbench.mountPresets(controller, root, {run, openPage})` | 绑定预设选择、复制、明确重读与草稿写回控件，返回 `{render}` |
-| `YaKitWorkbench.mountPresetEntries(controller, root, {run, openPage})` | 绑定全部条目的编辑、逐条保存与草稿载入，返回 `{render, rebase}`；`rebase(state)` 在明确重读成功后更新原文基线 |
+| `YaKitWorkbench.mountPresets(controller, root, {run, openPage})` | 返回 `{render,focusEntry}`；`focusEntry(identifier, quote)` 切到预设预览，展开对应条目并定位已保存引文 |
+| `YaKitWorkbench.mountPresetEntries(controller, root, {run, openPage})` | 绑定全部条目的编辑、逐条保存与草稿载入，返回 `{render, rebase, focusEntry}`；`rebase(state)` 在明确重读成功后更新原文基线，`focusEntry(identifier, quote)` 校验引文后聚焦并只滚动预设页容器 |
+| `YaKitWorkbench.mountPresetSearch(controller, root, {run, focusEntry})` | 返回 `{render}`；工作台左侧搜索、载入提示、结果索引和补充输入过期显示 |
 | `YaKitWorkbench.mountNavigation(root, {onPageChange} = {})` | 返回 `{openPage}`，绑定六页常驻导航，`openPage('workshop')` 可进入创意工坊；切页回调用于清理设置草稿，从所属工作台容器读取读屏页名并管理焦点 |
 | `YaKitWorkbench.mountVersions(controller, root, {run})` | 返回 `{render, title}`，负责版本名称同步、选单、详情及同页删除确认，`title(version)` 返回名称和后置编号 |
+| `YaKitWorkbench.workshopPackage` | `{parseApproval,parseMetadata,parseEntry}`；浏览器与 Worker 共用的字段白名单和校验 |
+| `YaKitWorkbench.createWorkshopClient(url)` | 创建内存会话客户端，提供 `configure/logout/getUser/request/login` |
+| `YaKitWorkbench.mountWorkshop(controller,root,{run,openPage})` | 返回 `{render,open}`，挂载浏览、搜索、登录与下载；`open()` 在首次进入已配置地址时刷新 |
+| `YaKitWorkbench.mountWorkshopPublish(controller,root,{run})` | 返回 `{render}`，绑定终审快照选择、介绍编辑、发布和下架 |
 | `YaKitWorkbench.mountTheme(controller, container)` | 返回 `{sync, dispose}`；仅更新容器的 `data-theme`，酒馆主题变量直接继承，`dispose` 保留空操作契约 |
 | `YaKitWorkbench.mountTrials(controller, root, {run, notify, versionTitle})` | 返回 `{render}`；绑定场景、任务、评分、人工偏好和原有反馈控件 |
 | `YaKitWorkbench.mountTrialCandidates(controller, root, {run,notify,versionTitle})` | 返回 `{render,selectedVersions}`；多选已保存版本，空数组兼容当前选中版本；界面至少保留一个候选 |
@@ -455,6 +515,7 @@ Toast 根节点 `#yakit-wb-toast-root` 位于工作台弹窗或预览容器中�
 | `refreshEnvironment()` | 更新连接列表、主 API 类型与当前聊天信息 |
 | `refreshPresets()` | 更新可用预设列表；未选择时补入酒馆当前预设名，不重读已有条目 |
 | `readPreset(name)` | 读取指定预设条目，更新名称并解除草稿来源绑定，保留草稿正文 |
+| `searchPresetEntries(instruction = '')` | 结合当前需求与补充输入，查找当前预设；通过 `getState().presetSearch` 读取结果，失败抛错，取消或过期不采用答复 |
 | `loadPresetEntry(identifier)` | 将非标记条目的原文载入草稿，记录写回来源并清除选中版本 |
 | `copyPreset()` | 复制当前选中的已保存预设；成功更新列表并切换到副本、解除草稿来源绑定，保留草稿正文 |
 | `savePresetEntry()` | 按来源和原文快照手动写回当前草稿；成功后更新条目和来源快照 |
@@ -485,6 +546,12 @@ Toast 根节点 `#yakit-wb-toast-root` 位于工作台弹窗或预览容器中�
 | `reviseFromFeedback(id)` | 根据该次试写原版本和已存反馈修订，始终请求一份结果 |
 | `cancel()` | 取消生成或忽略迟到的预设读取结果；读取取消不保存工作记录，预设写回期间不执行取消 |
 | `exportData()` | 同步返回排除密钥的 JSON 字符串 |
+| `configureWorkshop(url)` | 保存或清空工坊地址；地址变化时清除会话和远端列表，忙碌期间拒绝 |
+| `loginWorkshop()` / `logoutWorkshop()` | GitHub 弹窗登录并刷新作品，或清除内存会话与自己的列表；登录可取消 |
+| `refreshWorkshop()` | 读取公开作品，已登录时同时读取自己的发布；取消后的旧结果不写入状态 |
+| `publishWorkshop(approvalId,metadata,entryId='')` | 从已保存终审归档取正文；空作品 ID 新建，非空 ID 向自己的作品发布版本；返回作品 |
+| `editWorkshopEntry(entryId,metadata)` / `withdrawWorkshop(entryId)` | 修改自己的介绍或下架；返回作品；社区写入期间不能取消 |
+| `importWorkshopEntry(entryId)` | 将当前公开发布保存为本地版本，保留草稿；返回新建或复用的版本 ID |
 
 除 `getState`、`subscribe`、`getPrompt`、`exportData` 外，以上操作返回 Promise；状态修改失败时更新 `state.error` 并拒绝 Promise，连接与模型读取错误由编辑页接收。编辑先同步更新内存，再等待宿主保存调用完成。
 
@@ -566,6 +633,54 @@ const presetName = (await presetHost.listPresets()).selectedPresetName;
 if (presetName) console.log((await presetHost.copyPreset(presetName)).name);
 ```
 
+以下示例新建独立控制器，沿用已保存的需求并追加查找想法，调用模型后在控制台读取结果：
+
+```javascript
+const lookupApi = globalThis.YaKitWorkbench;
+const lookupHost = lookupApi.createSillyTavernHost(globalThis.YaKitWorkbenchHost.getContext);
+const lookup = await lookupApi.createWorkbench(lookupHost);
+await lookup.searchPresetEntries('找出限制 NPC 知情范围的条目，以及可能与它冲突的规定。');
+console.table(lookup.getState().presetSearch?.results || []);
+```
+
+### 创意工坊社区接口
+
+接口基址为配置的 Worker 根地址；认证请求使用 `Authorization: Bearer <服务会话>`。JSON 错误返回 `{error:string}`；无效输入为 `400`、登录无效为 `401`、无权修改为 `403`、无此作品为 `404`、写入冲突为 `409`，提交超过 512 KiB 为 `413`。`ALLOWED_ORIGINS` 控制允许的 HTTP(S) 来源；支持 `*`，不使用 Cookie。
+
+| 接口 | 输入与结果 |
+| --- | --- |
+| `GET /health` | 返回 `{ok:true}`，只检查服务响应，不验证 GitHub 配置 |
+| `GET /entries` | 无需登录，返回 `{entries:Entry[]}`，仅上架作品 |
+| `GET /auth/start?origin=...&nonce=...` | 校验来源，跳转 GitHub OAuth；使用 PKCE 和 10 分钟签名状态 |
+| `GET /auth/callback` | 交换授权码并查询 GitHub 身份；通过 `postMessage({type:'yakit-workshop-auth',nonce,token,user},origin)` 返回 8 小时服务会话 |
+| `GET /me` | 需登录，返回 `{user:{id,login}}` |
+| `GET /me/entries` | 需登录，返回作者的 `{entries:Entry[]}`，包括下架作品 |
+| `POST /entries` | 需登录，接收 `{approval,metadata,entryId?}`，返回 `{entry}` |
+| `PATCH /entries/:id` | 需作者登录，接收 `Metadata`，仅更新介绍，返回 `{entry}` |
+| `DELETE /entries/:id` | 需作者登录，标记下架并保留历史发布，返回 `{entry}` |
+
+| 类型 | 字段 |
+| --- | --- |
+| `Metadata` | `{title,description,tags:string[],usage}`，标题必填；其余字段必须存在且类型正确 |
+| `Approval` | `{formatVersion:1,id,taskId,versionId,title,content,goal,scenario,approvedAt,review}`；正文保留首尾空白，`approvedAt` 为时间字符串或 `null` |
+| `Approval.review` | `{stage:'approved',round,summary,sampleCount,results,models:string[]}`；`results` 为 `{sampleIndex,score,reason}[]`，样本编号完整且唯一，分数为有限的 `0..100` |
+| `Entry` | `{id,author:{id,login},createdAt,updatedAt,withdrawn,title,description,tags,usage,releases}`；身份取 GitHub 登录结果，客户端不能指定作者 |
+| `Entry.releases[]` | `{id,number,createdAt,approval}`；编号递增，最后一项为当前发布版本 |
+
+在工坊已配置的酒馆页面控制台可直接读取公开目录：
+
+```javascript
+const context = window.YaKitWorkbenchHost.getContext();
+const url = context.extensionSettings.yakitPromptWorkbench.workshopUrl;
+if (!url) throw new Error('请先保存工坊地址。');
+const response = await fetch(`${url}/entries`);
+const result = await response.json();
+if (!response.ok) throw new Error(result.error);
+console.log(result.entries);
+```
+
+GitHub 目录上限为 10 MiB，超过 1 MiB 时改用 blob 接口读取。当前按整份目录读写，达到上限后需拆分存储；下架是从目录展示中隐藏，GitHub 历史提交仍保留内容。
+
 ## 当前接入状态
 
 | 项目 | 已实现内容与限制 |
@@ -573,22 +688,23 @@ if (presetName) console.log((await presetHost.copyPreset(presetName)).name);
 | 酒馆入口 | 扩展菜单在原生 `dialog` 中直接挂载组件，首次打开加载，后续复用；`preview.html` 提供离线演示 |
 | 主 API 独立生成 | 主聊天补全/文本补全使用独立服务，只传本模块消息；不载入预设正文、宏或聊天组装内容 |
 | 副 API 设计 | 支持连接管理配置和自定义 OpenAI 兼容接口，均为非流式请求 |
-| 创意工坊 | 已提供设置前的页签与空态页面；内容功能尚未接入 |
+| 创意工坊 | 终审快照归档、GitHub 登录、社区搜索与下载、发布新版本、编辑介绍及下架；需部署 Workers 并配置工坊地址 |
 | 设置 | 多套副 API 新增、编辑、选择、清空选择和删除，连接回填与模型列表；空选择及自动、上方、下方导航持久化 |
 | 设计提示词 | 数量默认 1，可自定义正整数并发生成，多份逐个保存版本；模型用 `action` 区分新建与明确修订，每次请求生成单条；破限和补充提示词可编辑，历史讨论仅供展示 |
 | 内置提示词设置 | 破限、提示词生成与修改、补充、场景生成、裁判、反馈修订、聊天试写共用编辑、重置、确认与修改标记；破限随所有模型生成请求发送，其余按用途附加 |
 | 正文试写 | 默认每候选一份；多候选空卡并发，发送破限、对应候选与同一场景；关闭后使用主 API 当前聊天串行，`quietToLoud: false`、`skipWIAN: false` |
 | 任务与盲评 | 已保存版本多选，共用需求与场景，每候选 1—6 份真实 n 或独立样本；所有正文统一匿名评分，保存证据、疑点、并列排名、失败结果、重评及人工偏好 |
 | 样本对比 | 按样本数展示独立正文卡片、评分排序及反馈状态；支持空卡预览、乱序填入、失败和取消提示；选择卡片后在下方提交反馈，历史单次记录沿用原阅读流程 |
-| 模块连接 | 四模块默认沿用副 API，未填写时用酒馆当前 API，也可分别指定配置；设计和共用场景为独立请求，可使用不同连接 |
+| 模块连接 | 五模块默认沿用副 API，未填写时用酒馆当前 API，也可分别指定配置；设计和共用场景为独立请求，可使用不同连接 |
 | 冲突场景 | 独立生成、空场景建任务和设计后准备均只按原始需求生成共用场景，已有场景沿用；质量由用户判断 |
 | 分阶段评审 | 初审整合、二审同场景测试、AI 终审与人工确认；不通过时三问简析并重构到下一轮，保存阶段与旧评分 |
 | 试写条件 | 开始时记录连接、位置、聊天统计、作者注释及世界书选择，保存恢复和导出保持原快照 |
 | 独立演示 | 原有两版提示词及正文、独立 localStorage、反馈与取消；不调用真实模型 |
 | 版本与反馈 | 原文快照、自定义名称、稳定编号、改名与确认删除、正文引用、准确归因及按反馈修订 |
+| 预设条目查找 | 工作台搜索、引用校验、关闭条目、分批读取、最多五条索引及独立模块 API 已接入；目前限于当前已读取预设，未接入跨预设索引、宏展开或实际效果评分；独立演示无预设接口 |
 | 预设条目 | 初始化读取当前已保存聊天补全预设；「预设预览」支持复制试作副本、逐条开关、编辑、原版与测试版搭配应用、原文恢复及草稿写回；独立演示不提供预设接口 |
 | 保存与导出 | 使用 `extensionSettings` 与 `saveSettingsDebounced`，支持复制及不含密钥的导出 |
-| 尚未接入 | 完整预设的独立装配与隔离评测、工坊内容及发布、失败样本自动续跑、跨任务合并盲评、文本补全单次 n；工作记录导入或整份清空、条目新增/删除/拖动排序及名称/角色编辑、其他类型预设、独立跨设备同步 |
+| 尚未接入 | 完整预设的独立装配与隔离评测、工坊平台复测与评论点赞、失败样本自动续跑、跨任务合并盲评、文本补全单次 n；工作记录导入或整份清空、条目新增/删除/拖动排序及名称/角色编辑、其他类型预设、独立跨设备同步 |
 | 取消限制 | 独立主副 API 传入 AbortSignal；当前聊天静默入口不接收独立信号，不调用宿主全局停止接口，等待其结束再释放主通道 |
 | 兼容性 | 最低 SillyTavern 1.18.0；依赖上述生成与连接服务、宿主上下文，以及现代浏览器的 structuredClone、crypto.randomUUID、AbortController |
 | 验收状态 | 本地契约检查已覆盖核心和适配器；真实主副 API 调用及界面交互待用户人工验收 |
@@ -604,6 +720,40 @@ API 回填、模型列表及副连接请求共用 `resolveApiProfile`。地址�
 模型列表使用 `getRequestHeaders()` 调用 `/api/backends/chat-completions/status`，与生成使用相同的来源、地址、密钥引用及连接字段；文本补全连接暂不支持模型列表，其他来源是否返回列表由宿主状态接口决定，失败仍可手填模型。独立接口使用归一化的 OpenAI 兼容地址。离线演示只返回固定的示例连接与模型，不访问填写的地址。
 
 ## 开发与验证
+
+v0.5.0 集成后通过全部 81 项本地测试，以及生成数量、预设编辑保留、应用与搜索模块导入、全部应用 JavaScript 语法和差异检查。条目查找覆盖主副连接选择、旧四项配置迁移、证据归属、超长正文完整分片、取消与过期答复、加载失败时不写存档；UI 检查覆盖独立搜索提交、索引切页及引文聚焦、结果节点保留、载入名称和右侧模板保留。酒馆中由用户人工检查宽窄屏换行、搜索实际质量、结果跳转及载入后的名称变化。
+
+### 部署创意工坊服务
+
+保留完整仓库，Worker 会导入 `core/workshop-package.js`。准备一个已有初始提交的 GitHub 作品仓库，然后在 `workshop-worker` 目录执行 `npx wrangler login` 和 `npx wrangler deploy` 取得服务域名。创建 GitHub OAuth App，将回调地址设为该域名的 `/auth/callback`；填写配置变量、设置三个密钥后再次部署。
+
+| 配置 | 位置与含义 |
+| --- | --- |
+| `GITHUB_CLIENT_ID` | `wrangler.toml` 中的 GitHub OAuth App Client ID |
+| `GITHUB_OWNER` / `GITHUB_REPO` | 作品仓库所属账号与名称；可使用公开或私有仓库，上架作品均经服务公开读取 |
+| `GITHUB_BRANCH` | 默认 `main`，分支必须已经存在 |
+| `ALLOWED_ORIGINS` | 逗号分隔的酒馆来源地址，模板为 `http://localhost:8000`；公共服务可设为 `*` |
+| `GITHUB_CLIENT_SECRET` | Worker secret；GitHub OAuth App 密钥 |
+| `GITHUB_CONTENT_TOKEN` | Worker secret；仅授予作品仓库 Contents 读写权限的令牌 |
+| `SESSION_SECRET` | Worker secret；至少 32 字符的随机签名密钥 |
+
+从仓库根目录运行下列命令，各个 secret 在命令提示中输入：
+
+```bash
+cd workshop-worker
+npx wrangler login
+npx wrangler deploy
+npx wrangler secret put GITHUB_CLIENT_SECRET
+npx wrangler secret put GITHUB_CONTENT_TOKEN
+npx wrangler secret put SESSION_SECRET
+npx wrangler deploy
+```
+
+部署完成后，在插件「创意工坊 → 工坊连接设置」填写 Worker 根地址。`/health` 只确认进程响应；公开作品读取成功才说明仓库读取配置可用，首次发布会创建 `catalog.json`。服务代码与插件已提供，仓库内不包含已部署地址或任何真实密钥。
+
+### 本地检查与人工验收
+
+v0.5.0 的工坊专项检查使用本地 GitHub 和网络替身，覆盖终审资格与快照、旧记录恢复、多候选评分归属、会话隔离、发布及作者权限、下载幂等、SHA 冲突、下架和同版重新上架；另有真实客户端、控制器和 Worker 的层间流程检查。Worker 使用 Wrangler 的 `deploy --dry-run` 验证打包，不创建云端资源。实际 GitHub 授权、云端读写和酒馆页面效果由人工验收。
 
 UI 代码位于 `ui/`、`styles/`、`style.css` 和页面模板；业务代码位于 `core/`、`host/`。修改 UI 不改业务逻辑，修改业务不改 UI；新增注释使用通俗中文。用户可感知功能同步更新 README，模块、数据流和接口变化同步更新本文。
 
@@ -655,11 +805,16 @@ v0.4.0 已通过全部 76 项本地回归，以及 `design-count.mjs`、`host-de
 | `tests/versions-core.test.mjs` | 名称与编号分离、改名保持快照、删除关联清理与草稿保留、忙碌拒绝、旧数据补号、失败后的导出及删空重开 |
 | `tests/versions-ui.test.mjs` | 真实控制器与最小 DOM 检查改名输入保留、同名版本区分、确认与取消、切换及忙碌撤销确认、删除后的空态与焦点 |
 | `tests/workbench-messages.test.mjs` | 不同讨论结果分别复制和保存、保存名称沿用、展开状态保留、重复保存拦截、来源及当前草稿写回约束、忙碌禁用 |
+| `tests/workshop-core.test.mjs` | 终审快照、完整评分与多候选归属、旧任务迁移、演示排除、下载幂等、草稿保留、导出与迟到会话结果 |
+| `tests/workshop-ui.test.mjs` | 工坊模板与控件接线、未登录查看终审、发布资格、纯文本、搜索及忙碌限制 |
+| `tests/workshop-worker.test.mjs` | OAuth 与会话、作者权限、请求边界、UTF-8、SHA 冲突、发布及下架；真实客户端到 Worker 的层间流程 |
 | `tests/settings-core.test.mjs` | 导航默认值与持久化、配置迁移与编辑、提示词请求与密钥导出排除；空选择重载、四模块回退与旧值迁移、半填与失效配置、等价空连接及设计后场景生成 |
 | `tests/settings-ui.test.mjs` | API 底栏按钮、空配置选择与模块选项；PC、手机、平板、iPadOS 自动导航与手动覆盖；连接及模型结果过期、密钥解除引用、输入保留与提示词草稿 |
 | `tests/api-profiles.mjs` | 省略 API/模型/密钥继承、预设优先级、各来源连接字段与密钥映射、代理配对、模型列表与错误、地址归一及离线演示 |
 | `tests/presets-core.test.mjs` | 默认预设、草稿隔离、原文基线、搭配恢复、版本删除、开关失败和真实适配器联接 |
 | `tests/presets-host.test.mjs` | 生效顺序、正文与开关冲突、缺引用启用、标记权限、保存锁和等待期间的宿主编辑 |
+| `tests/preset-search-core.test.mjs` | 查询与证据校验、正文分片、模块连接、旧配置恢复、取消及过期结果、搜索不写存档 |
+| `tests/preset-search-ui.test.mjs` | 独立搜索按钮、结果节点复用、只读引文定位、载入提示、模块选择及右侧模板保留 |
 | `tests/preset-copy.test.mjs` | 完整复制与独立性、试作编号与重名、复制试作、保存失败、并发忙碌与核心状态同步 |
 | `tests/preset-display.test.mjs` | 备份按钮及禁用条件、全部条目展示、多条编辑、保存期间继续输入、原文冲突与重读、读取失败及切换后的输入保留 |
 | `tests/preset-preview-ui.mjs` | 原版输入保留、只读测试预览、显式应用、删除版本快照、外部修改和开关事件 |

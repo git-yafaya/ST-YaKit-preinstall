@@ -10,8 +10,14 @@
     const toast = workbench.createToast(document, container);
     const selects = workbench.mountSelects(root);
     const settings = workbench.mountSettings(controller, root, { run, notify });
-    const { openPage } = workbench.mountNavigation(root, { onPageChange: name => { if (name !== 'settings') settings.close(); } });
+    let workshop;
+    const { openPage } = workbench.mountNavigation(root, { onPageChange: name => {
+      if (name !== 'settings') settings.close();
+      if (name === 'workshop') workshop?.open();
+    } });
+    workshop = workbench.mountWorkshop(controller, root, { run, notify, openPage });
     const presets = workbench.mountPresets(controller, root, { run: action => run(action, true), openPage });
+    const presetSearch = workbench.mountPresetSearch(controller, root, { run, focusEntry: presets.focusEntry });
     const versions = workbench.mountVersions(controller, root, { run: action => run(action, true) });
     const trials = workbench.mountTrials(controller, root, { run, notify, versionTitle: version => versions.title(version) });
     const messages = workbench.mountWorkbenchMessages(controller, root, { run: action => run(action, true), notify });
@@ -48,6 +54,8 @@
     function render(state) {
       settings.render(state);
       presets.render(state);
+      presetSearch.render(state);
+      workshop.render(state);
       versions.render(state);
       trials.render(state);
       messages.render(state);
@@ -55,8 +63,8 @@
       // 保留尚未填完的数量，清空重输时不会被订阅刷新覆盖。
       if (!designCountEditing) setValue('design-count', String(state.designCount));
       $('busy-bar').hidden = !state.busy;
-      $('busy-text').textContent = ({ trial: '正在生成各份正文并统一盲评…', scenario: '正在生成共用场景…', judge: '正在进行 AI 盲评…', review: '正在处理本轮评审…', 'preset-read': '正在读取预设…', 'preset-save': '正在保存预设…' })[state.busy] || '工作台 AI 正在生成…';
-      $('cancel').hidden = state.busy === 'preset-save' || state.busy === 'preset-read';
+      $('busy-text').textContent = ({ trial: '正在生成各份正文并统一盲评…', scenario: '正在生成共用场景…', judge: '正在进行 AI 盲评…', review: '正在处理本轮评审…', 'preset-search': '正在查找相关预设条目…', 'preset-read': '正在读取预设…', 'preset-save': '正在保存预设…', 'workshop-login': '正在等待 GitHub 登录…', 'workshop-read': '正在加载工坊…', 'workshop-save': '正在保存工坊作品…' })[state.busy] || '工作台 AI 正在生成…';
+      $('cancel').hidden = state.busy === 'preset-save' || state.busy === 'preset-read' || state.busy === 'workshop-save';
       $('design-button').disabled = designSubmitting || Boolean(state.busy) || !state.goal.trim();
       $('design-count').disabled = designSubmitting || Boolean(state.busy);
       $('design-button').firstChild.textContent = state.busy === 'design' ? '正在生成 ' : state.messages.length > 1 ? '修改提示词 ' : '生成提示词 ';

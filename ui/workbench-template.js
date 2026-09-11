@@ -20,12 +20,18 @@
           <div class="panel-content design-content">
             <div class="field"><label for="yakit-wb-goal">你想要什么？</label><textarea id="yakit-wb-goal" rows="3" placeholder="描述想要的写作效果，例如：NPC 只能知道亲眼见过或被告知的事情。"></textarea></div>
             <form id="yakit-wb-design-form" class="composer">
+              <p id="yakit-wb-preset-source" class="page-hint preset-source" role="status">当前未载入预设条目，可在预设预览中选择「载入草稿」。</p>
               <label for="yakit-wb-instruction" class="sr-only">补充要求或修改意见</label><textarea id="yakit-wb-instruction" rows="2" placeholder="继续补充要求，或告诉工作台哪里需要修改…"></textarea>
               <div class="composer-actions">
                 <label for="yakit-wb-design-count" class="design-count">生成数量<input id="yakit-wb-design-count" type="number" min="1" max="9007199254740991" step="1" value="1" required aria-describedby="yakit-wb-design-count-hint"></label>
+                <button id="yakit-wb-preset-search-button" class="button button-secondary" type="button" aria-controls="yakit-wb-preset-search-results">搜索预设条目</button>
                 <button id="yakit-wb-design-button" class="button button-primary" type="submit">生成提示词 <span aria-hidden="true">↑</span></button>
                 <p id="yakit-wb-design-count-hint" class="page-hint">多条同时生成，结果可在版本记录切换。</p>
               </div>
+              <section class="preset-search" aria-label="预设条目查找">
+                <p id="yakit-wb-preset-search-status" class="page-hint" role="status"></p>
+                <div id="yakit-wb-preset-search-results" class="preset-search-results"></div>
+              </section>
             </form>
           </div>
         </section>
@@ -40,11 +46,7 @@
       </div>
       <div class="page-frame">${workbench.trialTemplate}</div>
       <div class="page-frame">${workbench.versionsTemplate}</div>
-      <div class="page-frame">
-        <section id="yakit-wb-workshop-page" class="page panel" aria-label="创意工坊" tabindex="-1" hidden>
-          <div class="panel-content"><p class="page-hint">暂无内容</p></div>
-        </section>
-      </div>
+      <div class="page-frame">${workbench.workshopTemplate}</div>
       <div class="page-frame">${workbench.settingsTemplate}</div>
       </div></div>
       </main>

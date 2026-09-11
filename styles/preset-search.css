@@ -1,0 +1,14 @@
+/* 只调整工作台左侧，按钮尺寸与微动效沿用主页。 */
+.yakit-workbench #yakit-wb-design-panel .preset-source{margin:0;padding:10px 12px;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+.yakit-workbench #yakit-wb-design-panel .composer-actions{align-items:center}
+.yakit-workbench #yakit-wb-design-panel .design-count{flex:1 1 140px}
+.yakit-workbench #yakit-wb-design-panel .composer-actions>.button{flex:1 1 auto}
+.yakit-workbench #yakit-wb-design-panel .preset-search{padding:10px 12px;border-top:1px solid var(--line);min-width:0}
+.yakit-workbench #yakit-wb-design-panel .preset-search .page-hint{margin:0;overflow-wrap:anywhere}
+.yakit-workbench #yakit-wb-design-panel .preset-search-results{display:grid;gap:12px;max-height:280px;overflow:auto}
+.yakit-workbench #yakit-wb-design-panel .preset-search-result{display:grid;gap:8px;min-width:0;padding-top:12px}
+.yakit-workbench #yakit-wb-design-panel .preset-search-index{justify-content:flex-start;text-align:left;white-space:normal;overflow-wrap:anywhere}
+.yakit-workbench #yakit-wb-design-panel .preset-search-quote{margin:0;padding:8px 10px;border-left:2px solid var(--accent);background:var(--surface);color:var(--text);font-size:13px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
+@media(min-width:960px){
+  .yakit-workbench #yakit-wb-design-panel .design-content{grid-template-rows:minmax(120px,1fr) auto}
+}

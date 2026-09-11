@@ -31,6 +31,6 @@
       $('copy-preset').disabled = busy || !state.selectedPresetName || !presets.some(item => item.name === state.selectedPresetName);
       entries.render(state);
     }
-    return { render };
+    return { render, focusEntry(identifier, quote) { openPage('presets', false); entries.focusEntry(identifier, quote); } };
   };
 })();

@@ -2,10 +2,13 @@
 node_modules/
 .cache/
 coverage/
+.wrangler/
 
 # 本地凭据与环境配置
 .env
 .env.*
+.dev.vars
+.dev.vars.*
 .venv/
 venv/
 

@@ -80,7 +80,18 @@ function createReviewActions({ state, host, run, find, fail, persist, emit, isAc
             try {
                 if (task.review.stage === 'final') {
                     return await run('review', async () => {
-                        task.review.stage = 'approved'; state.notice = '本轮终审已由用户确认通过。'; emit();
+                        const review = { ...task.review, stage: 'approved', approvedAt: new Date().toISOString() };
+                        const workshop = globalThis.YaKitWorkbench.workshop;
+                        // 先校验并复制任务快照，再确认通过，避免归档失败留下半完成状态。
+                        const approvals = workshop ? workshop.approvalSnapshots(state, { ...task, review }) : [];
+                        task.review = review;
+                        for (const approval of approvals) {
+                            if (!state.workshopApprovals.some(item => item.id === approval.id)) state.workshopApprovals.push(approval);
+                        }
+                        state.notice = workshop && !approvals.length
+                            ? '本轮演示终审已确认；固定演示样本不归档到社区，请使用真实模型完成测试。'
+                            : approvals.length ? '本轮终审已由用户确认通过，作品已归档，可随时发布到社区。'
+                                : '本轮终审已由用户确认通过。'; emit();
                         return task;
                     });
                 }

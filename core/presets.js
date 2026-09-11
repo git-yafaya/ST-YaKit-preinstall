@@ -33,6 +33,7 @@ function createPresetActions({ state, host, run, change, isActive, draftChanged 
                 if (!isActive(operation)) return;
                 state.selectedPresetName = result.name;
                 state.presetEntries = result.entries;
+                state.presetSearch = null;
                 state.presetOrderCharacterId = result.orderCharacterId ?? null;
                 state.presetSource = null;
                 state.notice = '预设已读取，请选择要编辑的条目。';
@@ -45,6 +46,7 @@ function createPresetActions({ state, host, run, change, isActive, draftChanged 
                 state.presets = result.presets;
                 state.selectedPresetName = result.name;
                 state.presetEntries = result.entries;
+                state.presetSearch = null;
                 state.presetOrderCharacterId = result.orderCharacterId ?? null;
                 state.presetSource = null;
                 state.notice = `已复制为「${result.name}」。`;
@@ -60,6 +62,7 @@ function createPresetActions({ state, host, run, change, isActive, draftChanged 
                     identifier, enabled, expectedEnabled: entry.enabled,
                     expectedOrderCharacterId: state.presetOrderCharacterId });
                 state.presetEntries = result.entries;
+                state.presetSearch = null;
                 state.presetOrderCharacterId = result.orderCharacterId ?? null;
                 state.notice = result.notice || `已${enabled ? '开启' : '关闭'}「${entry.name}」。`;
             });
@@ -84,6 +87,7 @@ function createPresetActions({ state, host, run, change, isActive, draftChanged 
                     originalContent: original?.originalContent ?? expectedContent,
                     appliedContent: content, versionId });
                 state.presetEntries = result.entries;
+                state.presetSearch = null;
                 state.presetOrderCharacterId = result.orderCharacterId ?? null;
                 state.notice = result.notice || `「${entry.name}」已应用${version ? `测试提示词「${version.label}」` : '原版提示词'}。`;
             });
@@ -114,6 +118,7 @@ function createPresetActions({ state, host, run, change, isActive, draftChanged 
                 const source = state.presetSource;
                 const result = await host.savePresetEntry({ presetName, identifier, content, expectedContent });
                 state.presetEntries = result.entries;
+                state.presetSearch = null;
                 state.presetOrderCharacterId = result.orderCharacterId ?? null;
                 // 手动保存正文成为新的原版，之前的测试替换记录随之结束。
                 forgetOverride(presetName, identifier);
@@ -135,6 +140,7 @@ function createPresetActions({ state, host, run, change, isActive, draftChanged 
                 const result = await host.savePresetEntry({ presetName: source.presetName,
                     identifier: source.identifier, content, expectedContent: source.content });
                 state.presetEntries = result.entries;
+                state.presetSearch = null;
                 state.presetOrderCharacterId = result.orderCharacterId ?? null;
                 forgetOverride(source.presetName, source.identifier);
                 // 等待时若切换了版本，继续保持解绑，避免把版本误写到原目标。

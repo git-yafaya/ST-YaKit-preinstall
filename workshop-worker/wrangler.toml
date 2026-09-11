@@ -1,0 +1,19 @@
+# 在此目录执行 npx wrangler deploy；无需安装运行时依赖。
+name = "yakit-workshop"
+main = "src/index.mjs"
+compatibility_date = "2026-09-01"
+
+[vars]
+GITHUB_CLIENT_ID = ""
+GITHUB_OWNER = ""
+GITHUB_REPO = ""
+GITHUB_BRANCH = "main"
+# 填写酒馆的完整来源地址，多个用逗号隔开，如 http://localhost:8000,https://st.example.com。
+# 面向所有酒馆用户的公共服务可设为 *；这里不使用 Cookie，作者操作仍需登录。
+ALLOWED_ORIGINS = "http://localhost:8000"
+
+# 三个密钥分别用 npx wrangler secret put <名称> 配置，不写入此文件。
+# GITHUB_CLIENT_SECRET：GitHub OAuth App 的客户端密钥。
+# GITHUB_CONTENT_TOKEN：仅授权作品仓库 Contents 读写的令牌。
+# SESSION_SECRET：至少 32 字符的随机会话签名密钥。
+# OAuth App 回调地址：https://你的 Worker 域名/auth/callback。

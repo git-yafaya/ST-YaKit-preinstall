@@ -53,7 +53,7 @@
     for (const kind of Object.keys(workbench.promptTitles)) $('prompt-' + kind).addEventListener('click', event => showPage(kind, null, event.currentTarget));
     $('theme').addEventListener('change', () => run(() => controller.update({ theme: $('theme').value })));
     $('api-config').addEventListener('change', () => run(() => controller.selectApiConfig($('api-config').value)));
-    for (const key of ['design', 'scenario', 'sample', 'judge']) $('module-api-' + key).addEventListener('change', () => run(() => controller.update({ moduleApis: { ...controller.getState().moduleApis, [key]: $('module-api-' + key).value } })));
+    for (const key of ['design', 'presetSearch', 'scenario', 'sample', 'judge']) $('module-api-' + key).addEventListener('change', () => run(() => controller.update({ moduleApis: { ...controller.getState().moduleApis, [key]: $('module-api-' + key).value } })));
     $('combine-design-scenario').addEventListener('change', () => run(() => controller.update({ combineDesignScenario: $('combine-design-scenario').checked })));
 
     root.querySelectorAll('input[name="yakit-wb-navigation-style"]').forEach(input => input.addEventListener('change', () => {
@@ -103,9 +103,9 @@
       const nextModuleKey = JSON.stringify(configs.map(config => [config.id, config.name]));
       if (moduleKey !== nextModuleKey) {
         moduleKey = nextModuleKey;
-        for (const key of ['design', 'scenario', 'sample', 'judge']) $('module-api-' + key).replaceChildren(new Option('沿用副 API（留空时使用酒馆 API）', 'default'), ...configs.map(config => new Option(config.name, config.id)));
+        for (const key of ['design', 'presetSearch', 'scenario', 'sample', 'judge']) $('module-api-' + key).replaceChildren(new Option('沿用副 API（留空时使用酒馆 API）', 'default'), ...configs.map(config => new Option(config.name, config.id)));
       }
-      for (const key of ['design', 'scenario', 'sample', 'judge']) {
+      for (const key of ['design', 'presetSearch', 'scenario', 'sample', 'judge']) {
         $('module-api-' + key).value = state.moduleApis?.[key] || 'default';
         $('module-api-' + key).disabled = Boolean(state.busy);
       }

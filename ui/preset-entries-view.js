@@ -29,10 +29,12 @@
       const toggle = element('button', 'button button-secondary preset-entry-toggle');
       toggle.type = 'button'; toggle.setAttribute('role', 'switch');
       actions.append(save, load);
-      const editor = { node, name, role, input, hint, actions, save, load, toggle, identifier: entry.identifier,
+      const searchQuote = element('p', 'message message-assistant');
+      searchQuote.hidden = true; searchQuote.tabIndex = -1;
+      const editor = { node, details, searchQuote, name, role, input, hint, actions, save, load, toggle, identifier: entry.identifier,
         entry, content: entry.content, savedContent: entry.content, marker: entry.marker, edited: false };
       editor.prompt = workbench.createPresetPromptView(controller, editor, { element, run, updateStatus });
-      body.append(editor.prompt.row, input, editor.prompt.preview, hint, actions, editor.prompt.status);
+      body.append(editor.prompt.row, input, editor.prompt.preview, hint, actions, editor.prompt.status, searchQuote);
       details.append(summary, body); node.append(details, toggle);
       input.value = entry.content;
       input.addEventListener('input', () => {
@@ -85,6 +87,7 @@
         const editor = editors.get(key);
         const override = state.presetPromptOverrides?.find(item => item.presetName === presetName && item.identifier === entry.identifier);
         const originalContent = override?.originalContent ?? entry.content;
+        if (editor.entry.content !== entry.content) editor.searchQuote.hidden = true;
         editor.entry = entry;
         // 其他条目的保存结果不能改动本条旧基线，避免跳过原文冲突检查。
         if (!editor.edited) {
@@ -111,6 +114,21 @@
       root.querySelector('#yakit-wb-preset-entry-count').textContent = `${entries.length} 个条目`;
       root.querySelector('#yakit-wb-preset-empty').hidden = Boolean(entries.length);
     }
-    return { render, rebase: state => render(state, true) };
+    function focusEntry(identifier, quote) {
+      const state = controller.getState();
+      const editor = presets.get(state.selectedPresetName)?.get(JSON.stringify([identifier, 0]));
+      if (!editor) throw new Error('该预设条目已不在预览中，请重新搜索。');
+      if (!quote || !editor.entry.content.includes(quote)) throw new Error('该条目的原文已变化，请重新搜索。');
+      editor.details.open = true;
+      // 单独显示已保存原文的引文，不切换提示词来源，也不覆盖未保存的编辑。
+      editor.searchQuote.textContent = `搜索命中原文：\n${quote}`;
+      editor.searchQuote.hidden = false;
+      editor.searchQuote.focus({ preventScroll: true });
+      const scroller = root.querySelector('#yakit-wb-presets-page').parentElement;
+      const top = editor.searchQuote.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+      // 只滚动预设页的容器，避免横向页面轨道或酒馆背景跟着移动。
+      scroller.scrollTop = Math.max(0, top - 16);
+    }
+    return { render, rebase: state => render(state, true), focusEntry };
   };
 })();

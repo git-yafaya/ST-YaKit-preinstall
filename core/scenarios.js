@@ -4,7 +4,7 @@ const { clone, designSettings, rawText, required } = globalThis.YaKitWorkbench.s
 const defaults = {
     scenarioText: '', scenarioPrompt: '', sceneSource: 'manual', emptyCardMode: true, sampleCount: 1, testVersionIds: [],
     sampleRequestMode: 'parallel', combineDesignScenario: false,
-    moduleApis: { design: 'default', scenario: 'default', sample: 'default', judge: 'default' },
+    moduleApis: { design: 'default', scenario: 'default', sample: 'default', judge: 'default', presetSearch: 'default' },
 };
 const { promptText } = globalThis.YaKitWorkbench;
 
@@ -28,7 +28,8 @@ function settingValue(key, value) {
     if (key === 'moduleApis') {
         if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('模块 API 配置格式不正确。');
         return Object.fromEntries(Object.keys(defaults.moduleApis).map(module => {
-            const selected = required(value[module], '模块 API');
+            // 旧存档没有条目查找配置，补默认选择并保留已有四项。
+            const selected = required(module === 'presetSearch' && !Object.hasOwn(value, module) ? 'default' : value[module], '模块 API');
             return [module, selected === 'main' ? 'default' : selected];
         }));
     }
@@ -49,7 +50,7 @@ function moduleSettings(state, module) {
     if (selection === 'default' || selection === 'main') return designSettings(state);
     const config = state.secondaryApiConfigs.find(item => item.id === selection);
     if (!config) {
-        const name = { design: '提示词设计', scenario: '场景生成', sample: '样本生成', judge: '盲评' }[module];
+        const name = { design: '提示词设计', scenario: '场景生成', sample: '样本生成', judge: '盲评', presetSearch: '预设条目查找' }[module];
         throw new Error(`请重新选择${name}模块的 API 配置。`);
     }
     return designSettings({ ...state, activeSecondaryApiId: config.id, secondarySource: config.profileId ? 'profile' : 'custom',

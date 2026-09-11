@@ -1,0 +1,18 @@
+/* 工坊沿用主页容器、主题与切页动效，仅安排内容布局。 */
+.yakit-workbench .workshop-content{display:flex;flex-direction:column;gap:16px}
+.yakit-workbench .workshop-content .page-hint{margin:0}
+.yakit-workbench .workshop-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.yakit-workbench .workshop-actions>[aria-pressed="true"]{background:var(--selected);border-color:var(--accent)}
+.yakit-workbench .workshop-columns{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+.yakit-workbench .workshop-columns>*{min-width:0}
+.yakit-workbench .workshop-list{display:flex;flex-direction:column;gap:10px}
+.yakit-workbench .workshop-entry{width:100%;height:auto;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:6px;white-space:normal;overflow-wrap:anywhere}
+.yakit-workbench .workshop-entry[aria-pressed="true"]{background:var(--selected);border-color:var(--accent)}
+.yakit-workbench .workshop-detail{padding-top:16px;border-top:1px solid var(--line)}
+.yakit-workbench .workshop-detail h3,.yakit-workbench .workshop-detail h4{margin:0 0 10px}
+.yakit-workbench .workshop-detail .workshop-actions{margin-top:16px}
+.yakit-workbench .workshop-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;margin:12px 0}
+.yakit-workbench #yakit-wb-workshop-owned,.yakit-workbench #yakit-wb-workshop-approval{width:100%}
+.yakit-workbench #yakit-wb-workshop-publish-hint{margin-bottom:16px}
+.yakit-workbench #yakit-wb-workshop-withdraw-confirmation{margin-top:16px}
+@media(min-width:960px){.yakit-workbench .workshop-columns{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.yakit-workbench .workshop-detail{padding:0 0 0 20px;border-top:0;border-left:1px solid var(--line)}}

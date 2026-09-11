@@ -12,7 +12,8 @@ function reviewValue(value = {}, restoring = false) {
     const stage = value.stage ?? 'initial', round = value.round ?? 1;
     if (!(restoring ? ['initial', 'second', 'final', 'approved'] : ['initial', 'second']).includes(stage)
         || !Number.isSafeInteger(round) || round < 1) throw new Error('评审阶段或轮次不正确。');
-    return { stage, round, parentTaskId: text(value.parentTaskId ?? '', '上轮测试任务'), summary: text(value.summary ?? '', '评审摘要') };
+    return { stage, round, parentTaskId: text(value.parentTaskId ?? '', '上轮测试任务'), summary: text(value.summary ?? '', '评审摘要'),
+        ...(stage === 'approved' ? { approvedAt: typeof value.approvedAt === 'string' ? value.approvedAt : null } : {}) };
 }
 
 function restore(state, saved) {
