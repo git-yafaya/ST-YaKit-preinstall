@@ -26,14 +26,6 @@
       const sampleCount = state.sampleCount || 1;
       const emptyCard = state.emptyCardMode !== false;
       $('context-label').textContent = emptyCard ? '空卡测试' : state.contextLabel || '当前聊天';
-      try {
-        const settings = workbench.scenarios.moduleSettings(state, 'sample');
-        const route = state.moduleApis?.sample || 'default';
-        const configId = route === 'default' ? state.activeSecondaryApiId : route;
-        $('sample-api-label').textContent = settings.designApi === 'main' ? state.mainApiLabel || '酒馆当前 API' : state.secondaryApiConfigs?.find(item => item.id === configId)?.name || '副 API';
-      } catch (error) {
-        $('sample-api-label').textContent = error.message;
-      }
       $('empty-card').checked = emptyCard;
       setValue('trial-input', state.scenarioText);
       setValue('scene-source', state.sceneSource || 'manual');

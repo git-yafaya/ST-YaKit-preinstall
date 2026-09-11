@@ -16,7 +16,6 @@
 .yakit-workbench .trial-parameters,.yakit-workbench .trial-preview-content{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:4px 24px 20px 4px}
 .yakit-workbench .trial-preview-content{display:flex;flex-direction:column;padding:20px 0 0 24px}
 .yakit-workbench .environment{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-bottom:20px;color:var(--muted);font-size:12px}
-.yakit-workbench .environment>span:last-child{margin-left:auto;max-width:100%;overflow-wrap:anywhere}
 .yakit-workbench .trial-step+.trial-step{margin-top:20px;padding-top:20px;border-top:1px solid var(--line)}
 .yakit-workbench .trial-step>.comparison-heading{margin-bottom:12px}
 .yakit-workbench .test-version-list{display:grid;gap:8px}

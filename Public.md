@@ -328,7 +328,7 @@ ST-YaKit-preinstall/
 | `presetEntries` / `presetSource` | 临时条目列表与草稿来源 `{presetName, identifier, name, content}`；初始为空数组 / `null` |
 | `presetOrderCharacterId` | 临时生效角色顺序 ID，字符串或 `null`；开关保存时用于校验读取目标 |
 | `presetPromptOverrides` | 默认 `[]`；每项 `{presetName, identifier, originalContent, appliedContent, versionId}`，保存及导出原文恢复信息 |
-| `mainApiLabel` | 当前酒馆 `mainApi`，仅用于展示 |
+| `mainApiLabel` | 当前酒馆 `mainApi`，保留在环境状态中，当前界面不使用 |
 | `contextLabel` | 当前角色或群组名及聊天 ID；无聊天时显示提示 |
 | `canTrial` | 已选角色或群组、具备静默生成接口且主 API 非断开状态时为真 |
 | `canGenerate` | 存在聊天补全或文本补全独立请求服务；与是否选择角色和主 API 在线状态分开 |
@@ -391,7 +391,7 @@ API 表单读取酒馆连接并回填地址、可读取密钥和模型，模型�
 | `--yakit-control-placeholder` | `#9CA199`，浅暖灰占位文字 |
 | `--yakit-control-arrow` | `#3C4437`，可样式化下拉箭头；系统下拉使用同色 SVG 箭头 |
 
-`style.css` 最后加载 `styles/trial.css`，负责双栏、对比卡排版与控件状态样式，色彩继承 `theme.css` 的共享变量。试写页与顶栏、导航随容器的 `data-theme` 同步，主题选择及持久化沿用原流程。任务、样本、评分与反馈控件的 ID、选项值、事件和禁用条件沿用原有绑定；没有任务时收起任务详情区，首次试写显示所选数量的空对比卡；下方单篇阅读区保留 Aa 空态，有结果时正文和反馈在同一阅读区展示。
+`style.css` 最后加载 `styles/trial.css`，负责双栏、对比卡排版与控件状态样式，色彩继承 `theme.css` 的共享变量。试写页与顶栏、导航随容器的 `data-theme` 同步，主题选择及持久化沿用原流程。参数区顶部由状态点和空卡或当前聊天说明组成，两者靠左排列。任务、样本、评分与反馈控件的 ID、选项值、事件和禁用条件沿用原有绑定；没有任务时收起任务详情区，首次试写显示所选数量的空对比卡；下方单篇阅读区保留 Aa 空态，有结果时正文和反馈在同一阅读区展示。
 
 按钮沿用主页的圆角、间距、150ms 颜色过渡与按下缩放，禁用态继续由原有状态控制。设置页的「配置 API」按钮位于「使用配置」选择框右侧，两者同高对齐。预设条目名称可换行，操作按钮行空间不足时自动换行。非提交按钮显式使用 `type="button"`；设计表单由提交按钮触发，API 编辑由底栏保存，提示词编辑由底栏确认。折叠入口保留原生 `details/summary`，反馈和导航位置保留原生单选输入，键盘操作由浏览器处理。
 
@@ -671,7 +671,7 @@ v0.4.0 已通过全部 76 项本地回归，以及 `design-count.mjs`、`host-de
 | `tests/host-design-concurrency.mjs` | 同批主 API 设计并发、不同信号及用途隔离、失败取消时保持占用、最后结束后释放、宿主生成状态检查及副 API 并发 |
 | `tests/judgement-core.test.mjs` | 裁判输入隔离、格式与引用校验、新旧评分恢复及导出、重评失败保留评分、部分样本失败与取消 |
 | `tests/judgement-ui.test.mjs` | 需求与证据纯文本展示、并列排名、匿名标签更新、样本选择、历史评分与空态 |
-| `tests/trial-ui.test.mjs` | 候选多选、默认单份、总数量和版本归属；任务/样本切换、评分排序与偏好显示、原始场景；对比空卡数量、任务快照、乱序填入、失败取消及重评、排序与节点复用、滚动保留和选择；使用真实模块路由显示副 API 名称、空连接回退和半填错误 |
+| `tests/trial-ui.test.mjs` | 候选多选、默认单份、总数量和版本归属；任务/样本切换、评分排序与偏好显示、原始场景；对比空卡数量、任务快照、乱序填入、失败取消及重评、排序与节点复用、滚动保留和选择 |
 | `tests/preview-host.test.mjs` | 显式宿主挂载、焦点与重开环境刷新及清理、离线两版流程、旧存储恢复、请求快照和取消 |
 | `tests/theme.test.mjs` | 容器主题各自生效，宿主根主题保持不变 |
 | `tests/navigation.test.mjs` | 六页键盘操作、创意工坊相邻切换、程序切页、隐藏页隔离、草稿和滚动保留，以及当前预设页重复点击回顶 |

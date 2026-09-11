@@ -5,7 +5,7 @@
       <section id="yakit-wb-trial-panel" class="panel trial-panel" aria-label="试写与反馈">
         <div class="trial-controls">
           <div class="trial-parameters">
-            <div class="environment"><span class="status-dot"></span><span id="yakit-wb-context-label">空卡测试</span><span id="yakit-wb-sample-api-label">酒馆当前 API</span></div>
+            <div class="environment"><span class="status-dot"></span><span id="yakit-wb-context-label">空卡测试</span></div>
             <section class="trial-step" aria-labelledby="yakit-wb-select-title">
               <h3 id="yakit-wb-select-title" class="comparison-heading">1 · 选提示词</h3>
               <div id="yakit-wb-test-versions" class="test-version-list" role="group" aria-labelledby="yakit-wb-select-title" aria-describedby="yakit-wb-test-versions-hint"></div>
