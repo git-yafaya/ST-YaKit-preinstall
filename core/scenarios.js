@@ -4,7 +4,7 @@ const { clone, designSettings, rawText, required } = globalThis.YaKitWorkbench.s
 const defaults = {
     scenarioText: '', sceneSource: 'manual', emptyCardMode: true, sampleCount: 3,
     sampleRequestMode: 'parallel', combineDesignScenario: false,
-    moduleApis: { design: 'default', scenario: 'default', sample: 'main', judge: 'default' },
+    moduleApis: { design: 'default', scenario: 'default', sample: 'default', judge: 'default' },
 };
 const { promptText } = globalThis.YaKitWorkbench;
 
@@ -21,7 +21,10 @@ function settingValue(key, value) {
     }
     if (key === 'moduleApis') {
         if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('模块 API 配置格式不正确。');
-        return Object.fromEntries(Object.keys(defaults.moduleApis).map(module => [module, required(value[module], '模块 API')]));
+        return Object.fromEntries(Object.keys(defaults.moduleApis).map(module => {
+            const selected = required(value[module], '模块 API');
+            return [module, selected === 'main' ? 'default' : selected];
+        }));
     }
     if (!(key === 'sceneSource' ? ['manual', 'ai'] : ['parallel', 'single']).includes(value)) throw new Error('测试设置值不正确。');
     return value;
@@ -36,14 +39,13 @@ function restore(state, saved) {
 
 function moduleSettings(state, module) {
     const selection = state.moduleApis?.[module] || defaults.moduleApis[module];
-    if (selection === 'default') return designSettings(state);
-    if (selection === 'main') return designSettings({ ...state, designApi: 'main' });
+    if (selection === 'default' || selection === 'main') return designSettings(state);
     const config = state.secondaryApiConfigs.find(item => item.id === selection);
     if (!config) {
         const name = { design: '提示词设计', scenario: '场景生成', sample: '样本生成', judge: '盲评' }[module];
         throw new Error(`请重新选择${name}模块的 API 配置。`);
     }
-    return designSettings({ ...state, designApi: 'secondary', secondarySource: config.profileId ? 'profile' : 'custom',
+    return designSettings({ ...state, activeSecondaryApiId: config.id, secondarySource: config.profileId ? 'profile' : 'custom',
         secondaryProfileId: config.profileId, secondaryUrl: config.url, secondaryModel: config.model, secondaryKey: config.apiKey });
 }
 

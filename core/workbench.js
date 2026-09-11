@@ -114,7 +114,7 @@ async function createWorkbench(host) {
                 state.profiles = (Array.isArray(environment.profiles) ? environment.profiles : [])
                     .filter(item => item && typeof item.id === 'string' && item.id.trim() && typeof item.name === 'string')
                     .map(({ id, name }) => ({ id: id.trim(), name: name.trim() }));
-                state.mainApiLabel = text(environment.mainApiLabel || '', '主 API');
+                state.mainApiLabel = text(environment.mainApiLabel || '', '酒馆 API');
                 state.contextLabel = text(environment.contextLabel || '', '写作背景');
                 state.canTrial = environment.canTrial === true;
                 state.canGenerate = environment.canGenerate === true;

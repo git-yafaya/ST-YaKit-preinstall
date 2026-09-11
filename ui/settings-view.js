@@ -51,7 +51,6 @@
     $('api-add').addEventListener('click', event => showPage('api', null, event.currentTarget));
     for (const kind of Object.keys(workbench.promptTitles)) $('prompt-' + kind).addEventListener('click', event => showPage(kind, null, event.currentTarget));
     $('theme').addEventListener('change', () => run(() => controller.update({ theme: $('theme').value })));
-    $('design-api').addEventListener('change', () => run(() => controller.update({ designApi: $('design-api').value })));
     $('api-config').addEventListener('change', () => run(() => controller.selectApiConfig($('api-config').value)));
     for (const key of ['design', 'scenario', 'sample', 'judge']) $('module-api-' + key).addEventListener('change', () => run(() => controller.update({ moduleApis: { ...controller.getState().moduleApis, [key]: $('module-api-' + key).value } })));
     $('combine-design-scenario').addEventListener('change', () => run(() => controller.update({ combineDesignScenario: $('combine-design-scenario').checked })));
@@ -76,40 +75,37 @@
     dialog?.addEventListener('yakit:open', close);
     function render(state) {
       $('theme').value = state.theme || 'st';
-      $('design-api').value = state.designApi || 'main';
-      $('design-api').disabled = Boolean(state.busy);
       const navigationStyle = state.navigationStyle || 'auto';
       const navigator = root.ownerDocument.defaultView?.navigator || {};
       // 按设备识别手机和平板；iPad 桌面模式单独判断，触屏电脑仍放在上方。
       const mobile = navigator.userAgentData?.mobile || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '') || (/Macintosh/i.test(navigator.userAgent || '') && navigator.maxTouchPoints > 1);
       $('app-shell').dataset.navigationStyle = navigationStyle === 'auto' ? (mobile ? 'bottom' : 'top') : navigationStyle;
       root.querySelectorAll('input[name="yakit-wb-navigation-style"]').forEach(input => { input.checked = input.value === navigationStyle; });
-      $('main-api-label').textContent = state.mainApiLabel || '当前主 API';
       const configs = state.secondaryApiConfigs || [];
       const nextList = JSON.stringify([configs, state.profiles]);
       if (listKey !== nextList) {
         listKey = nextList;
-        $('api-config').replaceChildren(...(configs.length ? configs.map(config => new Option(config.name, config.id)) : [new Option('未配置，沿用酒馆当前连接', '')]));
+        $('api-config').replaceChildren(new Option('留空，沿用酒馆当前 API', ''), ...configs.map(config => new Option(config.name, config.id)));
         $('api-config-list').replaceChildren(...configs.map(config => {
           const button = root.ownerDocument.createElement('button');
           button.type = 'button'; button.className = 'panel settings-entry';
           button.setAttribute('aria-label', `配置 ${config.name}`); button.setAttribute('aria-controls', 'yakit-wb-settings-api-form');
           const name = root.ownerDocument.createElement('strong'); name.textContent = config.name;
           const summary = root.ownerDocument.createElement('small');
-          summary.textContent = [config.url, config.model, state.profiles?.find(item => item.id === config.profileId)?.name || config.profileId].filter(Boolean).join(' · ') || '沿用酒馆当前连接';
+          summary.textContent = [config.url, config.model, state.profiles?.find(item => item.id === config.profileId)?.name || config.profileId].filter(Boolean).join(' · ') || (config.apiKey ? '已填写 API-Key' : '沿用酒馆当前 API');
           button.append(name, summary); button.addEventListener('click', () => showPage('api', config, button));
           return button;
         }));
       }
       $('api-config').value = state.activeSecondaryApiId || '';
-      $('api-config').disabled = !configs.length || Boolean(state.busy);
+      $('api-config').disabled = Boolean(state.busy);
       const nextModuleKey = JSON.stringify(configs.map(config => [config.id, config.name]));
       if (moduleKey !== nextModuleKey) {
         moduleKey = nextModuleKey;
-        for (const key of ['design', 'scenario', 'sample', 'judge']) $('module-api-' + key).replaceChildren(new Option('沿用工作台 AI', 'default'), new Option('主 API', 'main'), ...configs.map(config => new Option(config.name, config.id)));
+        for (const key of ['design', 'scenario', 'sample', 'judge']) $('module-api-' + key).replaceChildren(new Option('沿用副 API（留空时使用酒馆 API）', 'default'), ...configs.map(config => new Option(config.name, config.id)));
       }
       for (const key of ['design', 'scenario', 'sample', 'judge']) {
-        $('module-api-' + key).value = state.moduleApis?.[key] || (key === 'sample' ? 'main' : 'default');
+        $('module-api-' + key).value = state.moduleApis?.[key] || 'default';
         $('module-api-' + key).disabled = Boolean(state.busy);
       }
       $('combine-design-scenario').checked = Boolean(state.combineDesignScenario);

@@ -21,10 +21,15 @@
       const busy = Boolean(state.busy), trial = currentTrial(state), task = currentTask(state);
       const activeVersion = state.versions.find(item => item.id === state.selectedVersionId);
       const emptyCard = state.emptyCardMode !== false;
-      const route = state.moduleApis?.sample || 'main';
-      const sampleApi = route === 'default' ? state.designApi === 'secondary' ? state.activeSecondaryApiId : 'main' : route;
       $('context-label').textContent = emptyCard ? '空卡测试' : state.contextLabel || '当前聊天';
-      $('sample-api-label').textContent = sampleApi === 'main' ? state.mainApiLabel || '主 API' : state.secondaryApiConfigs?.find(item => item.id === sampleApi)?.name || '工作台 AI';
+      try {
+        const settings = workbench.scenarios.moduleSettings(state, 'sample');
+        const route = state.moduleApis?.sample || 'default';
+        const configId = route === 'default' ? state.activeSecondaryApiId : route;
+        $('sample-api-label').textContent = settings.designApi === 'main' ? state.mainApiLabel || '酒馆当前 API' : state.secondaryApiConfigs?.find(item => item.id === configId)?.name || '副 API';
+      } catch (error) {
+        $('sample-api-label').textContent = error.message;
+      }
       $('empty-card').checked = emptyCard;
       setValue('trial-input', state.scenarioText);
       setValue('scene-source', state.sceneSource || 'manual');
@@ -32,9 +37,9 @@
       setValue('sample-mode', state.sampleRequestMode || 'parallel');
       for (const id of ['empty-card', 'trial-input', 'scene-source', 'sample-count', 'sample-mode']) $(id).disabled = busy;
       $('sample-mode-hint').textContent = !emptyCard
-        ? '当前聊天用主 API 逐次生成独立样本；副 API 或单次多样本需开启空卡模式。'
+        ? '当前聊天用酒馆当前 API 逐次生成独立样本；副 API 或单次多样本需开启空卡模式。'
         : state.sampleRequestMode === 'single'
-          ? '需接口支持 n 个独立结果；主文本补全或不支持 n 时请选择独立请求。'
+          ? '需接口支持 n 个独立结果；酒馆文本补全或不支持 n 时请选择独立请求。'
           : '各样本同时发起独立请求。';
       $('trial-version').textContent = activeVersion ? (activeVersion.content === state.draft ? `使用 · ${versionTitle(activeVersion)}` : '草稿已修改，请先保存新版本') : '先保存一个提示词版本';
       $('trial-button').disabled = busy || !activeVersion || activeVersion.content !== state.draft || (!emptyCard && !state.canTrial);

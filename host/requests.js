@@ -21,7 +21,7 @@
         ? { max_tokens: undefined, max_completion_tokens: max } : { max_tokens: max };
 
     function prepareMainRequest(context) {
-        if (context.onlineStatus === 'no_connection') throw new Error('请先连接酒馆主 API。');
+        if (context.onlineStatus === 'no_connection') throw new Error('请先连接酒馆 API。');
         if (context.mainApi === 'openai' && context.ChatCompletionService?.processRequest) {
             const current = context.chatCompletionSettings || {};
             // 只复制连接所需字段，不带入预设正文、辅助提示、宏、停止词或工具。
@@ -38,7 +38,7 @@
             if (current.chat_completion_source === 'nanogpt') Object.assign(connection, {
                 nanogpt_provider: current.nanogpt_provider, nanogpt_payg_override: current.nanogpt_payg_override,
             });
-            const model = required(context.getChatCompletionModel?.(), '主 API 模型');
+            const model = required(context.getChatCompletionModel?.(), '酒馆 API 模型');
             return { service: context.ChatCompletionService, messageKey: 'messages', payload: structuredClone({
                 ...connection,
                 model, ...tokenLimit(current.chat_completion_source, model, current.openai_max_tokens || 4096),
@@ -63,7 +63,7 @@
         let result;
         if ((settings.designApi || 'main') === 'main') {
             const { service, messageKey, payload } = prepared || prepareMainRequest(context);
-            if (count > 1 && messageKey === 'prompt') throw new Error('主文本补全不支持单次多样本，请改用独立请求。');
+            if (count > 1 && messageKey === 'prompt') throw new Error('酒馆文本补全不支持单次多样本，请改用独立请求。');
             result = await service.processRequest({ ...common, ...structuredClone(payload), [messageKey]: prompt }, {}, extractData, signal);
         } else if (settings.designApi === 'secondary') {
             if (settings.secondarySource === 'profile') {

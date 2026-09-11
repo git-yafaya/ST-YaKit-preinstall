@@ -22,9 +22,9 @@
 
         async function primaryRequest(context, signal, request) {
             checkAbort(signal);
-            if (primaryBusy) throw new Error('上一条主 API 请求仍在结束中，请稍后再试。');
-            if (context.isGenerating?.()) throw new Error('酒馆正在生成正文，请完成后再使用主 API。');
-            if (context.onlineStatus === 'no_connection') throw new Error('请先连接酒馆主 API。');
+            if (primaryBusy) throw new Error('上一条酒馆 API 请求仍在结束中，请稍后再试。');
+            if (context.isGenerating?.()) throw new Error('酒馆正在生成正文，请完成后再使用酒馆 API。');
+            if (context.onlineStatus === 'no_connection') throw new Error('请先连接酒馆 API。');
             primaryBusy = true;
             try {
                 const result = await request();
@@ -59,7 +59,7 @@
                     || !['parallel', 'single'].includes(mode)) throw new Error('试写模式或样本数量无效（须为 1—6 份）。');
                 const main = (settings.designApi || 'main') === 'main';
                 if (!emptyCardMode) {
-                    if (!main) throw new Error('当前聊天试写仅支持主 API；副 API 请启用空卡模式。');
+                    if (!main) throw new Error('当前聊天试写仅支持酒馆 API；副 API 请启用空卡模式。');
                     if (context.characterId == null && !context.groupId) throw new Error('请先打开一个角色或群组聊天。');
                     if (typeof context.generateQuietPrompt !== 'function') throw new Error('当前酒馆不支持正文试写。');
                     if (mode === 'single' && count > 1) throw new Error('当前聊天模式不支持单次多样本，请改用独立请求。');

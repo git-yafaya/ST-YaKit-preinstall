@@ -10,10 +10,9 @@
             <fieldset class="navigation-options"><legend>导航栏样式</legend><label><input type="radio" name="yakit-wb-navigation-style" value="auto"><span>自动</span></label><label><input type="radio" name="yakit-wb-navigation-style" value="top"><span>上方</span></label><label><input type="radio" name="yakit-wb-navigation-style" value="bottom"><span>下方</span></label></fieldset>
           </div></details>
           <details class="panel settings-card"><summary class="button">副 API</summary><div class="panel-content settings-group">
-            <div class="field"><label for="yakit-wb-design-api">工作台 AI</label><select id="yakit-wb-design-api"><option value="main">主 API</option><option value="secondary">副 API</option></select></div>
             <div class="api-config-toolbar"><div class="field"><label for="yakit-wb-api-config">使用配置</label><select id="yakit-wb-api-config"></select></div><button id="yakit-wb-api-add" type="button" class="button button-primary" aria-controls="yakit-wb-settings-api-form">配置 API</button></div>
+            <p class="page-hint">副 API 留空时沿用酒馆当前 API。</p>
             <div id="yakit-wb-api-config-list" class="api-config-list" role="group" aria-label="已保存的副 API"></div>
-            <div class="settings-summary"><span>酒馆主 API</span><strong id="yakit-wb-main-api-label">当前主 API</strong></div>
           </div></details>
           <details class="panel settings-card"><summary class="button">模块 API</summary><div class="panel-content settings-group">
             ${[['design', '提示词生成与修改'], ['scenario', '冲突场景生成'], ['sample', '正文样本生成'], ['judge', 'AI 盲评']].map(([key, label]) => `<div class="field"><label for="yakit-wb-module-api-${key}">${label}</label><select id="yakit-wb-module-api-${key}"></select></div>`).join('')}
@@ -28,7 +27,7 @@
           <form id="yakit-wb-settings-api-form" class="panel settings-api-page" aria-label="配置 API" hidden>
             <div id="yakit-wb-settings-api-fields" class="panel-content settings-group settings-api-fields">
               <div class="field"><label for="yakit-wb-api-profile">连接配置文件</label><select id="yakit-wb-api-profile"></select><p id="yakit-wb-api-profile-status" class="page-hint" role="status"></p></div>
-              <p class="page-hint">选择酒馆连接配置，或填写 OpenAI 兼容接口地址与模型。</p>
+              <p class="page-hint">选择酒馆连接配置，或填写 OpenAI 兼容接口地址与模型；连接信息全部留空时沿用酒馆当前 API。</p>
               <div class="field"><label for="yakit-wb-api-name">配置名称</label><input id="yakit-wb-api-name" required placeholder="填写配置名称" autocomplete="off"></div>
               <div class="field"><label for="yakit-wb-api-url">Base url</label><input id="yakit-wb-api-url" type="url" placeholder="https://api.example.com/v1" autocomplete="off" spellcheck="false"></div>
               <div class="field"><label for="yakit-wb-api-key">API-Key</label><input id="yakit-wb-api-key" type="password" placeholder="填写 API-Key" autocomplete="off" spellcheck="false"></div>

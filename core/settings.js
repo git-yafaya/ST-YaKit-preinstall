@@ -1,6 +1,6 @@
 (() => {
 'use strict';
-const { rawText, required, text } = globalThis.YaKitWorkbench.state;
+const { rawText, required, text, apiRoute } = globalThis.YaKitWorkbench.state;
 const { INSTRUCTION, LEGACY_INSTRUCTION } = globalThis.YaKitWorkbench.prompts;
 const { promptDefaults, promptText } = globalThis.YaKitWorkbench;
 
@@ -20,6 +20,7 @@ function syncSelection(state, selected) {
         secondaryProfileId: selected?.profileId || '', secondaryUrl: selected?.url || '',
         secondaryModel: selected?.model || '', secondaryKey: selected?.apiKey || '',
     });
+    state.designApi = apiRoute(state);
 }
 
 function getPrompt(state, kind) {
@@ -38,6 +39,7 @@ function syncLegacyFields(state, fields) {
     // 兼容旧入口直接编辑单套字段，重新打开时仍使用最后保存的值。
     if (config) Object.assign(config, { url: state.secondaryUrl, model: state.secondaryModel,
         apiKey: state.secondaryKey, profileId: state.secondarySource === 'profile' ? state.secondaryProfileId : '' });
+    state.designApi = apiRoute(state);
 }
 
 function restoreSettings(state, saved) {
@@ -52,17 +54,19 @@ function restoreSettings(state, saved) {
                 }
             } catch { /* 跳过损坏的配置，其他配置仍可正常使用。 */ }
         }
-        const selected = state.secondaryApiConfigs.find(config => config.id === saved.activeSecondaryApiId)
-            || state.secondaryApiConfigs[0];
+        // 明确清空的选择必须保留；失效标识留到请求时提示重新选择。
+        const id = typeof saved.activeSecondaryApiId === 'string' ? saved.activeSecondaryApiId.trim()
+            : state.secondaryApiConfigs[0]?.id || '';
+        const selected = state.secondaryApiConfigs.find(config => config.id === id);
         syncSelection(state, selected);
-        if (!selected) state.designApi = 'main';
+        state.activeSecondaryApiId = id;
     } else if ([state.secondaryProfileId, state.secondaryUrl, state.secondaryModel, state.secondaryKey].some(Boolean)) {
-        // 旧单套配置首次读取时迁移，保留原来的主副 API 选择。
+        // 旧单套配置首次读取时迁移，按已填写的连接字段决定请求来源。
         const config = { id: 'legacy-secondary-api', name: '已有配置', url: state.secondaryUrl,
             model: state.secondaryModel, apiKey: state.secondaryKey,
             profileId: state.secondarySource === 'profile' ? state.secondaryProfileId : '' };
         state.secondaryApiConfigs.push(config);
-        state.activeSecondaryApiId = config.id;
+        syncSelection(state, config);
     }
     state.assistPrompts = Object.fromEntries(Object.keys(promptDefaults).map(kind => [kind, getPrompt(saved || {}, kind).text]));
     // 仅迁移逐字相同的旧默认文案，保留用户编辑过的提示词。
@@ -87,15 +91,14 @@ function createSettingsActions({ state, host, change }) {
                     const config = { id: crypto.randomUUID(), ...values };
                     state.secondaryApiConfigs.push(config);
                     syncSelection(state, config);
-                    state.designApi = 'secondary';
                 }
                 state.notice = 'API 配置已保存。';
             });
         },
         selectApiConfig(id) {
             return change(() => {
-                syncSelection(state, findConfig(id));
-                state.designApi = 'secondary'; state.notice = '';
+                syncSelection(state, text(id, '配置标识') ? findConfig(id) : null);
+                state.notice = '';
             });
         },
         deleteApiConfig(id) {
@@ -103,7 +106,6 @@ function createSettingsActions({ state, host, change }) {
                 const config = findConfig(id);
                 state.secondaryApiConfigs = state.secondaryApiConfigs.filter(item => item.id !== config.id);
                 if (state.activeSecondaryApiId === config.id) syncSelection(state, state.secondaryApiConfigs[0]);
-                if (!state.secondaryApiConfigs.length) state.designApi = 'main';
                 state.notice = 'API 配置已删除。';
             });
         },

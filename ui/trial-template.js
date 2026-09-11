@@ -4,7 +4,7 @@
     <div id="yakit-wb-trial-page" class="page" tabindex="-1" hidden>
       <section id="yakit-wb-trial-panel" class="panel trial-panel" aria-label="试写与反馈">
           <div class="trial-controls">
-            <div class="environment"><span class="status-dot"></span><span id="yakit-wb-context-label">空卡测试</span><span id="yakit-wb-sample-api-label">主 API</span></div>
+            <div class="environment"><span class="status-dot"></span><span id="yakit-wb-context-label">空卡测试</span><span id="yakit-wb-sample-api-label">酒馆当前 API</span></div>
             <div class="test-options">
               <label class="test-toggle"><input id="yakit-wb-empty-card" type="checkbox" checked><span>空卡模式：仅使用提示词和场景</span></label>
               <div class="field"><label for="yakit-wb-scene-source">场景来源</label><select id="yakit-wb-scene-source"><option value="manual">手动填写</option><option value="ai">AI 生成冲突场景</option></select></div>

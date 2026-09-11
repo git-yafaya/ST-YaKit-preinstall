@@ -16,12 +16,12 @@ function required(value, name) {
 }
 
 const settingDefaults = {
-    theme: 'st', navigationStyle: 'auto', designApi: 'main', secondarySource: 'profile',
+    theme: 'st', navigationStyle: 'auto', secondarySource: 'profile',
     secondaryProfileId: '', secondaryUrl: '', secondaryModel: '', secondaryKey: '',
 };
 const settingOptions = {
     theme: ['st', 'forest', 'light', 'dark'], navigationStyle: ['auto', 'top', 'bottom'],
-    designApi: ['main', 'secondary'], secondarySource: ['profile', 'custom'],
+    secondarySource: ['profile', 'custom'],
 };
 
 function settingValue(key, value) {
@@ -31,8 +31,20 @@ function settingValue(key, value) {
     return result;
 }
 
+function apiRoute(state) {
+    // 只填写名称的空配置仍沿用酒馆连接；填写任一连接字段后再检查完整性。
+    return ['secondaryProfileId', 'secondaryUrl', 'secondaryModel', 'secondaryKey']
+        .some(key => typeof state[key] === 'string' && state[key].trim()) ? 'secondary' : 'main';
+}
+
 function designSettings(state) {
+    if (state.activeSecondaryApiId && !state.secondaryApiConfigs?.some(config => config.id === state.activeSecondaryApiId)) {
+        throw new Error('所选的副 API 配置已失效，请重新选择。');
+    }
     const settings = Object.fromEntries(Object.keys(settingDefaults).map(key => [key, settingValue(key, state[key])]));
+    settings.designApi = apiRoute(settings);
+    // 空配置都使用酒馆连接，统一快照以便合并请求比较。
+    if (settings.designApi === 'main') settings.secondarySource = settingDefaults.secondarySource;
     if (settings.designApi === 'secondary') {
         if (settings.secondarySource === 'profile') {
             if (!state.profiles.some(profile => profile.id === settings.secondaryProfileId && profile.id)) {
@@ -51,7 +63,7 @@ function designSettings(state) {
 
 function initialState(saved) {
     const state = {
-        goal: '', draft: '', ...settingDefaults,
+        goal: '', draft: '', ...settingDefaults, designApi: 'main',
         messages: [], versions: [], nextVersionNumber: 1, selectedVersionId: '', trials: [], selectedTrialId: '',
         profiles: [], canGenerate: false, mainApiLabel: '', contextLabel: '', canTrial: false,
         presets: [], selectedPresetName: '', presetEntries: [], presetSource: null, presetOrderCharacterId: null,
@@ -66,6 +78,7 @@ function initialState(saved) {
         try { state[key] = settingValue(key, saved[key]); } catch { /* 无效设置恢复默认值。 */ }
     }
     if (!state.secondaryProfileId && typeof saved.profileId === 'string') state.secondaryProfileId = saved.profileId.trim();
+    state.designApi = apiRoute(state);
     const records = key => Array.isArray(saved[key]) ? saved[key] : [];
     state.messages = records('messages').filter(item => item && ['user', 'assistant'].includes(item.role)
         && typeof item.content === 'string').map(({ role, content }) => ({ role, content }));
@@ -114,10 +127,10 @@ function initialState(saved) {
 function savedState(state) {
     // 预设目标只在当前页面有效，重新加载页面后须重新读取并选择条目。
     const { profiles, mainApiLabel, contextLabel, canTrial, canGenerate, presets, selectedPresetName,
-        presetEntries, presetSource, presetOrderCharacterId, busy, error, notice, ...data } = state;
+        presetEntries, presetSource, presetOrderCharacterId, busy, error, notice, designApi, ...data } = state;
     return clone(data);
 }
 
 const api = globalThis.YaKitWorkbench ||= {};
-api.state = { clone, rawText, text, required, settingValue, designSettings, initialState, savedState };
+api.state = { clone, rawText, text, required, settingValue, apiRoute, designSettings, initialState, savedState };
 })();

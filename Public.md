@@ -28,8 +28,8 @@ ST-YaKit-preinstall/
 │   ├── presets.js                  # 预设读取与复制、版本应用、原版恢复与开关动作
 │   ├── prompts.js                  # 独立条目与修订协议、答复解析和反馈指令
 │   ├── scenarios.js                # 场景输入、模块连接解析与冲突场景设计
-│   ├── settings.js                 # 多套 API 配置、旧数据迁移与各环节提示词存取
-│   ├── state.js                    # 设置校验、记录与版本编号恢复、保存快照
+│   ├── settings.js                 # 可选副 API 配置、旧数据迁移与各环节提示词存取
+│   ├── state.js                    # 设置校验、API 路由派生、记录恢复与保存快照
 │   ├── test-tasks.js               # 测试任务、独立采样、匿名盲评和人工偏好
 │   └── workbench.js                # 草稿版本、测试任务接入及异步状态控制
 ├── host/
@@ -90,7 +90,7 @@ ST-YaKit-preinstall/
 │   ├── presets-host.test.mjs       # 预设读取、冲突校验与宿主写回检查
 │   ├── preview-host.test.mjs       # 独立演示、旧数据、取消与入口隔离
 │   ├── select-toggle.test.mjs      # 触屏下拉事件边界与卸载检查
-│   ├── settings-core.test.mjs      # 配置迁移、导航持久化、提示词请求与导出检查
+│   ├── settings-core.test.mjs      # 配置迁移、空连接回退、导航与提示词请求检查
 │   ├── settings-ui.test.mjs        # 设置草稿、底栏操作、过期请求与自动导航检查
 │   ├── st-host.test.mjs            # 宿主适配器与请求契约检查
 │   ├── test-pipeline.test.mjs      # 固定场景、采样盲评、失败恢复与偏好检查
@@ -112,7 +112,7 @@ ST-YaKit-preinstall/
 2. 首次打开弹窗时按需导入 `app.js`，它通过 ES 模块导入现有状态、提示词、设置、预设、宿主及视图组件；同一模块在酒馆窗口中只执行一次。入口创建 `createSillyTavernHost(getContext)`，再调用 `mountApp(container, host)`，恢复记录并向容器内的 `#yakit-wb-app` 挂载五页工作台。工作组件尚在加载时重复打开共用一次请求，失败只在内容区显示错误，关闭按钮继续可用，重开后可重试。
 3. 关闭弹窗保留工作台实例、输入和滚动位置，重新打开与窗口获得焦点时更新聊天、连接及可试写状态。设置二级页的未确认草稿继续按原规则丢弃。独立演示入口 `preview.html` 直接加载 `preview/preview.js`，用相同的 `shell-template.js`、`app.js` 和本地适配器创建界面；演示只返回内置内容。卸载函数解除环境刷新监听并释放视图订阅及提示计时器。
 4. 需求与草稿输入立即更新内存并排队保存，保留首尾空格和换行。设计请求固定开始时的设置快照，第一个系统消息为最新保存的破限提示词与补充提示词，第二个声明条目范围和返回契约；其后仅为本次需求背景、当前参考条目及本次要求。默认生成独立条目，只有本次明确要求修改当前条目时才修订。历史讨论保留展示，不再逐轮发送；普通设计不附带聊天或试写正文，反馈修订只传关联版本及本次反馈。
-5. 四个模块分别通过 `moduleApis` 解析工作台配置快照。设计、场景、盲评和空卡样本使用独立消息通道：聊天补全使用 `ChatCompletionService.processRequest`，文本补全使用 `TextCompletionService.processRequest`。保存连接先通过 `resolveApiProfile` 解析来源和连接参数，再调用对应服务；仅提取预设中的连接字段，不载入预设正文或指令模板。不走宿主聊天组装、宏替换或 `generateRaw` 的扩展提示事件。请求关闭流式；副 API 上限 4096 token，主聊天补全采用当前答复长度；适用的 OpenAI 模型使用 `max_completion_tokens`。
+5. 四个模块分别通过 `moduleApis` 解析工作台配置快照，默认均为 `default`，沿用所选副 API；没有选择或连接字段全部为空时使用酒馆当前 API。`designApi` 仅为请求内部标志，由连接字段派生，不再作为可编辑或持久化开关。设计、场景、盲评和空卡样本使用独立消息通道：聊天补全使用 `ChatCompletionService.processRequest`，文本补全使用 `TextCompletionService.processRequest`。保存连接先通过 `resolveApiProfile` 解析来源和连接参数，再调用对应服务；仅提取预设中的连接字段，不载入预设正文或指令模板。不走宿主聊天组装、宏替换或 `generateRaw` 的扩展提示事件。请求关闭流式；副 API 上限 4096 token，酒馆聊天补全采用当前答复长度；适用的 OpenAI 模型使用 `max_completion_tokens`。
 6. 设计答复为 `{action, prompt, explanation}` JSON，也接受完整 JSON 代码围栏。`action` 为 `create` 或 `revise`，缺省兼容为 `create`，非法值拒绝采用；`prompt` 必须为单条完整的非空提示词。原始答复保留在讨论，界面展示说明和「查看提示词」。成功采用前，如果现有非空草稿与结果不同，且没有逐字相同的已保存版本，就以「自动保留 N」新增版本，再替换草稿。新建解除选中版本和预设来源，普通修订保留当前来源；显式传入源稿的反馈修订解除预设来源。取消、格式错误或生成期间修改草稿、需求、版本时不自动留存。手动与自动保存共用独立 ID、名称、递增编号和时间；已保存正文保持不变，名称可单独修改。手动保存的空名称使用「未命名提示词」。
 7. 测试要求选定版本与草稿完全一致，且填写原始需求。`trial(input)` 先保存任务快照，再固定手填场景或调用场景模块生成场景，随后生成 1—6 份样本并盲评。默认空卡消息严格为 `[{role:"system",content:候选原文},{role:"user",content:场景}]`；正文请求不含需求、讨论、角色、世界书、作者注释或其他样本。关闭空卡时才使用主 API 的 `generateQuietPrompt`，明确本次场景优先，聊天背景仍由酒馆组装。正文只保存到工作台，不追加聊天消息。
 8. 各样本记录关联发起时的 `versionId/taskId/sampleIndex`、场景和 `context`。`context.capturedAt` 为请求开始时间，记录 `createdAt` 为入库时间。空卡独立样本统一并发，任务层用 `Promise.allSettled` 等待各份完成并逐份保存；当前聊天模式逐次生成。单次模式传真实 `n` 并读取原始 `choices`，不拆分同一答复。全部成功后将原始需求、场景和随机标签的正文交给裁判，由 `judgement` 校验需求清单及每条证据，再映射回样本。初次盲评默认选最高分，同分按任务原顺序；不自动写人工偏好。反馈仍按试写源版本修订，只传本次意见及引用或完整正文，当前需求框为空也可修订历史反馈。
@@ -157,8 +157,9 @@ ST-YaKit-preinstall/
 | 首次加载期间重复打开 | 共享同一次组件挂载，关闭后加载完成不会自行重开窗口 |
 | 工作台加载失败 | 内容区显示错误，保留关闭按钮；下次打开重新尝试挂载 |
 | 空需求、空设计要求、保存版本时空草稿或空试写要求 | 提交失败并显示错误；编辑时允许暂存空白，预设条目允许清空保存 |
-| 副 API 连接未选、已失效或列表为空 | 明确报错，不回退主 API，也不自动选择其他连接 |
-| 自定义地址或模型缺失 | 发起设计前阻止请求；地址只接受 HTTP(S)，拒绝内嵌凭据、查询参数、片段和密钥换行；去除尾部斜杠与 `/chat/completions` |
+| 副 API 未选择或连接字段全部为空 | 沿用酒馆当前 API；显式空选择持久化，重新打开不自动选中已有配置 |
+| 已选副 API 配置或引用的酒馆连接失效 | 请求前报错并要求重新选择，不自动换用其他连接 |
+| 自定义连接只填写了部分信息 | 发起请求前检查地址和模型；地址只接受 HTTP(S)，拒绝内嵌凭据、查询参数、片段和密钥换行；去除尾部斜杠与 `/chat/completions` |
 | 自定义密钥为空 | 显式发送空认证头，不借用酒馆已有自定义接口密钥 |
 | 未打开角色或群组聊天 | 空卡可用，不读取角色背景；关闭空卡时需要聊天和已连接的主 API |
 | 主 API 未连接 | 使用主 API 的模块报错；已配置的副 API 独立可用，不要求主 API 在线 |
@@ -184,7 +185,7 @@ ST-YaKit-preinstall/
 | 重载时任务未结束 | 标记取消，保留已保存的固定场景和样本，不自动恢复网络请求 |
 | 旧单次试写 | 保留原记录与 context，可在历史单次试写选项中查看 |
 | 配置名称为空或更新目标不存在 | 拒绝保存；地址与模型允许先留空，发起设计时再检查完整性 |
-| 旧单套 API 配置 | 恢复为「已有配置」，保留原主副 API 选择；无法恢复任何列表项时回到主 API |
+| 旧单套 API 配置 | 恢复为「已有配置」，路由按实际连接字段决定；旧主副开关不再控制请求，旧模块 `main` 值迁移为 `default` |
 | 连接读取或模型列表返回较晚 | 仅更新仍在编辑的草稿；切换连接、返回或关闭后忽略旧结果，读取期间手填的名称和模型继续保留 |
 | 宿主不允许显示密钥 | 保留酒馆连接引用，地址只读；填写自己的密钥后解除引用并允许编辑地址 |
 | 连接读取失败或模型列表为空、错误 | 连接失败清空地址与密钥并阻止保存，重新选择或填写自己的密钥后可继续；模型拉取失败仍可手填模型 |
@@ -224,14 +225,14 @@ ST-YaKit-preinstall/
 | 旧配置与试写记录 | `profileId` 映射到 `secondaryProfileId`；旧试写 `context` 原样恢复，新试写位置区分独立消息与静默聊天入口 |
 | 试写期间切换聊天、连接或修改背景 | 保存请求开始时的深拷贝；宿主后续裁剪、宏替换和扩展处理仍由酒馆执行 |
 | 宿主没有公开模型、服务地址或世界书选择 | 对应信息为 `null`；不根据已有配置猜测实际值 |
-| 本地演示中填写主、副 API 设置 | 仍返回原有示例；条件的 `source`、连接和位置均标识 `local-preview` |
+| 本地演示中填写副 API 设置 | 仍返回原有示例；条件的 `source`、连接和位置均标识 `local-preview` |
 | 本地演示存储为空或已有旧数据 | 空存储加载原演示需求；旧存储键及记录继续使用，读写错误沿用核心保存错误处理 |
 
 记录位于 `extensionSettings.yakitPromptWorkbench`，经 `saveSettingsDebounced()` 交给酒馆保存。核心按顺序提交完整深拷贝，防止旧保存覆盖新编辑；宿主的防抖保存不提供逐次落盘确认，工作台只能感知读取或调用阶段抛出的错误。
 
 独立演示使用 `localStorage['yakit.prompt-workbench.preview.v1']`，保留历史演示数据，与酒馆设置分开。通过本地静态服务打开 `preview.html`；该入口通过 `preview/preview.js` 复用 `app.js` 和 `shell-template.js`，只使用本地适配器。
 
-持久化内容包括设置、需求、草稿、场景输入、讨论、版本、下次版本编号、测试任务、试写、评分、人工偏好、反馈、选中记录及 `presetPromptOverrides` 原文恢复信息。`profiles/mainApiLabel/contextLabel/canTrial/canGenerate/presets/selectedPresetName/presetEntries/presetSource/presetOrderCharacterId/busy/error/notice` 不持久化。主题、导航样式、主副 API 与配置选择立即保存；API 编辑通过页面底部「保存」提交，提示词编辑通过顶栏「确认」提交。场景输入即时持久化；未提交的设计要求、提示词名称、反馈和预设条目编辑框属于视图临时内容；预设未保存编辑不进入工作记录，已应用版本的原文快照会保存及导出。
+持久化内容包括设置、需求、草稿、场景输入、讨论、版本、下次版本编号、测试任务、试写、评分、人工偏好、反馈、选中记录及 `presetPromptOverrides` 原文恢复信息。`designApi/profiles/mainApiLabel/contextLabel/canTrial/canGenerate/presets/selectedPresetName/presetEntries/presetSource/presetOrderCharacterId/busy/error/notice` 不持久化。主题、导航样式与副 API 配置选择立即保存；API 编辑通过页面底部「保存」提交，提示词编辑通过顶栏「确认」提交。场景输入即时持久化；未提交的设计要求、提示词名称、反馈和预设条目编辑框属于视图临时内容；预设未保存编辑不进入工作记录，已应用版本的原文快照会保存及导出。
 
 导出结构为 `{formatVersion: 1, ...savedState}`，其中排除副 API 密钥。预设条目通过独立按钮手动写回；版本可单独删除，未提供工作记录导入或整份记录清空入口。
 
@@ -243,8 +244,8 @@ ST-YaKit-preinstall/
 | --- | --- |
 | `theme` | 默认 `st`（跟随酒馆）；另支持 `forest`（林系风）、`light`（浅色）、`dark`（黑灰深色） |
 | `navigationStyle` | 默认 `auto`（按设备选择位置）；另支持 `top`（上方文字）、`bottom`（下方图标）；缺失或无效值恢复自动，已有合法选择保留 |
-| `designApi` | `main`；可取 `main`、`secondary`，作为模块 `default` 的连接来源 |
-| `moduleApis` | `{design:'default',scenario:'default',sample:'main',judge:'default'}`；每项可为 `main`、`default` 或已保存 API 配置 ID |
+| `designApi` | 内部派生的 `main` 或 `secondary`，表示酒馆当前 API 或副 API；不接受 `update` 修改，不持久化 |
+| `moduleApis` | `{design:'default',scenario:'default',sample:'default',judge:'default'}`；每项可为 `default` 或已保存 API 配置 ID，旧 `main` 值按 `default` 处理 |
 | `scenarioText` / `sceneSource` | 空字符串 / `manual`；AI 模式为 `ai`，已有场景会复用 |
 | `emptyCardMode` | `true`；仅候选 system 和固定场景 user 消息 |
 | `sampleCount` / `sampleRequestMode` | `3` / `parallel`；数量 1—6，`parallel` 表示独立请求，`single` 表示一次真实 n 个结果 |
@@ -254,7 +255,7 @@ ST-YaKit-preinstall/
 | `testTasks[].judgement` | 初始 `null`；`{createdAt,results:[{trialId,label,score,reason,violations}]}` |
 | `testTasks[].preferredTrialId` | 初始空字符串；用户选择的最喜欢样本 ID |
 | `secondaryApiConfigs` | 默认 `[]`；每项含 `id/name/url/apiKey/model/profileId`，密钥不进入导出 |
-| `activeSecondaryApiId` | 默认空字符串；当前选中的副 API 配置 ID |
+| `activeSecondaryApiId` | 默认空字符串；当前副 API 配置 ID，空值表示沿用酒馆当前 API；清空选择保留配置列表 |
 | `assistPrompts.builtin` | 界面显示为破限提示词；默认设计引导，要求返回 `action/prompt/explanation` JSON，旧正文保留 |
 | `assistPrompts.custom` | 界面显示为补充提示词；默认空字符串，与 `builtin` 合并到设计系统消息，旧正文保留 |
 | `assistPrompts.scenario` | 场景生成规则，单独生成、任务自动生成及合并生成共用 |
@@ -281,9 +282,9 @@ ST-YaKit-preinstall/
 | `feedback.status` | 新试写为 `pending`；评价为 `satisfied` 或 `revise` |
 | `feedback.note` / `excerpt` | 默认空；提交时去除首尾空白，引用须属于该次正文 |
 
-设置字段统一在核心校验，未知字段和非法枚举拒绝更新。各模块的 API 完整性在发起操作时检查，允许先保存未填完的配置；模块中的失效 ID 要重新选择。正文连接由 `moduleApis.sample` 决定。
+设置字段统一在核心校验，未知字段和非法枚举拒绝更新。各模块的 API 完整性在发起操作时检查，允许先保存未填完的配置；连接 ID、地址、模型和密钥全部为空时沿用酒馆当前 API，半填配置及失效 ID 要补全或重新选择。正文连接由 `moduleApis.sample` 决定。
 
-设置一级页提供默认收起的「界面设置」「副 API」「模块 API」「内置提示词」分组。API 选择框下列出已存配置卡片；新增后立即选中并使用副 API，编辑保留 ID、列表位置和当前主副模式，编辑非激活项不改变当前连接。删除激活项后选择剩余首项，删除最后一项回主 API。选择和编辑同步 `secondary*` 旧字段，旧 `update` 调用修改这些字段时也同步当前列表项。
+设置一级页提供默认收起的「界面设置」「副 API」「模块 API」「内置提示词」分组。副 API 选择框始终提供「留空，沿用酒馆当前 API」，下方列出已存配置卡片；新增后立即选中，编辑保留 ID、列表位置，编辑非激活项不改变当前连接。清空选择保留全部配置并在重载后继续留空；删除激活项后选择剩余首项，删除最后一项沿用酒馆当前 API。四个模块提供沿用选项及已保存配置。选择和编辑同步 `secondary*` 旧字段，旧 `update` 调用修改这些字段时也同步当前列表项；请求路由始终按连接字段派生。
 
 API 和提示词编辑共用二级滑动轨道，使用主页的 240ms 动效；一级、二级独立滚动，非当前页设为 `inert` 与 `aria-hidden`。API 编辑卡片占满可用高度，字段区独立滚动，底栏常驻：左侧返回与删除，右侧保存；新建时隐藏删除。打开 API 编辑时将现有按钮移入底栏并将字段区滚动归零，离开时恢复顶栏按钮顺序，提示词页使用顶栏返回、重置和确认。
 
@@ -322,7 +323,7 @@ API 表单读取酒馆连接并回填地址、可读取密钥和模型，模型�
 
 `select-view.js` 在工作台根节点委托 `pointerdown`，覆盖各页和动态新增的下拉框，卸载时移除监听。浏览器支持 `base-select` 和 `:open`，且主触点再次按下已展开、启用的 `select` 本身时，取消默认事件，阻止兼容鼠标按下在原生弹层收起后重新打开列表；实际外观为系统选单时跳过。选项及分组、鼠标、触控笔、键盘和 `input/change` 仍走原有处理。取消主 `pointerdown` 抑制兼容鼠标事件的依据见 [Pointer Events 规范](https://www.w3.org/TR/pointerevents/#compatibility-mapping-with-mouse-events)。
 
-`controls.css` 仅为「预设预览」页及其内部控件、可样式化选项弹层保留细滚动条与透明轨道：悬停或焦点进入时显示滑块，触屏常显；浅色使用中性灰，其他主题由强调色生成滑块色。支持 WebKit 滚动条伪元素时宽高均为 4px，其余支持标准属性的浏览器使用 `thin`。其他页面正文、讨论区、文本框、设置子页和可样式化选项弹层隐藏滚动条，保留原有溢出与滚动行为；系统选单由浏览器或操作系统控制。
+`controls.css` 仅为「预设预览」页及其内部控件、可样式化选项弹层保留细滚动条与透明轨道：悬停或焦点进入时显示滑块，触屏常显；浅色使用中性灰，其他主题由强调色生成滑块色。支持 WebKit 滚动条伪元素时宽高均为 4px，其余支持标准属性的浏览器使用 `thin`。标准颜色的状态选择器使用 `:where(:hover,:focus-within)`，让 WebKit 分支的 `scrollbar-color:auto` 始终覆盖它，避免悬停或聚焦时切回原生宽滚动条；共用 `.page-frame` 设置 `scrollbar-gutter:stable`，在内容由不溢出变为溢出时保留滚动槽。其他页面正文、讨论区、文本框、设置子页和可样式化选项弹层隐藏滚动条，保留原有溢出与滚动行为；系统选单由浏览器或操作系统控制。
 
 Toast 根节点 `#yakit-wb-toast-root` 位于工作台弹窗或预览容器中，通过绝对定位显示在容器底部，五页共用，不挤占正文也不拦截点击。提示以纯文本写入并通过 `aria-live="polite"` 播报；正常、提醒和错误继续使用现有主题色、黄色和红色。最大宽度为容器减 28px，长文本换行，入场位移 12px、过渡 300ms；卸载时移除节点并清理帧与计时器。剪贴板回退文本框和下载链接同样临时创建在当前工作台容器内。
 
@@ -342,6 +343,7 @@ Toast 根节点 `#yakit-wb-toast-root` 位于工作台弹窗或预览容器中�
 | `YaKitWorkbench.captureTrialContext(host, options, scenario)` | 同步深拷贝聊天模式的连接、注入参数和背景条件 |
 | `YaKitWorkbench.captureIsolatedContext(host, settings, messages, mode, count, preparedConnection?)` | 返回独立请求连接与消息快照；主连接可采用已固定的连接记录，不读取角色、世界书或聊天元数据 |
 | `YaKitWorkbench.createWorkbench(host)` | 恢复记录、读取环境并返回控制器 |
+| `YaKitWorkbench.state.apiRoute(settings)` | 连接 ID、地址、模型和密钥全部为空白时返回 `main`，否则返回 `secondary`；完整性由 `designSettings` 检查，沿用酒馆时统一空连接快照 |
 | `mountApp(container, host)` | `app.js` 的 ES 导出；向容器内的 `#yakit-wb-app` 挂载工作台，返回释放视图、焦点及重开监听的函数 |
 | `mountLauncher(mount)` | `ui/launcher.js` 的 ES 导出；创建唯一原生弹窗，首次打开等待 `mount(container)`，成功后复用实例，失败后可重开重试 |
 | `YaKitWorkbench.mountWorkbench(controller, root)` | 显式传入 `#yakit-wb-app`，挂载五页工作台，返回订阅、设置事件、下拉与 Toast 清理函数 |
@@ -373,7 +375,8 @@ Toast 根节点 `#yakit-wb-toast-root` 位于工作台弹窗或预览容器中�
 | `setPresetEntryEnabled(identifier, enabled)` | 开关必须为布尔值，条目必须可切换；用读取时状态与角色顺序校验，成功更新条目列表 |
 | `update(fields)` | 原子校验并更新允许编辑的字段 |
 | `saveApiConfig(fields, id = '')` | 保存 `{name,url,apiKey,model,profileId}`；空 ID 新增并激活，非空 ID 更新已有项 |
-| `selectApiConfig(id)` / `deleteApiConfig(id)` | 选择或删除已保存的副 API 配置，目标不存在时拒绝操作 |
+| `selectApiConfig(id)` | 选择已保存的副 API；空字符串清空当前选择并保留配置列表，非空目标不存在时拒绝操作 |
+| `deleteApiConfig(id)` | 删除已保存的副 API，目标不存在时拒绝操作；删除激活项后选择剩余首项，删空后沿用酒馆当前 API |
 | `getPrompt(kind)` | 同步返回 `{text, defaultText}`；`kind` 支持 `builtin/custom/scenario/judge/feedback/chatScenario` |
 | `savePrompt(kind, text)` | 保存对应环节的提示词；`custom` 允许空白，其他项空白确认后恢复默认；修改仅对之后发起的请求生效 |
 | `readApiProfile(profileId)` / `fetchApiModels(fields)` | 透传宿主配置读取和模型列表能力，返回值见下表；失败由设置编辑页显示 |
@@ -472,12 +475,12 @@ if (presetName) console.log((await presetHost.copyPreset(presetName)).name);
 | 酒馆入口 | 扩展菜单在原生 `dialog` 中直接挂载组件，首次打开加载，后续复用；`preview.html` 提供离线演示 |
 | 主 API 独立生成 | 主聊天补全/文本补全使用独立服务，只传本模块消息；不载入预设正文、宏或聊天组装内容 |
 | 副 API 设计 | 支持连接管理配置和自定义 OpenAI 兼容接口，均为非流式请求 |
-| 设置 | 多套 API 新增、编辑、选择和删除，连接回填与模型列表；主副选择及自动、上方、下方导航持久化 |
+| 设置 | 多套副 API 新增、编辑、选择、清空选择和删除，连接回填与模型列表；空选择及自动、上方、下方导航持久化 |
 | 设计提示词 | 新需求默认单条生成，模型用 `action` 区分新建与明确修订；破限和补充提示词可编辑，固定请求契约补充单条范围，历史讨论仅供展示 |
 | 内置提示词设置 | 破限、补充、场景生成、裁判、反馈修订、聊天试写共用编辑、重置、确认与修改标记；已有两项正文分别保留 |
 | 正文试写 | 默认空卡并发三份，只传候选与场景；关闭后使用主 API 当前聊天逐次生成，`quietToLoud: false`、`skipWIAN: false` |
 | 任务与盲评 | AI 或手填场景、1—6 份样本、真实 n 或独立请求；需求清单、违例与疑点证据校验、独立评分和并列排名、失败保留与重评、用户最优选择 |
-| 模块连接 | 四模块单独选 API；设计与场景同连接时支持一份 JSON 合并生成 |
+| 模块连接 | 四模块默认沿用副 API，未填写时使用酒馆当前 API，也可单独指定已保存配置；设计与场景同连接时支持一份 JSON 合并生成 |
 | 试写条件 | 开始时记录连接、位置、聊天统计、作者注释及世界书选择，保存恢复和导出保持原快照 |
 | 独立演示 | 原有两版提示词及正文、独立 localStorage、反馈与取消；不调用真实模型 |
 | 版本与反馈 | 原文快照、自定义名称、稳定编号、改名与确认删除、正文引用、准确归因及按反馈修订 |
@@ -513,8 +516,8 @@ UI 代码位于 `ui/`、`styles/`、`style.css` 和页面模板；业务代码�
 | `tests/design-entries.test.mjs` | 连续独立条目、旧稿逐字留存和去重、编号、取消与编辑保护、反馈来源隔离、恢复与导出 |
 | `tests/versions-core.test.mjs` | 名称与编号分离、改名保持快照、删除关联清理与草稿保留、忙碌拒绝、旧数据补号、失败后的导出及删空重开 |
 | `tests/versions-ui.test.mjs` | 真实控制器与最小 DOM 检查名称输入保留、同名版本区分、改名、确认与取消、切换及忙碌撤销确认、删除后的空态与焦点 |
-| `tests/settings-core.test.mjs` | 导航默认值、自动模式保存恢复、旧手动选择及非法值校验；旧配置迁移、多配置编辑、提示词请求与密钥导出排除 |
-| `tests/settings-ui.test.mjs` | API 底栏按钮归位与操作；PC、手机、平板、iPadOS 自动导航与手动覆盖；连接及模型结果过期、密钥解除引用、输入保留与提示词草稿 |
+| `tests/settings-core.test.mjs` | 导航默认值与持久化、配置迁移与编辑、提示词请求与密钥导出排除；空选择重载、四模块回退与旧值迁移、半填与失效配置、等价空连接合并生成 |
+| `tests/settings-ui.test.mjs` | API 底栏按钮、空配置选择与模块选项；PC、手机、平板、iPadOS 自动导航与手动覆盖；连接及模型结果过期、密钥解除引用、输入保留与提示词草稿 |
 | `tests/api-profiles.mjs` | 省略 API/模型/密钥继承、预设优先级、各来源连接字段与密钥映射、代理配对、模型列表与错误、地址归一及离线演示 |
 | `tests/presets-core.test.mjs` | 默认预设、草稿隔离、原文基线、搭配恢复、版本删除、开关失败和真实适配器联接 |
 | `tests/presets-host.test.mjs` | 生效顺序、正文与开关冲突、缺引用启用、标记权限、保存锁和等待期间的宿主编辑 |
@@ -528,7 +531,7 @@ UI 代码位于 `ui/`、`styles/`、`style.css` 和页面模板；业务代码�
 | `tests/host-parallel.test.mjs` | 主聊天及文本补全三路并发、模型/地址/答复长度固定、条件记录一致、真实 n、取消与聊天串行 |
 | `tests/judgement-core.test.mjs` | 裁判输入隔离、格式与引用校验、新旧评分恢复及导出、重评失败保留评分、部分样本失败与取消 |
 | `tests/judgement-ui.test.mjs` | 需求与证据纯文本展示、并列排名、匿名标签更新、样本选择、历史评分与空态 |
-| `tests/trial-ui.test.mjs` | 任务/样本切换、评分排序与偏好显示、原始场景和 API 控件 |
+| `tests/trial-ui.test.mjs` | 任务/样本切换、评分排序与偏好显示、原始场景；使用真实模块路由显示副 API 名称、空连接回退和半填错误 |
 | `tests/preview-host.test.mjs` | 显式宿主挂载、焦点与重开环境刷新及清理、离线两版流程、旧存储恢复、请求快照和取消 |
 | `tests/theme.test.mjs` | 容器主题各自生效，宿主根主题保持不变 |
 | `tests/navigation.test.mjs` | 页签键盘操作、程序切页、隐藏页隔离与草稿和滚动保留 |
@@ -564,3 +567,5 @@ v0.3.5 已通过连接列表、继承字段、模型回填与覆盖、密钥映�
 SillyTavern 验收遵循本机 `AGENTS.md` 的人工流程。从扩展菜单打开工作台，在宽屏与窄屏检查五页尺寸随窗口调整、四周留白、滑动切页、独立滚动、关闭按钮和常驻导航；切换四种主题，核对窗口、控件与选项弹层。确认仅「预设预览」保留原有滚动条，其他页面正文、讨论区、文本框、设置子页及可样式化选项弹层均隐藏滚动条，并检查滚轮、触屏和键盘仍可滚动。检查长选项换行、键盘选择、关闭与重新打开保留输入，以及系统减少动态效果设置。在「预设预览」核对折叠编辑、逐条保存、开关、不同条目的版本搭配、重新打开后切回原版及载入草稿。真实预设写回、模型调用和完整试写流程继续由用户人工验收。
 
 v0.3.6 已通过全部 65 项本地测试、四个独立检查脚本、全部 JavaScript 语法及差异检查。新增覆盖六类提示词保存恢复与导出、旧内容保留、所有请求入口接线、任务中修改设置的快照、最新裁判重评，以及设置页六项编辑、重置、返回与修改标记。酒馆中需人工核对「设置 → 内置提示词」的六个入口、旧内容和重新打开后的保存结果。
+
+v0.3.7 已通过 15 项请求与设置检查，以及设置和试写页两项本地视图接线检查；新增的等价空连接合并生成断言已通过。真实调用及界面效果仍由用户人工验收：副 API 留空时检查四个模块沿用酒馆当前 API，保存副 API 后检查默认沿用与模块单独选择，再清空选择并刷新确认保留空值。
