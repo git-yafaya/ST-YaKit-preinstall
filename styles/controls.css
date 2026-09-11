@@ -18,6 +18,9 @@
     :is(.yakit-workbench,.yakit-workbench *)::-webkit-scrollbar-thumb{background:var(--scroll-thumb)}
   }
 }
+/* 仅预设预览的外框和内部控件保留滚动条，其他区域仍可正常滚动。 */
+:is(.yakit-workbench,.yakit-workbench *):not(.page-frame:has(> #yakit-wb-presets-page),#yakit-wb-presets-page,#yakit-wb-presets-page *){scrollbar-width:none}
+:is(.yakit-workbench,.yakit-workbench *):not(.page-frame:has(> #yakit-wb-presets-page),#yakit-wb-presets-page,#yakit-wb-presets-page *)::-webkit-scrollbar{width:0;height:0}
 .yakit-workbench button,.yakit-workbench input,.yakit-workbench textarea,.yakit-workbench select{font:inherit}
 .yakit-workbench button,.yakit-workbench a,.yakit-workbench input,.yakit-workbench textarea,.yakit-workbench select,.yakit-workbench .button{-webkit-tap-highlight-color:transparent}
 .yakit-workbench button,.yakit-workbench a,.yakit-workbench .button{touch-action:manipulation;transition:color .15s ease,background .15s ease,border-color .15s ease,transform .15s ease}
@@ -42,6 +45,7 @@
   .yakit-workbench select,.yakit-workbench select::picker(select){appearance:base-select}
   .yakit-workbench select{padding-inline-end:12px}
   .yakit-workbench select::picker(select){box-sizing:border-box;inline-size:anchor-size(self-inline);min-inline-size:0;max-inline-size:calc(100vw - 28px);max-block-size:min(320px,60dvh);overflow:auto;margin-block:4px;padding:5px;border:1px solid var(--line);border-radius:8px;background:var(--paper);background:rgb(from var(--paper) r g b / 1);color:var(--text);box-shadow:0 10px 25px -5px #0000001f,0 8px 10px -6px #0000000f;animation:yakit-wb-select-enter .16s ease-out}
+  .yakit-workbench select:not(#yakit-wb-presets-page *)::picker(select){scrollbar-width:none}
   .yakit-workbench select option,.yakit-workbench select option:not(:checked){min-height:40px;padding:10px 12px;border-radius:8px;background:transparent;white-space:normal;overflow-wrap:anywhere;transition:background .16s ease}
   .yakit-workbench select option:checked{color:var(--accent);font-weight:600}
   .yakit-workbench select option:hover,.yakit-workbench select option:focus{background:var(--selected)}
