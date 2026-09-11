@@ -34,7 +34,8 @@
 .yakit-workbench textarea{display:inline-block;max-height:none;min-height:80px;padding:10px;resize:vertical;line-height:1.6}
 .yakit-workbench input{height:32px;padding:0 10px;line-height:30px}
 .yakit-workbench textarea::placeholder,.yakit-workbench input::placeholder{color:var(--yakit-text-muted);opacity:1}
-.yakit-workbench select{appearance:auto;margin:0;height:auto;min-height:40px;max-width:100%;padding:10px 32px 10px 12px;border:0;border-radius:8px;background:var(--field);color:var(--text);font-size:13px;line-height:1.5;white-space:nowrap;text-overflow:ellipsis;cursor:pointer;transition:background .16s ease}
+/* 下拉框间距由所在布局控制，隔离宿主主题强制添加的外边距。 */
+.yakit-workbench select{appearance:auto;margin:0!important;height:auto;min-height:40px;max-width:100%;padding:10px 32px 10px 12px;border:0;border-radius:8px;background:var(--field);color:var(--text);font-size:13px;line-height:1.5;white-space:nowrap;text-overflow:ellipsis;cursor:pointer;transition:background .16s ease}
 .yakit-workbench select:hover:not(:disabled){background:var(--surface)}
 .yakit-workbench[data-theme="light"] select:hover:not(:disabled){background:#E8ECF2}
 .yakit-workbench select option,.yakit-workbench select option:not(:checked){background:var(--paper);color:var(--text)}
