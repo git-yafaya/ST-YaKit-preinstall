@@ -14,9 +14,11 @@
 .yakit-workbench .design-panel,.yakit-workbench .discussion-panel{display:flex;flex-direction:column}
 .yakit-workbench .design-content{flex:1}
 .yakit-workbench .discussion-content{display:flex;flex-direction:column;flex:1;min-height:0}
-.yakit-workbench .composer{margin:14px 0 0;border:1px solid var(--line);border-radius:8px;background:var(--field);overflow:hidden}
+.yakit-workbench .composer{margin:14px 0 0;border:1px solid var(--yakit-control-border,var(--line));border-radius:8px;background:var(--yakit-control-bg,var(--field));overflow:hidden}
 .yakit-workbench .composer textarea{border:0;border-radius:0;min-height:80px}
-.yakit-workbench .composer:focus-within{border-color:var(--focus)}
+.yakit-workbench .composer:focus-within{border-color:var(--yakit-control-focus,var(--focus));box-shadow:var(--yakit-control-ring,none)}
+/* 林系风的补充要求由整个面板显示焦点外圈，数量输入仍保留自己的外圈。 */
+.yakit-workbench[data-theme="forest"] .composer textarea:focus{box-shadow:none}
 .yakit-workbench .composer-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px;padding:0 10px 10px}
 .yakit-workbench .design-count{display:flex;align-items:center;gap:8px;margin-right:auto}
 .yakit-workbench .design-count input{width:76px}

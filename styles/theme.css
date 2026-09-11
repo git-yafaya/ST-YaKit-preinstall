@@ -48,6 +48,13 @@
   --yakit-text-sub: #72766B;
   --yakit-text-muted: #9A9D93;
   --yakit-border: rgba(72, 78, 63, 0.12);
+  /* 表单使用暖纸白和鼠尾草柔光，各页共用同一组颜色。 */
+  --yakit-control-bg: #FAFAF8;
+  --yakit-control-border: rgba(60, 68, 55, 0.12);
+  --yakit-control-focus: rgba(92, 110, 88, 0.5);
+  --yakit-control-ring: 0 0 0 3px rgba(92, 110, 88, 0.08);
+  --yakit-control-placeholder: #9CA199;
+  --yakit-control-arrow: #3C4437;
 }
 .yakit-workbench[data-theme="light"] {
   color-scheme: light;

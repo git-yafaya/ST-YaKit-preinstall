@@ -25,19 +25,29 @@
 .yakit-workbench button:focus-visible,.yakit-workbench a:focus-visible,.yakit-workbench input:is([type="checkbox"],[type="radio"]):focus-visible,.yakit-workbench select:focus-visible,.yakit-workbench .button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .yakit-workbench textarea,.yakit-workbench input,.yakit-workbench select{min-width:0}
 .yakit-workbench input:disabled,.yakit-workbench textarea:disabled{filter:none}
-.yakit-workbench textarea,.yakit-workbench input{width:100%;margin:0;border:1px solid var(--line);border-radius:6px;background:var(--field);color:var(--text);box-shadow:none}
-/* 文本输入聚焦只改变已有边框颜色，清除酒馆和浏览器添加的外圈。 */
-.yakit-workbench textarea:focus,.yakit-workbench input:not([type="checkbox"],[type="radio"]):focus{outline:none;box-shadow:none;border-color:var(--focus)}
+.yakit-workbench textarea,.yakit-workbench input{width:100%;margin:0;border:1px solid var(--yakit-control-border,var(--line));border-radius:6px;background:var(--yakit-control-bg,var(--field));color:var(--text);box-shadow:none}
+/* 文本输入沿用主题焦点样式，林系风使用柔和边框与外圈。 */
+.yakit-workbench textarea:focus,.yakit-workbench input:not([type="checkbox"],[type="radio"]):focus{outline:none;box-shadow:var(--yakit-control-ring,none);border-color:var(--yakit-control-focus,var(--focus))}
 .yakit-workbench textarea{display:inline-block;max-height:none;min-height:80px;padding:10px;resize:vertical;line-height:1.6}
 .yakit-workbench input{height:32px;padding:0 10px;line-height:30px}
 /* 统一隐藏数字输入框的上下步进按钮。 */
 .yakit-workbench input[type="number"]{-moz-appearance:textfield;appearance:textfield}
 .yakit-workbench input[type="number"]::-webkit-inner-spin-button,.yakit-workbench input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
-.yakit-workbench textarea::placeholder,.yakit-workbench input::placeholder{color:var(--yakit-text-muted);opacity:1}
+.yakit-workbench textarea::placeholder,.yakit-workbench input::placeholder{color:var(--yakit-control-placeholder,var(--yakit-text-muted));opacity:1}
 /* 下拉框间距由所在布局控制，隔离宿主主题强制添加的外边距。 */
-.yakit-workbench select{appearance:auto;margin:0!important;height:auto;min-height:40px;max-width:100%;padding:10px 32px 10px 12px;border:0;border-radius:8px;background:var(--field);color:var(--text);font-size:13px;line-height:1.5;white-space:nowrap;text-overflow:ellipsis;cursor:pointer;transition:background .16s ease}
-.yakit-workbench select:hover:not(:disabled){background:var(--surface)}
+.yakit-workbench select{appearance:auto;margin:0!important;height:auto;min-height:40px;max-width:100%;padding:10px 32px 10px 12px;border:0;border-radius:8px;background:var(--yakit-control-bg,var(--field));color:var(--text);font-size:13px;line-height:1.5;white-space:nowrap;text-overflow:ellipsis;cursor:pointer;transition:background .16s ease}
+.yakit-workbench select:hover:not(:disabled){background-color:var(--yakit-control-bg,var(--surface))}
 .yakit-workbench[data-theme="light"] select:hover:not(:disabled){background:#E8ECF2}
+/* 表单和一体输入面板共用主页的轻微过渡，聚焦时柔和显现。 */
+.yakit-workbench[data-theme="forest"] textarea,.yakit-workbench[data-theme="forest"] input:not([type="checkbox"],[type="radio"]),.yakit-workbench[data-theme="forest"] select,.yakit-workbench[data-theme="forest"] .composer{transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease}
+/* 林系风单行下拉框加边框后减去上下各 1px，保持原有高度。 */
+.yakit-workbench[data-theme="forest"] select{border:1px solid var(--yakit-control-border)}
+.yakit-workbench[data-theme="forest"] select:not([multiple],[size]){padding-block:9px}
+.yakit-workbench[data-theme="forest"] select:focus{outline:none;border-color:var(--yakit-control-focus);box-shadow:var(--yakit-control-ring)}
+/* 系统下拉仍由原生 select 打开，只替换不能单独着色的默认箭头。 */
+@supports not ((appearance:base-select) and selector(::picker(select))){
+  .yakit-workbench[data-theme="forest"] select:not([multiple],[size]){appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='m1 1 5 5 5-5' fill='none' stroke='%233C4437' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:12px 8px}
+}
 .yakit-workbench select option,.yakit-workbench select option:not(:checked){background:var(--paper);color:var(--text)}
 .yakit-workbench select option:disabled:not(:checked){color:var(--muted)}
 @supports (appearance:base-select) and selector(::picker(select)){
@@ -51,7 +61,7 @@
   .yakit-workbench select option:checked{color:var(--accent);font-weight:600}
   .yakit-workbench select option:hover,.yakit-workbench select option:focus{background:var(--selected)}
   .yakit-workbench select option:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
-  .yakit-workbench select::picker-icon{color:var(--muted);flex-shrink:0}
+  .yakit-workbench select::picker-icon{color:var(--yakit-control-arrow,var(--muted));flex-shrink:0}
 }
 @keyframes yakit-wb-select-enter{from{opacity:0;translate:0 -4px}to{opacity:1;translate:0 0}}
 .yakit-workbench h1,.yakit-workbench h2,.yakit-workbench h3,.yakit-workbench p{margin:0}

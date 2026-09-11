@@ -26,14 +26,14 @@
 .yakit-workbench #yakit-wb-trial-page .test-toggle{gap:10px;padding:12px;border-radius:8px}
 .yakit-workbench #yakit-wb-trial-page select,
 .yakit-workbench #yakit-wb-trial-page textarea,
-.yakit-workbench #yakit-wb-trial-page input:not([type="checkbox"],[type="radio"]){border:1px solid var(--line);border-radius:8px}
+.yakit-workbench #yakit-wb-trial-page input:not([type="checkbox"],[type="radio"]){border:1px solid var(--yakit-control-border,var(--line));border-radius:8px}
 .yakit-workbench #yakit-wb-trial-page select{width:100%}
 .yakit-workbench #yakit-wb-trial-page textarea{display:block;min-height:80px;height:112px;max-height:160px;resize:none}
 .yakit-workbench #yakit-wb-trial-page #yakit-wb-trial-input{height:144px}
 .yakit-workbench #yakit-wb-trial-page #yakit-wb-excerpt{height:80px}
 .yakit-workbench #yakit-wb-trial-page textarea:focus,
 .yakit-workbench #yakit-wb-trial-page input:not([type="checkbox"],[type="radio"]):focus,
-.yakit-workbench #yakit-wb-trial-page select:focus{outline:none;border-color:var(--focus);box-shadow:0 0 0 2px color-mix(in srgb,var(--focus) 18%,transparent)}
+.yakit-workbench #yakit-wb-trial-page select:focus{outline:none;border-color:var(--yakit-control-focus,var(--focus));box-shadow:var(--yakit-control-ring,0 0 0 2px color-mix(in srgb,var(--focus) 18%,transparent))}
 .yakit-workbench #yakit-wb-trial-page .page-hint{margin-top:8px;font-size:12px;line-height:1.6;color:var(--muted);overflow-wrap:anywhere}
 .yakit-workbench .trial-actions{display:grid;flex-shrink:0;gap:6px;padding:16px 24px 4px 4px;border-top:1px solid var(--line);background:var(--background)}
 .yakit-workbench #yakit-wb-trial-version{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
