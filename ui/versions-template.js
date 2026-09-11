@@ -5,7 +5,7 @@
       <div class="panel-content">
         <div class="version-toolbar">
           <div class="field version-picker"><label for="yakit-wb-versions">选择提示词版本 <span class="version-count">共 <span id="yakit-wb-version-count">0</span> 个</span></label><select id="yakit-wb-versions"><option value="">尚未保存版本</option></select></div>
-          <div class="version-actions"><button type="button" id="yakit-wb-export" class="button button-secondary">导出工作记录 <span aria-hidden="true">↗</span></button><button type="button" class="button button-secondary" data-open-page="workbench">返回编辑</button><button type="button" class="button button-primary" data-open-page="trial">前往试写 <span aria-hidden="true">→</span></button></div>
+          <div class="version-actions"><button type="button" id="yakit-wb-export" class="button button-secondary">导出工作记录 <span aria-hidden="true">↗</span></button></div>
         </div>
         <p class="page-hint">选择后会载入该版本的提示词草稿。</p>
         <div id="yakit-wb-version-empty" class="version-empty">还没有保存的版本。先在工作台完成草稿，再保存为版本。</div>
