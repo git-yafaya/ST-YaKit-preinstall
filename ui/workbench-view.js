@@ -16,7 +16,6 @@
     const trials = workbench.mountTrials(controller, root, { run, notify, versionTitle: version => versions.title(version) });
 
     function showNotice(state) {
-      // 只提示新结果；错误存在时不让成功文案盖住它。
       if (state.error && state.error !== lastError) notify(state.error, 'error');
       else if (!state.error && state.notice && state.notice !== lastNotice) notify(state.notice);
       lastError = state.error; lastNotice = state.notice;
@@ -74,7 +73,6 @@
           const content = document.createElement('span');
           let readable = message.content, candidate = null;
           if (message.role !== 'user') {
-            // 结构化答复先展示说明，候选提示词可以展开查看。
             try { candidate = workbench.prompts.parseDesign(readable); readable = candidate.explanation; } catch { /* 普通文字按原样展示。 */ }
           }
           content.textContent = readable;
@@ -106,7 +104,6 @@
       const content = controller.getState().draft;
       try { await document.defaultView.navigator.clipboard.writeText(content); }
       catch {
-        // 剪贴板接口不可用时，尝试浏览器的原生复制。
         const field = document.createElement('textarea'); field.value = content; field.style.cssText = 'position:fixed;left:-9999px';
         container.append(field); field.select();
         const copied = document.execCommand('copy'); field.remove();

@@ -1,6 +1,5 @@
 (() => {
   const workbench = globalThis.YaKitWorkbench ??= {};
-  // 测试页只负责展示与收集输入，任务、采样与评分由控制器执行。
   workbench.mountTrials = function(controller, root, { run, notify, versionTitle }) {
     const document = root.ownerDocument;
     const $ = id => root.querySelector(`#yakit-wb-${id}`);
@@ -24,7 +23,7 @@
       const emptyCard = state.emptyCardMode !== false;
       const route = state.moduleApis?.sample || 'main';
       const sampleApi = route === 'default' ? state.designApi === 'secondary' ? state.activeSecondaryApiId : 'main' : route;
-      $('context-label').textContent = emptyCard ? '空卡测试 · 无需角色或聊天' : state.contextLabel || '当前聊天';
+      $('context-label').textContent = emptyCard ? '空卡测试' : state.contextLabel || '当前聊天';
       $('sample-api-label').textContent = sampleApi === 'main' ? state.mainApiLabel || '主 API' : state.secondaryApiConfigs?.find(item => item.id === sampleApi)?.name || '工作台 AI';
       $('empty-card').checked = emptyCard;
       setValue('trial-input', state.scenarioText);
@@ -33,12 +32,11 @@
       setValue('sample-mode', state.sampleRequestMode || 'parallel');
       for (const id of ['empty-card', 'trial-input', 'scene-source', 'sample-count', 'sample-mode']) $(id).disabled = busy;
       $('sample-mode-hint').textContent = !emptyCard
-        ? '当前聊天模式使用主 API，逐次生成独立样本；使用副 API 或单次多样本时，请开启空卡模式。'
+        ? '当前聊天用主 API 逐次生成独立样本；副 API 或单次多样本需开启空卡模式。'
         : state.sampleRequestMode === 'single'
-          ? '需要接口真正支持 n 个独立结果；主文本补全或不支持 n 的接口请选择独立请求。'
-          : '各样本同时发起独立请求，使用同一份提示词和固定场景。';
+          ? '需接口支持 n 个独立结果；主文本补全或不支持 n 时请选择独立请求。'
+          : '各样本同时发起独立请求。';
       $('trial-version').textContent = activeVersion ? (activeVersion.content === state.draft ? `使用 · ${versionTitle(activeVersion)}` : '草稿已修改，请先保存新版本') : '先保存一个提示词版本';
-      // 空卡与副 API 不依赖当前聊天，具体连接能力由控制器检查。
       $('trial-button').disabled = busy || !activeVersion || activeVersion.content !== state.draft || (!emptyCard && !state.canTrial);
       $('generate-scenario').disabled = busy || !(state.goal.trim() || state.draft.trim());
       $('scenario-hint').hidden = state.sceneSource !== 'ai';

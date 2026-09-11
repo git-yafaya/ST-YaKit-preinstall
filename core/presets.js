@@ -46,7 +46,6 @@ function createPresetActions({ state, host, run, change, isActive, draftChanged 
                 state.selectedPresetName = result.name;
                 state.presetEntries = result.entries;
                 state.presetOrderCharacterId = result.orderCharacterId ?? null;
-                // 副本成为新目标，保留草稿，但解除草稿与原预设条目的绑定。
                 state.presetSource = null;
                 state.notice = `已复制为「${result.name}」。`;
             });

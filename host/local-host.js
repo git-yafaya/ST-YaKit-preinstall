@@ -44,7 +44,6 @@
             },
             async fetchApiModels({ profileId = '' } = {}) {
                 if (profileId && profileId !== 'local-example') throw new Error('找不到所选的本地示例连接。');
-                // 预览只返回固定名称，不向填写的地址发起请求。
                 return ['本地预置设计', '本地预置正文'];
             },
             async design(messages, { signal, purpose = 'design' } = {}) {
@@ -84,7 +83,6 @@
                         sampleRequestMode: request.sampleRequestMode || 'parallel', sampleCount: count,
                         capturedAt: new Date().toISOString(),
                         connection: { api: 'local-preview', model: '本地预置正文' },
-                        // 仅记录待试写的内容；本地示例没有实际宿主注入位置或聊天历史。
                         injection: { entryPoint: 'local-preview', placement: 'local-preview', role: null,
                             depth: null, quietToLoud: false, skipWIAN: false,
                             prompt: `${request.content}\n\n${request.input}` },

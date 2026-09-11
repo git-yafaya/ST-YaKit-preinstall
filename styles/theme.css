@@ -1,4 +1,3 @@
-/* 工作台直接继承酒馆主题变量，预览与弹窗使用同一组局部配色。 */
 .yakit-workbench {
   color-scheme: normal;
   --yakit-bg: var(--SmartThemeBlurTintColor, #1E201B);
@@ -15,7 +14,6 @@
   --yakit-border: var(--SmartThemeBorderColor, rgba(255, 255, 255, 0.08));
   --yakit-radius-card: 16px;
   --yakit-radius-window: 20px;
-  /* 保留现有组件的变量名，统一从主题取值。 */
   --background: var(--yakit-bg);
   --paper: var(--yakit-card);
   --field: var(--yakit-input);

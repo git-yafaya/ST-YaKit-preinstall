@@ -2,7 +2,6 @@
   const workbench = globalThis.YaKitWorkbench ??= {};
   workbench.mountSettings = function mountSettings(controller, root, { run }) {
     const $ = id => root.querySelector(`#yakit-wb-${id}`);
-    // 顶栏与页面共用工作台容器，避免命中宿主或其他工作台。
     const container = root.closest('.yakit-workbench');
     const header = id => container.querySelector(`#yakit-wb-${id}`);
     const theme = workbench.mountTheme(controller, container);

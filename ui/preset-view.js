@@ -9,7 +9,6 @@
       await controller.readPreset($('preset-name').value);
       if (!controller.getState().error) entries.rebase(controller.getState());
     }
-    // 选择后立即读取，读取成功才更新本地编辑器的原文基线。
     $('preset-name').addEventListener('change', () => run(readPreset));
     $('read-preset').addEventListener('click', () => run(readPreset));
     $('copy-preset').addEventListener('click', () => run(() => controller.copyPreset()));
@@ -30,7 +29,6 @@
       $('preset-name').disabled = busy || !presets.length;
       $('refresh-presets').disabled = busy;
       $('read-preset').disabled = busy || !state.selectedPresetName;
-      // 仅复制列表中仍存在的预设，名称和已保存内容由控制器处理。
       $('copy-preset').disabled = busy || !state.selectedPresetName || !presets.some(item => item.name === state.selectedPresetName);
       // 空内容也可保存，只比较原文快照，避免把清空条目误判为没有修改。
       $('save-preset-entry').disabled = busy || !source || state.draft === source.content;

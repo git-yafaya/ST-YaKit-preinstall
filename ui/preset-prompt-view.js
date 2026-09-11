@@ -1,6 +1,5 @@
 (() => {
   const workbench = globalThis.YaKitWorkbench ??= {};
-  // 这里只保留每条的预览选择；写回及原版记录由控制器处理。
   workbench.createPresetPromptView = function createPresetPromptView(controller, editor, { element, run, updateStatus }) {
     const row = element('div', 'save-row preset-prompt-picker');
     const select = element('select', '');
@@ -70,7 +69,7 @@
       apply.disabled = Boolean(state.busy) || entry.marker || changed || unavailable || selected.content === entry.content;
       status.textContent = stale ? '当前预设内容已在酒馆中修改，可选择「当前预设内容」查看。'
         : override ? `当前使用：${options.find(option => option.id === override.versionId)?.label || '测试提示词'}` : '当前使用：原版提示词';
-      status.textContent += changed ? '；原版有未保存的编辑，请先保存再应用。' : '。选择仅预览，点击「应用提示词」后写回预设。';
+      status.textContent += changed ? '；请先保存原版编辑再应用。' : '。';
     }
     return { row, preview, status, render };
   };

@@ -32,7 +32,6 @@ async function createWorkbench(host) {
         // 顺序写入，避免较早的保存覆盖较新的编辑。
         saveQueue = saveQueue.catch(() => {}).then(() => host.saveState(snapshot));
         return saveQueue.then(() => {
-            // 较新的保存成功后，清除队列中较早那次保存的错误。
             if (state.error === saveError) { state.error = ''; emit(); }
         }, () => fail(new Error(saveError)));
     };
@@ -90,7 +89,6 @@ async function createWorkbench(host) {
             const result = parseDesign(reply);
             if (combined) required(result.scenario, '合并答复中的测试场景');
             if (revision === operation.revision) {
-                // 替换前逐字留存未保存的草稿，已保存过的内容不重复插入。
                 if (state.draft.trim() && state.draft !== result.prompt
                     && !state.versions.some(version => version.content === state.draft)) {
                     addVersion(`自动保留 ${state.nextVersionNumber}`);
@@ -158,7 +156,6 @@ async function createWorkbench(host) {
             return change(() => {
                 if (state.busy) throw new Error('请等待当前操作完成后再删除版本。');
                 const version = find(state.versions, id, '提示词版本');
-                // 关联反馈随试写一起删除，保留当前草稿和预设绑定。
                 if (state.trials.some(item => item.versionId === version.id && item.id === state.selectedTrialId)) {
                     state.selectedTrialId = '';
                 }

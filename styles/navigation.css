@@ -1,4 +1,3 @@
-/* 顶栏与分段导航常驻，五页共用纪实的尺寸和切页节奏。 */
 .yakit-workbench{
   --view-duration: 240ms;
   --view-easing: cubic-bezier(0.16, 1, 0.3, 1);
@@ -13,7 +12,6 @@
   padding: 0 24px;
   border-bottom: 1px solid var(--line);
 }
-/* 五页共用固定标题，图标与入口一致并跟随文字颜色。 */
 .yakit-workbench .app-brand{
   display: flex;
   align-items: center;
@@ -94,7 +92,6 @@
 }
 .yakit-workbench .nav-item:hover{ background: var(--field); }
 .yakit-workbench .nav-item[aria-selected="true"],.yakit-workbench .nav-item[aria-selected="true"]:hover{ background: transparent; color: #35372f; }
-/* 深色导航使用灰色底板和浅色文字。 */
 .yakit-workbench[data-theme="dark"] .nav-indicator{ background: var(--selected); box-shadow: 0 1px 4px rgba(0, 0, 0, .24); }
 .yakit-workbench[data-theme="dark"] .nav-item[aria-selected="true"]{ color: var(--text); }
 .yakit-workbench .nav-item:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -128,7 +125,6 @@
   .yakit-workbench .page-track,.yakit-workbench .nav-indicator{ transition: none; }
 }
 
-/* 底部图标导航仍保留每页的可访问名称和相同的滑动轨道。 */
 .yakit-workbench .nav-icon{display:none;font-size:18px;line-height:1}
 .yakit-workbench .app-shell[data-navigation-style="bottom"]>.sidebar{order:2;margin-top:0;margin-bottom:12px}
 .yakit-workbench .app-shell[data-navigation-style="bottom"] .nav-item{display:flex;align-items:center;justify-content:center;height:34px}

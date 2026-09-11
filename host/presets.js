@@ -73,7 +73,6 @@
                 const next = structuredClone(getSaved(manager, presetName));
                 const prefix = `${presetName.replace(/-试作\d+$/, '')}-试作`;
                 let number = 1n;
-                // 复制试作时沿用原名；跳过已有最大编号，保留所有已存在的副本。
                 for (const name of Object.keys(manager.getPresetList().preset_names)) {
                     if (!name.startsWith(prefix)) continue;
                     const suffix = name.slice(prefix.length);
@@ -181,7 +180,6 @@
                     throw new Error('酒馆当前条目开关有未保存的修改，请先处理后重新读取。');
                 }
                 if (active && typeof host.saveSettingsDebounced !== 'function') throw new Error('酒馆设置保存接口不可用。');
-                // 文件只替换目标开关，正文、其他设置与其他角色顺序全部保留。
                 const next = structuredClone(saved);
                 updatePresetEntrySwitch(getPresetEntrySwitch(next, matchingEntries(next, identifier)[0], context), identifier, enabled);
                 const result = presetView(presetName, next, context);

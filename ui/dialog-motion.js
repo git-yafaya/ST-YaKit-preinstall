@@ -1,4 +1,3 @@
-/** 关闭按钮、遮罩和 Esc 共用退场动画，结束后再关闭原生弹窗。 */
 export function attachDialogMotion(dialog) {
     let closingAnimation;
     let preserveCancel = false;

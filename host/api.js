@@ -77,7 +77,6 @@
                         return values.map(value => ({ content: value, context: structuredClone(captured) }));
                     }
                     const options = {
-                        // 明确本次场景优先；聊天模式仍由宿主注入预设和背景。
                         quietPrompt: `${content}\n\n本次试写以以下场景为准；已有背景与之冲突时采用本次场景：\n${input}`,
                         quietToLoud: false, skipWIAN: false,
                     };
@@ -88,7 +87,6 @@
                 if (!emptyCardMode) {
                     samples = await primaryRequest(context, signal, async () => {
                         const results = [];
-                        // 聊天试写保留宿主主通道的串行保护。
                         for (let index = 0; index < (mode === 'single' ? 1 : count); index++) results.push(...await run());
                         return results;
                     });

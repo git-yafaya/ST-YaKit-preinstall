@@ -22,7 +22,6 @@
     });
     $('confirm-delete-version').addEventListener('click', () => {
       const state = controller.getState(), id = pendingDeleteId;
-      // 先收起确认区，只有仍被选中的目标才交给控制器删除。
       pendingDeleteId = '';
       render(state);
       if (!id || state.busy || state.selectedVersionId !== id) return;
@@ -61,7 +60,6 @@
       $('version-details').hidden = !version;
       $('version-title').textContent = version?.label || '';
       $('version-number').textContent = version ? `版本 ${version.number}` : '';
-      // 详情保留保存时的原文，草稿编辑不会覆盖历史内容。
       $('version-content').textContent = version?.content || '';
       const savedAt = new Date(version?.createdAt || '');
       $('version-created-at').textContent = !version ? '' : Number.isNaN(savedAt.getTime()) ? '未记录保存时间' : `保存于 ${savedAt.toLocaleString('zh-CN')}`;

@@ -33,7 +33,6 @@ import './ui/judgement-view.js';
 import './ui/trial-view.js';
 import './ui/workbench-view.js';
 
-/** 在指定容器里挂载工作台，宿主和本地演示共用这一套组件。 */
 export async function mountApp(container, host) {
     const api = globalThis.YaKitWorkbench;
     const controller = await api.createWorkbench(host);

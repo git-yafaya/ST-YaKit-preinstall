@@ -1,4 +1,3 @@
-/* 五个页面共用纪实的卡片与间距，宽屏工作台并排阅读。 */
 .yakit-workbench .status-dot{width:5px;height:5px;display:inline-block;border-radius:50%;background:var(--accent)}
 .yakit-workbench .workbench{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}
 .yakit-workbench .panel{background:var(--paper);border:1px solid var(--line);border-radius:12px;min-width:0;overflow:hidden}
@@ -23,7 +22,6 @@
 .yakit-workbench .preset-picker select{flex:1 1 140px;width:0}
 .yakit-workbench .preset-save .page-hint{margin-top:0}
 .yakit-workbench .preset-entries{display:flex;flex-direction:column;gap:14px}
-/* 开关只占标题右侧，展开正文保留全宽，长标题在预留区域内换行。 */
 .yakit-workbench .preset-entry-row{position:relative}
 .yakit-workbench .preset-entry{border-radius:14px;min-width:0}
 .yakit-workbench .preset-entry-toggle{position:absolute;inset-block-start:0;inset-inline-end:0;width:86px}
@@ -103,7 +101,6 @@
 .yakit-workbench .message-prompt summary{max-width:100%;line-height:normal}
 .yakit-workbench .message-prompt>div{padding-top:8px}
 @media(min-width:960px){
-  /* 两栏平分宽度并撑满页面，需求输入框使用左栏剩余高度。 */
   .yakit-workbench .workbench{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;height:100%;min-height:0}
   .yakit-workbench .workbench>.panel{max-height:100%;overflow:auto}
   .yakit-workbench .design-content{display:grid;grid-template-rows:1fr auto auto auto}
@@ -126,7 +123,6 @@
   .yakit-workbench .trial-actions{align-items:flex-start;flex-direction:column;gap:12px}
   .yakit-workbench .trial-actions>span{max-width:100%;white-space:normal}
 }
-/* 测试任务沿用主界面的卡片、控件与留白，不另设窗口尺寸。 */
 .yakit-workbench .test-options{display:flex;flex-wrap:wrap;align-items:end;gap:12px;margin-bottom:12px}
 .yakit-workbench .test-options>.field{flex:1 1 150px;min-width:0}
 .yakit-workbench .test-options select,.yakit-workbench .test-task-bar select{width:100%}

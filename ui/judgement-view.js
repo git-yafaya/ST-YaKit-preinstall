@@ -1,6 +1,5 @@
 (() => {
   const workbench = globalThis.YaKitWorkbench ??= {};
-  // 盲评只提供阅读顺序，人工最喜欢的样本仍由原来的反馈按钮保存。
   workbench.mountJudgement = function(controller, root, { run }) {
     const document = root.ownerDocument;
     const $ = id => root.querySelector(`#yakit-wb-${id}`);

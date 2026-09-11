@@ -25,7 +25,6 @@
             const api = service?.validateProfile?.(profile) || context.CONNECT_API_MAP?.[profile.api];
             let proxy;
             if (profile.proxy) {
-                // 通过宿主入口复用酒馆已经加载的连接资源。
                 const resources = await context.getApiProfileResources();
                 proxy = resources.proxies.find(item => item.name === profile.proxy);
                 if (!proxy) throw new Error('找不到连接配置使用的代理。');
@@ -84,7 +83,6 @@
                     if (/[\r\n]/.test(key)) throw new Error('副 API 密钥不能包含换行。');
                     payload = { chat_completion_source: 'openai', reverse_proxy: normalizeApiUrl(url), proxy_password: key };
                 }
-                // 状态接口只读取模型，不切换当前连接，也不发送生成请求。
                 const response = await fetch('/api/backends/chat-completions/status', {
                     method: 'POST', headers: context.getRequestHeaders(), body: JSON.stringify(payload),
                 });

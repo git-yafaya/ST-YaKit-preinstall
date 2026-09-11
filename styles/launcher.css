@@ -23,7 +23,6 @@
 dialog#yakit-workbench-dialog.yakit-workbench,
 .yakit-workbench.yakit-workbench-preview {
     box-sizing: border-box;
-    /* 各页共用视口尺寸，窗口四周各留 12px。 */
     width: calc(100vw - 24px);
     max-width: none;
     min-width: 0;

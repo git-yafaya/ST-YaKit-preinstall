@@ -1,4 +1,3 @@
-// 正式窗口与独立预览共用顶栏和页面容器。
 export const shellTemplate = `
   <header class="app-toolbar" aria-label="工作台控制">
     <h1 class="app-brand"><span class="app-brand-icon" aria-hidden="true"></span>预设工作台</h1>

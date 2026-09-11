@@ -16,7 +16,6 @@ function required(value, name) {
 }
 
 const settingDefaults = {
-    // 自动导航的实际位置由视图按设备决定。
     theme: 'st', navigationStyle: 'auto', designApi: 'main', secondarySource: 'profile',
     secondaryProfileId: '', secondaryUrl: '', secondaryModel: '', secondaryKey: '',
 };
@@ -67,7 +66,6 @@ function initialState(saved) {
         try { state[key] = settingValue(key, saved[key]); } catch { /* 无效设置恢复默认值。 */ }
     }
     if (!state.secondaryProfileId && typeof saved.profileId === 'string') state.secondaryProfileId = saved.profileId.trim();
-    // 只恢复完整记录，避免损坏的本地数据打断工作台。
     const records = key => Array.isArray(saved[key]) ? saved[key] : [];
     state.messages = records('messages').filter(item => item && ['user', 'assistant'].includes(item.role)
         && typeof item.content === 'string').map(({ role, content }) => ({ role, content }));
@@ -77,7 +75,6 @@ function initialState(saved) {
         number: Number.isSafeInteger(item.number) && item.number > 0 ? item.number : null,
         content: item.content, createdAt: typeof item.createdAt === 'string' ? item.createdAt : '',
     }));
-    // 测试版本写入预设前保留原文，刷新酒馆后仍能切回原版。
     state.presetPromptOverrides = records('presetPromptOverrides').filter(item => item
         && typeof item.presetName === 'string' && item.presetName.trim()
         && typeof item.identifier === 'string' && item.identifier.trim()

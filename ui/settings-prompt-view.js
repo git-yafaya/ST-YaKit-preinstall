@@ -1,7 +1,6 @@
 (() => {
   const workbench = globalThis.YaKitWorkbench ??= {};
   workbench.promptTitles = { builtin: '内置提示词', custom: '破限提示词' };
-  /** 编辑与重置只改变草稿，点击确认后才交给控制器保存。 */
   workbench.mountSettingsPrompt = function(controller, root) {
     const $ = id => root.querySelector(`#yakit-wb-${id}`);
     let kind = '', revision = 0;
@@ -15,7 +14,7 @@
       open(next) {
         revision++; kind = next;
         $('prompt-text').value = controller.getPrompt(kind).text;
-        $('prompt-help').textContent = kind === 'builtin' ? '用于引导工作台 AI 设计和修改提示词；重置可恢复内置内容。' : '补充工作台 AI 需要遵循的要求，与内置提示词一起使用。';
+        $('prompt-help').textContent = kind === 'builtin' ? '引导工作台 AI 设计和修改提示词。' : '与内置提示词一起发送给工作台 AI。';
         $('prompt-status').textContent = '';
         $('settings-prompt-page').hidden = false; refresh();
       },

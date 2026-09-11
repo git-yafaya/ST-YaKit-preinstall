@@ -20,7 +20,6 @@
       entry.frame = requestAnimationFrame(() => element.classList.add('yakit-toast--visible'));
       entry.timer = setTimeout(() => {
         element.classList.remove('yakit-toast--visible');
-        // 淡出结束后移除文字，并释放对应的任务记录。
         entry.timer = setTimeout(() => {
           element.remove();
           active.delete(entry);

@@ -5,7 +5,7 @@
       <div class="settings-track">
         <div id="yakit-wb-settings-primary" class="settings-body settings-content">
           <details class="panel settings-card"><summary class="button">界面设置</summary><div class="panel-content settings-group">
-            <div class="field"><label for="yakit-wb-theme">主题</label><select id="yakit-wb-theme"><option value="forest">林系风</option><option value="st">跟随酒馆</option><option value="light">浅色</option><option value="dark">深色</option></select><p class="page-hint">选择界面配色，切换后即时生效。</p></div>
+            <div class="field"><label for="yakit-wb-theme">主题</label><select id="yakit-wb-theme"><option value="forest">林系风</option><option value="st">跟随酒馆</option><option value="light">浅色</option><option value="dark">深色</option></select></div>
             <fieldset class="navigation-options"><legend>导航栏样式</legend><label><input type="radio" name="yakit-wb-navigation-style" value="auto"><span>自动</span></label><label><input type="radio" name="yakit-wb-navigation-style" value="top"><span>上方</span></label><label><input type="radio" name="yakit-wb-navigation-style" value="bottom"><span>下方</span></label></fieldset>
           </div></details>
           <details class="panel settings-card"><summary class="button">副 API</summary><div class="panel-content settings-group">
@@ -15,10 +15,9 @@
             <div class="settings-summary"><span>酒馆主 API</span><strong id="yakit-wb-main-api-label">当前主 API</strong></div>
           </div></details>
           <details class="panel settings-card"><summary class="button">模块 API</summary><div class="panel-content settings-group">
-            <p class="page-hint">各环节可以使用不同连接；选择「沿用工作台 AI」时，使用上方工作台 AI 的设置。</p>
             ${[['design', '提示词生成与修改'], ['scenario', '冲突场景生成'], ['sample', '正文样本生成'], ['judge', 'AI 盲评']].map(([key, label]) => `<div class="field"><label for="yakit-wb-module-api-${key}">${label}</label><select id="yakit-wb-module-api-${key}"></select></div>`).join('')}
             <label class="test-toggle"><input id="yakit-wb-combine-design-scenario" type="checkbox"><span>生成提示词时，一次请求同时生成冲突场景</span></label>
-            <p class="page-hint">先在试写页选择 AI 场景，并为提示词与场景指定同一个 API；开启后，一次请求同时返回提示词和场景。</p>
+            <p class="page-hint">需在试写页选择 AI 场景，并为提示词与场景指定同一个 API。</p>
           </div></details>
           <details class="panel settings-card"><summary class="button">提示词</summary><div class="panel-content settings-group">
             <button id="yakit-wb-prompt-builtin" type="button" class="panel settings-entry" aria-controls="yakit-wb-settings-prompt-page">内置提示词</button>
