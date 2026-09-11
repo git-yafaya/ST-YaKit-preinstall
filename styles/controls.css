@@ -26,7 +26,8 @@
 .yakit-workbench button,.yakit-workbench a,.yakit-workbench .button{touch-action:manipulation;transition:color .15s ease,background .15s ease,border-color .15s ease,transform .15s ease}
 .yakit-workbench button{cursor:pointer;border:0}
 .yakit-workbench button:disabled,.yakit-workbench select:disabled{opacity:.5;cursor:not-allowed}
-.yakit-workbench button:active:not(:disabled),.yakit-workbench .button:active:not(:disabled){transform:scale(.97)}
+/* 折叠标题保持尺寸稳定，沿用悬停颜色与箭头动画。 */
+.yakit-workbench button:active:not(:disabled),.yakit-workbench .button:not(summary):active:not(:disabled){transform:scale(.97)}
 .yakit-workbench a{color:inherit;text-decoration:none;filter:none}
 .yakit-workbench button:focus-visible,.yakit-workbench a:focus-visible,.yakit-workbench input:focus-visible,.yakit-workbench textarea:focus-visible,.yakit-workbench select:focus-visible,.yakit-workbench .button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .yakit-workbench textarea,.yakit-workbench input,.yakit-workbench select{min-width:0}
