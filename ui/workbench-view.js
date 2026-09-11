@@ -64,7 +64,7 @@
       const nextMessageKey = JSON.stringify(state.messages);
       if (messageKey !== nextMessageKey) {
         messageKey = nextMessageKey;
-        const messages = state.messages.length ? state.messages : [{ role: 'assistant', content: '先说说你想让故事发生什么变化。\n\n我们可以从「NPC 只知道有依据的信息」开始，再用一个具体场景试写，看看提示词是否真的有效。' }];
+        const messages = state.messages.length ? state.messages : [{ role: 'assistant', content: '填写需求后，点击「生成示例提示词」。\n\n保存草稿，再阅读预置正文，体验评价与修改流程。' }];
         $('messages').replaceChildren(...messages.map(message => {
           const item = document.createElement('div');
           item.className = `message message-${message.role === 'user' ? 'user' : 'assistant'}`;

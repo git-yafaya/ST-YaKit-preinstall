@@ -8,7 +8,7 @@
     </header>
     <main>
       <section class="intro" aria-labelledby="page-title">
-        <div><div class="eyebrow">PROMPT WORKBENCH</div><h1 id="page-title">把想要的效果，写进提示词。</h1><p>和工作台一起设计，用正文试写验证，再由你决定下一步。</p></div>
+        <div><div class="eyebrow">PROMPT WORKBENCH</div><h1 id="page-title">把想要的效果，写进提示词。</h1><p>从预置示例开始，体验设计、试写与反馈的完整流程。</p></div>
         <div class="demo-note"><span class="note-icon" aria-hidden="true">✳</span><div><strong>先体验完整流程</strong><p>AI 操作展示预置示例。当前没有连接模型。</p></div></div>
       </section>
       <nav class="workflow" aria-label="工作流程">
@@ -21,15 +21,15 @@
         <section id="design-panel" class="panel design-panel" aria-labelledby="design-title">
           <div class="panel-heading"><div><span class="section-kicker">WORKSHOP</span><h2 id="design-title">需求与修改</h2></div><span class="subtle-badge">工作台 AI</span></div>
           <div class="panel-content design-content">
-            <div class="field"><label for="goal">你希望改善什么？</label><textarea id="goal" rows="5" placeholder="描述想要的写作效果，例如：NPC 只能知道亲眼见过或被告知的事情。"></textarea></div>
+            <div class="field"><label for="goal">你希望改善什么？</label><textarea id="goal" rows="3" placeholder="描述想要的写作效果，例如：NPC 只能知道亲眼见过或被告知的事情。"></textarea></div>
             <div class="example-hint"><span aria-hidden="true">↳</span><span>本次示例 · NPC 认知边界<br><small>避免全知视角，让猜测与事实分开。</small></span></div>
+            <form id="design-form" class="composer">
+              <label for="instruction" class="sr-only">补充要求或修改意见</label><textarea id="instruction" rows="2" placeholder="继续补充要求，或告诉工作台哪里需要修改…"></textarea>
+              <div class="composer-actions"><span>预置示例演示</span><button id="design-button" class="button button-primary" type="submit">生成示例提示词 <span aria-hidden="true">↑</span></button></div>
+            </form>
             <div class="conversation-label"><span>修改讨论</span><span>仅用于设计提示词</span></div>
             <div id="messages" class="messages" aria-live="polite"></div>
           </div>
-          <form id="design-form" class="composer">
-            <label for="instruction" class="sr-only">补充要求或修改意见</label><textarea id="instruction" rows="3" placeholder="继续补充要求，或告诉工作台哪里需要修改…"></textarea>
-            <div class="composer-actions"><span>预置示例演示</span><button id="design-button" class="button button-primary" type="submit">生成示例提示词 <span aria-hidden="true">↑</span></button></div>
-          </form>
         </section>
         <section class="panel draft-panel" aria-labelledby="draft-title">
           <div class="panel-heading"><div><span class="section-kicker">PROMPT</span><h2 id="draft-title">提示词草稿</h2></div><span class="editable-badge"><i></i>可直接编辑</span></div>
@@ -50,7 +50,7 @@
             <div class="trial-actions"><span id="trial-version">先保存一个提示词版本</span><button id="trial-button" class="button button-primary">试写选中版本 <span aria-hidden="true">↗</span></button></div>
           </div>
           <div class="output-heading"><h3>试写正文</h3><label for="trials" class="sr-only">选择试写记录</label><select id="trials" aria-label="选择试写记录"><option value="">暂无试写</option></select></div>
-          <div id="trial-empty" class="trial-empty"><span aria-hidden="true">Aa<span>✧</span></span><h3>让提示词在故事里试一试</h3><p>保存左侧草稿，点击「试写选中版本」。<br>读完正文后，用你的判断推动下一次修改。</p></div>
+          <div id="trial-empty" class="trial-empty"><span aria-hidden="true">Aa<span>✧</span></span><h3>从示例正文体验反馈流程</h3><p>保存草稿，点击「试写选中版本」。<br>阅读预置正文，再提交你的评价与修改意见。</p></div>
           <p id="trial-context" class="trial-context" hidden></p>
           <article id="trial-output" class="trial-output" tabindex="0" aria-label="试写正文，可选中片段作为反馈" hidden></article>
           <section id="feedback-section" class="feedback-section" aria-labelledby="feedback-title" hidden>
