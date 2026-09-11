@@ -8,6 +8,7 @@
         <button type="button" class="nav-item active" data-page="workbench" aria-current="page"><span class="nav-icon" aria-hidden="true">✦</span><span class="nav-label">工作台</span></button>
         <button type="button" class="nav-item" data-page="trial"><span class="nav-icon" aria-hidden="true">✎</span><span class="nav-label">试写与反馈</span></button>
         <button type="button" class="nav-item" data-page="versions"><span class="nav-icon" aria-hidden="true">◷</span><span class="nav-label">版本记录</span></button>
+        <button type="button" class="nav-item" data-page="workshop"><span class="nav-icon" aria-hidden="true">◇</span><span class="nav-label">创意工坊</span></button>
         <button type="button" class="nav-item" data-page="settings"><span class="nav-icon" aria-hidden="true">⚙</span><span class="nav-label">设置</span></button>
       </nav>
       <main>
@@ -39,6 +40,11 @@
       </div>
       <div class="page-frame">${workbench.trialTemplate}</div>
       <div class="page-frame">${workbench.versionsTemplate}</div>
+      <div class="page-frame">
+        <section id="yakit-wb-workshop-page" class="page panel" aria-label="创意工坊" tabindex="-1" hidden>
+          <div class="panel-content"><p class="page-hint">暂无内容</p></div>
+        </section>
+      </div>
       <div class="page-frame">${workbench.settingsTemplate}</div>
       </div></div>
       </main>

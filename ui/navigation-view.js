@@ -3,7 +3,7 @@
   workbench.mountNavigation = function mountNavigation(root, { onPageChange } = {}) {
     const $ = id => root.querySelector(`#yakit-wb-${id}`);
     const container = root.closest('.yakit-workbench');
-    const pages = { presets: '预设预览', workbench: '工作台', trial: '试写与反馈', versions: '版本记录', settings: '设置' };
+    const pages = { presets: '预设预览', workbench: '工作台', trial: '试写与反馈', versions: '版本记录', workshop: '创意工坊', settings: '设置' };
     const names = Object.keys(pages);
     const buttons = Array.from(root.querySelectorAll('[data-page]'));
     names.forEach(name => {
