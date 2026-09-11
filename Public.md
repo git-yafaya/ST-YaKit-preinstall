@@ -256,7 +256,7 @@ ST-YaKit-preinstall/
 | `testTasks[].preferredTrialId` | 初始空字符串；用户选择的最喜欢样本 ID |
 | `secondaryApiConfigs` | 默认 `[]`；每项含 `id/name/url/apiKey/model/profileId`，密钥不进入导出 |
 | `activeSecondaryApiId` | 默认空字符串；当前副 API 配置 ID，空值表示沿用酒馆当前 API；清空选择保留配置列表 |
-| `assistPrompts.builtin` | 界面显示为破限提示词；默认设计引导，要求返回 `action/prompt/explanation` JSON，旧正文保留 |
+| `assistPrompts.builtin` | 界面显示为破限提示词；默认使用 `NARRATIVE SYSTEM INITIALIZATION` 叙事初始化文案，以 `<\|narrative-end\|>` 结束；已保存文本优先，逐字匹配 `LEGACY_INSTRUCTION` 的旧默认会迁移。重置并确认后采用当前默认值；`action/prompt/explanation` JSON 契约由设计请求单独追加 |
 | `assistPrompts.custom` | 界面显示为补充提示词；默认空字符串，与 `builtin` 合并到设计系统消息，旧正文保留 |
 | `assistPrompts.scenario` | 场景生成规则，单独生成、任务自动生成及合并生成共用 |
 | `assistPrompts.judge` | 裁判指令；初次评分采用任务开始时的文案，重评读取最新保存值；解析继续执行原有字段和证据校验 |
