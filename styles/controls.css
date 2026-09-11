@@ -1,7 +1,8 @@
 .yakit-workbench{font-family:Inter,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;font-size:14px;font-synthesis:none;line-height:normal;text-align:left;color:var(--text);background:var(--background);--scroll-thumb:color-mix(in srgb,var(--accent) 35%,transparent)}
 .yakit-workbench[data-theme="light"]{--scroll-thumb:#929BA8}
 :is(.yakit-workbench,.yakit-workbench *){box-sizing:border-box;text-shadow:none;scrollbar-width:thin;scrollbar-color:transparent transparent}
-:is(.yakit-workbench,.yakit-workbench *):hover,:is(.yakit-workbench,.yakit-workbench *):focus-within{scrollbar-color:var(--scroll-thumb) transparent}
+/* 悬停和聚焦不增加优先级，让后面的细滚动条规则始终生效。 */
+:is(.yakit-workbench,.yakit-workbench *):where(:hover,:focus-within){scrollbar-color:var(--scroll-thumb) transparent}
 @supports selector(::-webkit-scrollbar){
   /* 标准属性让位给细滚动条，轨道始终透明。 */
   :is(.yakit-workbench,.yakit-workbench *){scrollbar-width:auto;scrollbar-color:auto}

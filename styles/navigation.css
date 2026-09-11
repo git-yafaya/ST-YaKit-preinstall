@@ -111,6 +111,8 @@
   padding: 20px 24px;
   overflow-x: hidden;
   overflow-y: auto;
+  /* 提前留出滚动条位置，展开或收起内容时保持页面内宽不变。 */
+  scrollbar-gutter: stable;
   overscroll-behavior: contain;
 }
 .yakit-workbench .page{ width: 100%; min-height: 100%; animation: none; }
