@@ -40,8 +40,9 @@
 .yakit-workbench .section-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .yakit-workbench .section-row h3{font-size:13px;font-weight:600}
 .yakit-workbench .section-row h3 span{margin-left:5px;color:var(--muted);font-size:11px;font-weight:400}
-.yakit-workbench .version-picker{flex:1;margin:0}
-.yakit-workbench .version-picker select{width:100%}
+.yakit-workbench .version-picker,.yakit-workbench .version-name{min-width:0;margin:0}
+.yakit-workbench .version-picker select,.yakit-workbench .version-name input{width:100%}
+.yakit-workbench .version-name input{font-size:13px}
 .yakit-workbench .save-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .yakit-workbench .save-row input{flex:1 1 140px;width:0;font-size:13px}
 .yakit-workbench .trial-controls{padding:14px 16px}
@@ -79,13 +80,12 @@
 .yakit-workbench .trial-reading:has(.feedback-section[hidden]){grid-template-columns:1fr}
 .yakit-workbench .trial-result{min-width:0}
 .yakit-workbench .trial-context{font-size:12px;line-height:1.6;color:var(--muted);padding:14px 16px 0}
-.yakit-workbench .version-toolbar{display:flex;gap:14px;align-items:stretch;flex-direction:column}
+.yakit-workbench .version-toolbar{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:stretch}
 .yakit-workbench .version-actions{display:flex;gap:12px;flex-wrap:wrap}
 .yakit-workbench .version-count{margin-left:6px;color:var(--muted);font-size:12px;font-weight:400}
 .yakit-workbench .page-hint{font-size:12px;line-height:1.8;color:var(--muted);margin-top:16px}
 .yakit-workbench .version-empty{padding:48px 0;font-size:14px;line-height:1.8;color:var(--muted)}
 .yakit-workbench .version-details{margin-top:24px;padding-top:8px;border-top:1px solid var(--line)}
-.yakit-workbench .version-title{font-size:16px;font-weight:600;line-height:1.6;overflow-wrap:anywhere;margin:8px 0 16px}
 .yakit-workbench .version-content{font:inherit;font-size:14px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;margin:16px 0 8px}
 .yakit-workbench .settings-content{width:100%}
 .yakit-workbench .settings-content select{width:100%}
@@ -106,7 +106,9 @@
   .yakit-workbench .design-content>.field>textarea{flex:1;resize:none}
   .yakit-workbench .trial-reading{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
   .yakit-workbench .trial-reading .feedback-section{border-top:0;border-left:1px solid var(--line)}
-  .yakit-workbench .version-toolbar{align-items:flex-end;flex-direction:row;gap:20px}
+  /* 名称与版本选择同列，保存和删除按钮放在导出按钮下方。 */
+  .yakit-workbench .version-toolbar{grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:20px}
+  .yakit-workbench .version-actions,.yakit-workbench .version-edit-actions{justify-content:flex-end}
 }
 @media(max-width:480px){
   .yakit-workbench .panel-content,.yakit-workbench .trial-controls,.yakit-workbench .feedback-section{padding:12px}

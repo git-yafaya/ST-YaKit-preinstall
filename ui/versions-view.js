@@ -56,11 +56,9 @@
       $('version-empty').hidden = Boolean(version);
       $('version-empty').textContent = state.versions.length ? '选择一个提示词，查看内容或重新试写。' : '还没有保存的版本。先在工作台完成草稿，再保存为版本。';
       $('version-details').hidden = !version;
-      $('version-title').textContent = version?.label || '';
-      $('version-number').textContent = version ? `版本 ${version.number}` : '';
+      $('version-name').hidden = !version;
+      $('version-edit-actions').hidden = !version;
       $('version-content').textContent = version?.content || '';
-      const savedAt = new Date(version?.createdAt || '');
-      $('version-created-at').textContent = !version ? '' : Number.isNaN(savedAt.getTime()) ? '未记录保存时间' : `保存于 ${savedAt.toLocaleString('zh-CN')}`;
     }
     return { render, title };
   };
