@@ -42,6 +42,7 @@ ST-YaKit-preinstall/
 │   ├── workbench-template.js  # 五页轨道、顶部导航与工作台模板
 │   ├── workbench-view.js      # 状态渲染、通知分发、事件、复制与下载
 │   ├── toast.js               # 轻提示创建、自动消失及卸载清理
+│   ├── select-view.js         # 触屏下拉再次点击收起与事件清理
 │   ├── preset-template.js     # 预设展示页与草稿来源保存控件
 │   ├── preset-view.js         # 预设选择、重读与草稿来源展示
 │   ├── preset-entries-view.js # 全部条目编辑、逐条保存与本次编辑保留
@@ -62,6 +63,7 @@ ST-YaKit-preinstall/
 │   ├── theme.test.mjs         # 主题同步与宿主变量检查
 │   ├── navigation.test.mjs    # 切页、键盘焦点与输入保留检查
 │   ├── launcher.test.mjs      # 原生下拉与退出键事件检查
+│   ├── select-toggle.test.mjs # 触屏下拉事件边界与卸载检查
 │   ├── toast.test.mjs         # 轻提示文本、显示时序与卸载清理
 │   ├── toast-routing.test.mjs # 状态提示去重、重复操作及错误优先
 │   └── dialog-motion.mjs      # 关闭、重新打开与减少动效检查
@@ -73,7 +75,7 @@ ST-YaKit-preinstall/
 扩展菜单入口显示「工作台」，图标由 `styles/launcher.css` 以 CSS 遮罩引用 `ui/workbench.svg`，使用 1em 尺寸和 `currentColor` 跟随菜单文字；图标设置 `aria-hidden`，按钮名称由文字提供。页面顶栏固定显示同一 SVG 图标与「预设工作台」，由 `styles/navigation.css` 设置排版与主题颜色；浏览器标题、宿主对话框和 iframe 名称同步为「预设工作台」。
 
 1. 酒馆根据 `manifest.json` 加载 ES 模块 `index.js`。入口读取 `/script.js` 的 `isGenerating` 和 `getMaxContextTokens`、`/scripts/textgen-settings.js` 的 `getTextGenModel`、世界书模块的当前选择及 Prompt Manager 中启用的静默提示条目。将这些只读能力与实时 `SillyTavern.getContext()` 包装为 `globalThis.YaKitWorkbenchHost.getContext()`，再挂载扩展菜单入口。
-2. 用户首次打开「工作台」时，同源 iframe 加载 `index.html`；关闭对话框仅隐藏容器，保留页面和未提交输入。顶部控件静态位于 `#app` 外，`launcher.js` 在 iframe 加载后将关闭按钮绑定到统一退场函数，应用启动报错时仍保留关闭入口。宿主加载限定到工作台弹窗的 `theme.css` 与 `launcher.css`；iframe 通过 `style.css` 加载界面样式，脚本按 `state → prompts → core/presets → workbench → api → host/presets → st-host → settings-template → theme-view → settings-view → trial-template → versions-template → preset-template → workbench-template → navigation-view → preset-entries-view → preset-view → toast → workbench-view → app` 顺序加载，内部协作命名空间为 `globalThis.YaKitWorkbench`。
+2. 用户首次打开「工作台」时，同源 iframe 加载 `index.html`；关闭对话框仅隐藏容器，保留页面和未提交输入。顶部控件静态位于 `#app` 外，`launcher.js` 在 iframe 加载后将关闭按钮绑定到统一退场函数，应用启动报错时仍保留关闭入口。宿主加载限定到工作台弹窗的 `theme.css` 与 `launcher.css`；iframe 通过 `style.css` 加载界面样式，脚本按 `state → prompts → core/presets → workbench → api → host/presets → st-host → settings-template → theme-view → settings-view → trial-template → versions-template → preset-template → workbench-template → navigation-view → preset-entries-view → preset-view → toast → select-view → workbench-view → app` 顺序加载，内部协作命名空间为 `globalThis.YaKitWorkbench`。
 3. 普通入口由 `app.js` 通过父页面桥加载 `host/trial-context.js` 并创建 `createSillyTavernHost(getContext)`，再创建控制器、恢复保存记录并读取连接列表和当前聊天。页面重新获得焦点时刷新环境；普通入口缺少酒馆桥时显示错误。独立入口 `preview.html` 转到 `index.html?mode=preview`，显式加载示例与 `createLocalHost()`，复用同一套视图；演示请求只返回内置内容。
 4. 需求与草稿输入立即更新内存并排队保存，保留首尾空格和换行。设计请求固定开始时的设置快照，将需求、源草稿、历史设计讨论及本次要求组成消息数组，不附带当前聊天或此前试写正文。
 5. 主 API 设计使用 `generateRaw({prompt, instructOverride: true, trimNames: false})`；副 API 连接配置使用 `ConnectionManagerRequestService.sendRequest`；自定义接口使用 `ChatCompletionService.processRequest`。副 API 请求均关闭流式输出、输出上限为 4096 token。
@@ -179,6 +181,8 @@ ST-YaKit-preinstall/
 按钮沿用主页的圆角、间距、150ms 颜色过渡与按下缩放，禁用态继续由原有状态控制。预设条目名称可换行，操作按钮行空间不足时自动换行。非提交按钮显式使用 `type="button"`；设计和设置表单仍由提交按钮触发。折叠入口保留原生 `details/summary`，反馈保留原生单选输入，键盘操作由浏览器处理。
 
 设置、预设、版本和试写记录共用原生 `select`。支持 `appearance: base-select` 与 `::picker(select)` 时，弹层跟随控件宽度、限制在 iframe 视口内，最高为 `min(320px, 60dvh)`，超长名称换行、过多选项滚动；背景取 `--paper` 的不透明颜色，选中、悬停与焦点使用主题变量，入场为 160ms 淡入与 4px 位移。原生键盘选择、表单提交和动态连接选项保持原有行为。不支持该特性时使用系统选单，并提供选项文字和背景色；系统可能忽略部分样式。
+
+`select-view.js` 在工作台根节点委托 `pointerdown`，覆盖各页和动态新增的下拉框，卸载时移除监听。浏览器支持 `base-select` 和 `:open`，且主触点再次按下已展开、启用的 `select` 本身时，取消默认事件，阻止兼容鼠标按下在原生弹层收起后重新打开列表；实际外观为系统选单时跳过。选项及分组、鼠标、触控笔、键盘和 `input/change` 仍走原有处理。取消主 `pointerdown` 抑制兼容鼠标事件的依据见 [Pointer Events 规范](https://www.w3.org/TR/pointerevents/#compatibility-mapping-with-mouse-events)。
 
 五页正文、讨论区、文本框和选项弹层共用 `controls.css` 的细滚动条与透明轨道。悬停或焦点进入时显示滑块，触屏常显；浅色使用中性灰，其他主题由强调色生成滑块色。支持 WebKit 滚动条伪元素时宽高均为 4px，其余支持标准属性的浏览器使用 `thin`。
 
@@ -320,6 +324,7 @@ UI 代码位于 `ui/`、`styles/`、`style.css` 和页面模板；业务代码�
 | `tests/theme.test.mjs` | 四主题、双容器同步、宿主颜色变化与监听释放 |
 | `tests/navigation.test.mjs` | 页签键盘操作、快捷入口、隐藏页隔离与草稿和滚动保留 |
 | `tests/launcher.test.mjs` | 已处理的 Esc、展开或收起的原生下拉及旧浏览器选择器兼容 |
+| `tests/select-toggle.test.mjs` | 触屏首次与再次点击的事件处理、鼠标与键盘、选项冒泡、系统选单、禁用、不支持增强和卸载；不模拟浏览器原生弹层 |
 | `tests/toast.test.mjs` | 纯文本输出、2300ms 停留、300ms 淡出、状态样式及卸载清理 |
 | `tests/toast-routing.test.mjs` | 普通渲染去重、同文案重复操作、订阅与 catch 去重及错误与本地反馈 |
 | `tests/dialog-motion.mjs` | 退场完成后关闭、重复关闭、重开与减少动态效果 |
@@ -348,5 +353,7 @@ v0.2.9 已通过 26 项本地检查、弹窗动效检查、全部 JavaScript 语
 v0.2.11 已通过 28 项本地检查、弹窗动效与 JavaScript 语法检查。新增检查覆盖 Toast 显示时序、清理、通知去重和重复操作；已逐项核对 Toast 的原有样式声明与纪实一致。界面效果按项目约定由用户人工验收。
 
 v0.2.12 已通过现有导航、预设编辑与通知路由检查，以及修改脚本语法、五页模板结构、控件引用、按钮样式引用和版本一致性检查；已静态核对按钮换行、展开箭头与反馈选中样式。界面效果继续由用户人工验收。
+
+v0.2.13 已通过下拉事件、原生下拉 Esc 和通知路由共 7 项本地检查，以及相关 JavaScript 语法和差异检查。手机端还需人工检查首次展开、再次点击收起、重新展开、点击外部关闭、选项选择和列表滚动。
 
 SillyTavern 验收遵循本机 `AGENTS.md` 的人工流程。从扩展菜单打开工作台，在宽屏与窄屏检查五页尺寸随窗口调整、四周留白、滑动切页、独立滚动、关闭按钮和常驻导航；切换四种主题，核对窗口、控件、滚动条与选项弹层。检查长选项换行、键盘选择、关闭与重新打开保留输入，以及系统减少动态效果设置。在「预设展示」核对全部条目、折叠编辑、逐条保存及载入草稿。真实预设写回、模型调用和完整试写流程继续由用户人工验收。

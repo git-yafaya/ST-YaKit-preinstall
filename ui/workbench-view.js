@@ -7,6 +7,7 @@
     let messageKey = '', versionKey = '', trialKey = '', feedbackKey = '', selection = '';
     let lastNotice = '', lastError = '', shownError = '', errorCount = 0, noticeCount = 0;
     const toast = workbench.createToast(root.ownerDocument);
+    const selects = workbench.mountSelects(root);
     const settings = workbench.mountSettings(controller, root, { run, notify });
     const { openPage } = workbench.mountNavigation(root);
     const presets = workbench.mountPresets(controller, root, { run: action => run(action, true), openPage });
@@ -195,6 +196,6 @@
     }));
     render(controller.getState());
     const unsubscribe = controller.subscribe(render);
-    return () => { unsubscribe(); settings.dispose(); toast.dispose(); };
+    return () => { unsubscribe(); settings.dispose(); selects.dispose(); toast.dispose(); };
   };
 })();
